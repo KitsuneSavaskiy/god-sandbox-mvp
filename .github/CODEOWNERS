@@ -1,13 +1,13 @@
 ﻿# Sensitive and manually approved areas
-/.github/               @KitsuneSavaskiy
-/.codex/                @KitsuneSavaskiy
-/AGENTS.md              @KitsuneSavaskiy
-/package.json           @KitsuneSavaskiy
-/package-lock.json      @KitsuneSavaskiy
-/pnpm-lock.yaml         @KitsuneSavaskiy
-/yarn.lock              @KitsuneSavaskiy
-/tsconfig*.json         @KitsuneSavaskiy
-/vite.config.*          @KitsuneSavaskiy
-/src/core/              @KitsuneSavaskiy
-/src/persistence/       @KitsuneSavaskiy
-/scripts/               @KitsuneSavaskiy
+/.github/               @SongDaZC
+/.codex/                @SongDaZC
+/AGENTS.md              @SongDaZC
+/package.json           @SongDaZC
+/package-lock.json      @SongDaZC
+/pnpm-lock.yaml         @SongDaZC
+/yarn.lock              @SongDaZC
+/tsconfig*.json         @SongDaZC
+/vite.config.*          @SongDaZC
+/src/core/              @SongDaZC
+/src/persistence/       @SongDaZC
+/scripts/               @SongDaZC
