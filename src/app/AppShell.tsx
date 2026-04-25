@@ -1,0 +1,157 @@
+import { useEffect } from "react";
+import { ApostlePanel } from "../features/apostle/ApostlePanel";
+import { CommandConsole } from "../features/commands/CommandConsole";
+import { EventModal } from "../features/events/EventModal";
+import { WorldViewport } from "../features/sandbox/WorldViewport";
+import {
+  getAliveCharacterCount,
+  getBloodlineSummaries,
+  getDayPhase,
+  getFocusedCharacter,
+  getSeason,
+  getStartupProtectionRemaining,
+} from "../domain/world";
+import { useAppState } from "../state/appState";
+
+export function AppShell() {
+  const [state, dispatch] = useAppState();
+  const focusedCharacter = getFocusedCharacter(state);
+  const activeEventTarget = state.activeEvent
+    ? state.characters.find((character) => character.id === state.activeEvent?.targetCharacterId)
+    : undefined;
+  const bloodlines = getBloodlineSummaries(state.characters);
+  const aliveCharacterCount = getAliveCharacterCount(state);
+  const hasLivingCharacters = aliveCharacterCount > 0;
+  const protectionRemaining = getStartupProtectionRemaining(state);
+  const dayPhase = getDayPhase(state.tick);
+  const season = getSeason(state.tick);
+
+  useEffect(() => {
+    if (state.phase === "event" && !state.activeEvent) {
+      dispatch({ type: "recoverEventPhase" });
+    }
+  }, [dispatch, state.activeEvent, state.phase]);
+
+  useEffect(() => {
+    if (state.phase !== "observing" || !hasLivingCharacters || state.timeControl === "stopped") {
+      return undefined;
+    }
+
+    const intervalMs = state.timeControl === "slow" ? 2600 : 1600;
+    const timerId = window.setInterval(() => {
+      dispatch({ type: "tick" });
+    }, intervalMs);
+
+    return () => window.clearInterval(timerId);
+  }, [dispatch, hasLivingCharacters, state.phase, state.timeControl]);
+
+  return (
+    <div className="app-shell">
+      <header className="top-bar">
+        <div>
+          <p className="eyebrow">god sandbox mvp / PBI-001</p>
+          <h1>箱庭観察と重要イベント介入</h1>
+        </div>
+        <div className="top-bar__stats">
+          <span>tick {state.tick}</span>
+          <span>生存 {aliveCharacterCount}</span>
+          <span>年齢更新 {state.ageStep} 回</span>
+          <span>
+            巡り {dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩"} /{" "}
+            {season === "spring"
+              ? "春"
+              : season === "summer"
+                ? "夏"
+                : season === "autumn"
+                  ? "秋"
+                  : "冬"}
+          </span>
+          <span>
+            時間制御{" "}
+            {state.timeControl === "stopped"
+              ? "停止"
+              : state.timeControl === "slow"
+                ? "低速"
+                : "通常"}
+          </span>
+          <span>
+            {state.phase === "event"
+              ? "時間停止中"
+              : hasLivingCharacters
+                ? "観察進行中"
+                : "生存者なし"}
+          </span>
+        </div>
+        <div className="top-bar__controls">
+          <button
+            className={`button button--ghost ${state.timeControl === "stopped" ? "button--active" : ""}`}
+            disabled={state.phase === "event" || !hasLivingCharacters}
+            onClick={() => dispatch({ type: "setTimeControl", timeControl: "stopped" })}
+          >
+            停止
+          </button>
+          <button
+            className={`button button--ghost ${state.timeControl === "slow" ? "button--active" : ""}`}
+            disabled={state.phase === "event" || !hasLivingCharacters}
+            onClick={() => dispatch({ type: "setTimeControl", timeControl: "slow" })}
+          >
+            低速
+          </button>
+          <button
+            className={`button button--ghost ${state.timeControl === "normal" ? "button--active" : ""}`}
+            disabled={state.phase === "event" || !hasLivingCharacters}
+            onClick={() => dispatch({ type: "setTimeControl", timeControl: "normal" })}
+          >
+            通常
+          </button>
+          <button
+            className="button button--ghost"
+            disabled={state.phase === "event" || !hasLivingCharacters}
+            onClick={() => dispatch({ type: "stepTick" })}
+          >
+            1 tick
+          </button>
+        </div>
+      </header>
+
+      <main className="main-layout">
+        <section className="viewport-panel">
+          <WorldViewport
+            characters={state.characters}
+            focusCharacterId={state.focusCharacterId}
+            dayPhase={dayPhase}
+            paused={state.phase === "event"}
+            season={season}
+          />
+        </section>
+
+        <aside className="sidebar">
+          <ApostlePanel
+            apostleMessage={state.apostleMessage}
+            focusedCharacter={focusedCharacter}
+            characters={state.characters}
+            bloodlines={bloodlines}
+            latestEventSummary={state.latestEventSummary}
+            protectionRemaining={protectionRemaining}
+            hasLivingCharacters={hasLivingCharacters}
+            paused={state.phase === "event"}
+            onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
+            onTriggerManualEvent={() => dispatch({ type: "triggerManualEvent" })}
+          />
+
+          <CommandConsole
+            disabled={state.phase === "event" || !hasLivingCharacters}
+            logs={state.logs}
+            onSubmit={(input) => dispatch({ type: "submitCommand", input })}
+          />
+        </aside>
+      </main>
+
+      <EventModal
+        event={state.activeEvent}
+        targetCharacter={activeEventTarget}
+        onResolve={(intervention) => dispatch({ type: "resolveEvent", intervention })}
+      />
+    </div>
+  );
+}
