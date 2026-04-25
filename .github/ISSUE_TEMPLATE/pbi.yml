@@ -1,0 +1,45 @@
+﻿name: PBI
+description: Structured task for Codex
+title: "[PBI] "
+labels:
+  - codex
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What should be achieved
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+      description: Explicitly included
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope
+      description: Explicitly excluded
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What must be true when finished
+    validations:
+      required: true
+
+  - type: textarea
+    id: risk
+    attributes:
+      label: Risk / caution
+      description: Sensitive or manual-review cases
+    validations:
+      required: false

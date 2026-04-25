@@ -1,0 +1,86 @@
+﻿name: Routine PR Guardian
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, labeled, ready_for_review]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  guard:
+    if: ${{ github.event.pull_request.draft == false }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide route
+        id: decide
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const labels = pr.labels.map(l => l.name);
+
+            const protectedPatterns = [
+              '.github/',
+              '.codex/',
+              'AGENTS.md',
+              'package.json',
+              'package-lock.json',
+              'pnpm-lock.yaml',
+              'yarn.lock',
+              'tsconfig',
+              'vite.config',
+              'src/core/',
+              'src/persistence/',
+              'scripts/'
+            ];
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100
+            });
+
+            const touchesProtected = files.some(f =>
+              protectedPatterns.some(p =>
+                f.filename === p || f.filename.startsWith(p)
+              )
+            );
+
+            const hasManual = labels.includes('manual-review-required');
+            const hasRoutine = labels.includes('agent-routine');
+
+            if (touchesProtected && !hasManual) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                labels: ['manual-review-required']
+              });
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: 'Protected paths were changed, so this PR was routed to manual review.'
+              });
+            }
+
+            core.setOutput('routine', String(hasRoutine && !hasManual && !touchesProtected));
+
+      - name: Approve routine PR
+        if: steps.decide.outputs.routine == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr review ${{ github.event.pull_request.number }} --approve --body "Routine PR auto-approved by guardian workflow."
+
+      - name: Enable auto-merge for routine PR
+        if: steps.decide.outputs.routine == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr merge ${{ github.event.pull_request.number }} --auto --squash --delete-branch

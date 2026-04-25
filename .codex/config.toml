@@ -1,0 +1,11 @@
+﻿approval_policy = "on-request"
+approvals_reviewer = "user"
+sandbox_mode = "workspace-write"
+web_search = "disabled"
+
+[sandbox_workspace_write]
+network_access = false
+
+[windows]
+sandbox = "elevated"
+sandbox_private_desktop = true
