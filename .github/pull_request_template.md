@@ -20,3 +20,5 @@
 
 ## Notes for reviewer
 - 
+
+Manual protected-path smoke test 2.
