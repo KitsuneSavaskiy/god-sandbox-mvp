@@ -17,6 +17,15 @@ interface ApostlePanelProps {
   onTriggerManualEvent: () => void;
 }
 
+function getPortraitGuide(name?: string) {
+  return {
+    subjectLabel: "アート基準キャラ: Ryo（後続PBIで正式追加）",
+    toneLabel: name ? `仮接続先: ${name}` : "仮接続先: なし",
+    expressionLine: "推奨差分: 平静 / 気づき / 緊張 / 覚悟",
+    note: "この枠は、後で Ryo の表情差分を差し込むための generic な仮受け皿です。",
+  };
+}
+
 export function ApostlePanel({
   apostleMessage,
   focusedCharacter,
@@ -37,6 +46,7 @@ export function ApostlePanel({
     setNotesExpanded(false);
   }, [focusedCharacter?.id]);
 
+  const portraitGuide = getPortraitGuide(focusedCharacter?.name);
   const latestNotable = focusedCharacter
     ? focusedCharacter.notable[focusedCharacter.notable.length - 1] ?? null
     : null;
@@ -125,6 +135,20 @@ export function ApostlePanel({
           <p>この PBI では箱庭の観察をここで停止し、残されたログだけを確認できます。</p>
         </div>
       ) : null}
+
+      <div className="subpanel art-receptacle">
+        <div className="summary-card__header">
+          <h3>アート受け皿</h3>
+          <span className="placeholder-chip">仮枠</span>
+        </div>
+        <div className="art-slot art-slot--portrait">
+          <span className="art-slot__eyebrow">portrait slot / placeholder</span>
+          <strong>{portraitGuide.subjectLabel}</strong>
+          <span>{portraitGuide.toneLabel}</span>
+          <span>{portraitGuide.expressionLine}</span>
+          <p className="summary-note">{portraitGuide.note}</p>
+        </div>
+      </div>
 
       <div className="stack">
         <div className="subpanel">

@@ -49,6 +49,26 @@ function buildRollingState(
   };
 }
 
+function getEventArtGuide(event: WorldEvent, targetCharacter?: Character) {
+  const subjectName = targetCharacter?.name ?? event.targetCharacterName;
+
+  switch (event.trigger) {
+    case "warning":
+      return {
+        portraitLine: `仮表示対象: ${subjectName} / 危機前表情を置く仮枠`,
+        illustrationLine: "Ryo 基準の感情挿絵を後差しするための仮枠",
+        shotLine: "推奨構図: 顔寄り + 背景の不穏",
+      };
+    case "manual":
+    default:
+      return {
+        portraitLine: `仮表示対象: ${subjectName} / 受け止め表情を置く仮枠`,
+        illustrationLine: "Ryo 基準のイベント挿絵を後差しするための仮枠",
+        shotLine: "推奨構図: 上空からの光 + 視線誘導",
+      };
+  }
+}
+
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
   const [rollingState, setRollingState] = useState<RollingState | null>(null);
   const [rollingValue, setRollingValue] = useState(1);
@@ -129,6 +149,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     event.presetIntervention === "bless" || event.presetIntervention === "test"
       ? event.presetIntervention
       : null;
+  const eventArtGuide = getEventArtGuide(event, targetCharacter);
   const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
   const isRolling =
     !!presetPreviewIntervention || rollingState?.intervention === "bless" || rollingState?.intervention === "test";
@@ -183,8 +204,16 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     <div className="modal-backdrop" role="presentation">
       <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="event-title">
         <div className="modal-card__media">
-          <div className="event-portrait">
-            <span>{targetCharacter?.name ?? event.targetCharacterName}</span>
+          <div className="art-slot art-slot--portrait">
+            <span className="art-slot__eyebrow">portrait slot / placeholder</span>
+            <strong>基準キャラ: Ryo（未接続）</strong>
+            <span>{eventArtGuide.portraitLine}</span>
+          </div>
+          <div className="art-slot art-slot--illustration">
+            <span className="art-slot__eyebrow">event illustration slot / placeholder</span>
+            <strong>{triggerLabels[event.trigger]} の挿絵仮枠</strong>
+            <span>{eventArtGuide.illustrationLine}</span>
+            <span>{eventArtGuide.shotLine}</span>
           </div>
         </div>
 

@@ -337,6 +337,50 @@ button {
   padding: 0.65rem 0.75rem;
 }
 
+.art-receptacle {
+  gap: 0.75rem;
+}
+
+.placeholder-chip {
+  border: 1px dashed rgba(246, 196, 83, 0.45);
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  color: #f6d98c;
+  font-size: 0.82rem;
+}
+
+.art-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 120px;
+  justify-content: center;
+  border: 1px dashed rgba(246, 196, 83, 0.42);
+  border-radius: 14px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(246, 196, 83, 0.06),
+      rgba(246, 196, 83, 0.06) 12px,
+      rgba(255, 255, 255, 0.02) 12px,
+      rgba(255, 255, 255, 0.02) 24px
+    ),
+    rgba(255, 255, 255, 0.03);
+  padding: 0.9rem;
+  color: #e9eef6;
+}
+
+.art-slot--illustration {
+  min-height: 168px;
+}
+
+.art-slot__eyebrow {
+  color: #f6d98c;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .event-cause {
   margin-top: 0.85rem;
 }
@@ -481,19 +525,8 @@ button {
 
 .modal-card__media {
   display: flex;
-}
-
-.event-portrait {
-  display: grid;
-  flex: 1;
-  place-items: center;
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at top, rgba(246, 196, 83, 0.4), transparent 35%),
-    linear-gradient(180deg, #1c2a40 0%, #0f1621 100%);
-  color: #fff4d1;
-  font-size: 1.5rem;
-  font-weight: 700;
+  flex-direction: column;
+  gap: 0.85rem;
 }
 
 .modal-card__body {
