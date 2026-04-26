@@ -35,6 +35,12 @@ const RYO_PORTRAITS = {
   divine: "/art/portraits/ryo/ryo_divine.jpeg",
 } as const;
 
+const RYO_ILLUSTRATIONS = {
+  watch: "/art/illustrations/ryo/ryo_watch.jpeg",
+  bless: "/art/illustrations/ryo/ryo_bless.jpeg",
+  test: "/art/illustrations/ryo/ryo_test.jpeg",
+} as const;
+
 interface RollingState {
   intervention: "bless" | "test";
   judgement: JudgementResult;
@@ -63,18 +69,55 @@ function getEventArtGuide(event: WorldEvent, targetCharacter?: Character) {
   switch (event.trigger) {
     case "warning":
       return {
-        portraitLine: `仮表示対象: ${subjectName} / 危機前表情を置く仮枠`,
+        portraitLine: `表示対象: ${subjectName} / 危機前表情を表示`,
         illustrationLine: "Ryo 基準の感情挿絵を後差しするための仮枠",
         shotLine: "推奨構図: 顔寄り + 背景の不穏",
       };
     case "manual":
     default:
       return {
-        portraitLine: `仮表示対象: ${subjectName} / 受け止め表情を置く仮枠`,
+        portraitLine: `表示対象: ${subjectName} / 受け止め表情を表示`,
         illustrationLine: "Ryo 基準のイベント挿絵を後差しするための仮枠",
         shotLine: "推奨構図: 上空からの光 + 視線誘導",
       };
   }
+}
+
+function getModalIllustrationSlot(
+  activeIntervention: InterventionKind | null,
+): {
+  kind: "watch" | "bless" | "test";
+  src: string;
+  title: string;
+  note: string;
+} {
+  const kind =
+    activeIntervention === "bless" || activeIntervention === "test" ? activeIntervention : "watch";
+
+  if (kind === "bless") {
+    return {
+      kind,
+      src: RYO_ILLUSTRATIONS.bless,
+      title: "Bless illustration slot",
+      note: "加護の介入挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+    };
+  }
+
+  if (kind === "test") {
+    return {
+      kind,
+      src: RYO_ILLUSTRATIONS.test,
+      title: "Test illustration slot",
+      note: "試練の介入挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+    };
+  }
+
+  return {
+    kind,
+    src: RYO_ILLUSTRATIONS.watch,
+    title: "Watch illustration slot",
+    note: "観察の基準挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+  };
 }
 
 function getModalPortraitSrc(params: {
@@ -119,11 +162,13 @@ function getModalPortraitSrc(params: {
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
   const [rollingState, setRollingState] = useState<RollingState | null>(null);
   const [rollingValue, setRollingValue] = useState(1);
+  const [illustrationLoadFailed, setIllustrationLoadFailed] = useState(false);
   const confirmLockRef = useRef(false);
 
   useEffect(() => {
     setRollingState(null);
     setRollingValue(1);
+    setIllustrationLoadFailed(false);
     confirmLockRef.current = false;
   }, [event?.id]);
 
@@ -208,7 +253,12 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     judgementPreview,
     revealed: rollingState?.revealed ?? false,
   });
+  const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
+
+  useEffect(() => {
+    setIllustrationLoadFailed(false);
+  }, [illustrationSlot.src]);
 
   const handleResolve = (intervention: InterventionKind) => {
     if (intervention === "watch") {
@@ -266,15 +316,35 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             />
             <div className="art-slot__meta">
               <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
-              <strong>基準キャラ: Ryo（未接続）</strong>
+              <strong>基準キャラ: Ryo（portrait 接続済み）</strong>
               <span>{eventArtGuide.portraitLine}</span>
             </div>
           </div>
           <div className="art-slot art-slot--illustration">
-            <span className="art-slot__eyebrow">event illustration slot / placeholder</span>
-            <strong>{triggerLabels[event.trigger]} の挿絵仮枠</strong>
-            <span>{eventArtGuide.illustrationLine}</span>
-            <span>{eventArtGuide.shotLine}</span>
+            {illustrationLoadFailed ? (
+              <>
+                <span className="art-slot__eyebrow">{illustrationSlot.title} / placeholder</span>
+                <strong>{triggerLabels[event.trigger]} の挿絵仮枠</strong>
+                <span>{illustrationSlot.note}</span>
+                <span>{eventArtGuide.illustrationLine}</span>
+                <span>{eventArtGuide.shotLine}</span>
+              </>
+            ) : (
+              <>
+                <img
+                  className="art-slot__image art-slot__image--illustration"
+                  src={illustrationSlot.src}
+                  alt={`${illustrationSlot.kind} illustration preview`}
+                  onError={() => setIllustrationLoadFailed(true)}
+                />
+                <div className="art-slot__meta">
+                  <span className="art-slot__eyebrow">{illustrationSlot.title}</span>
+                  <strong>{triggerLabels[event.trigger]} の挿絵接続</strong>
+                  <span>{illustrationSlot.note}</span>
+                  <span>{eventArtGuide.shotLine}</span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
