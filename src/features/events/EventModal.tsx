@@ -164,6 +164,12 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const [rollingValue, setRollingValue] = useState(1);
   const [illustrationLoadFailed, setIllustrationLoadFailed] = useState(false);
   const confirmLockRef = useRef(false);
+  const presetPreviewIntervention =
+    event?.presetIntervention === "bless" || event?.presetIntervention === "test"
+      ? event.presetIntervention
+      : null;
+  const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
+  const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
 
   useEffect(() => {
     setRollingState(null);
@@ -233,16 +239,15 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [rollingState]);
 
+  useEffect(() => {
+    setIllustrationLoadFailed(false);
+  }, [illustrationSlot.src]);
+
   if (!event) {
     return null;
   }
 
-  const presetPreviewIntervention =
-    event.presetIntervention === "bless" || event.presetIntervention === "test"
-      ? event.presetIntervention
-      : null;
   const eventArtGuide = getEventArtGuide(event, targetCharacter);
-  const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
   const isRolling =
     !!presetPreviewIntervention || rollingState?.intervention === "bless" || rollingState?.intervention === "test";
   const judgementPreview = rollingState?.judgement ?? null;
@@ -253,12 +258,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     judgementPreview,
     revealed: rollingState?.revealed ?? false,
   });
-  const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
-
-  useEffect(() => {
-    setIllustrationLoadFailed(false);
-  }, [illustrationSlot.src]);
 
   const handleResolve = (intervention: InterventionKind) => {
     if (intervention === "watch") {
