@@ -17,7 +17,36 @@ interface ApostlePanelProps {
   onTriggerManualEvent: () => void;
 }
 
-const RYO_PORTRAIT_NORMAL = "/art/portraits/ryo/ryo_normal.jpeg";
+const RYO_PORTRAITS = {
+  normal: "/art/portraits/ryo/ryo_normal.jpeg",
+  tense: "/art/portraits/ryo/ryo_tense.jpeg",
+  sadness: "/art/portraits/ryo/ryo_sadness.jpeg",
+  joy: "/art/portraits/ryo/ryo_joy.jpeg",
+  divine: "/art/portraits/ryo/ryo_divine.jpeg",
+} as const;
+
+function getPanelPortraitSrc(paused: boolean, latestJudgement: JudgementResult | null) {
+  if (paused) {
+    return RYO_PORTRAITS.tense;
+  }
+
+  if (latestJudgement?.rank === "critical") {
+    return RYO_PORTRAITS.divine;
+  }
+
+  if (latestJudgement?.rank === "failure" || latestJudgement?.rank === "fumble") {
+    return RYO_PORTRAITS.sadness;
+  }
+
+  if (
+    latestJudgement?.action === "bless" &&
+    (latestJudgement.rank === "success" || latestJudgement.rank === "greatSuccess")
+  ) {
+    return RYO_PORTRAITS.joy;
+  }
+
+  return RYO_PORTRAITS.normal;
+}
 
 function getPortraitGuide(name?: string) {
   return {
@@ -53,6 +82,7 @@ export function ApostlePanel({
     ? focusedCharacter.notable[focusedCharacter.notable.length - 1] ?? null
     : null;
   const recentNotables = focusedCharacter ? [...focusedCharacter.notable].slice(-3).reverse() : [];
+  const portraitSrc = getPanelPortraitSrc(paused, latestJudgement);
 
   return (
     <section className="panel">
@@ -146,7 +176,7 @@ export function ApostlePanel({
         <div className="art-slot art-slot--portrait art-slot--with-image">
           <img
             className="art-slot__image"
-            src={RYO_PORTRAIT_NORMAL}
+            src={portraitSrc}
             alt="Ryo portrait base"
           />
           <div className="art-slot__meta">

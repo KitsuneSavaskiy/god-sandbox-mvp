@@ -82,8 +82,17 @@ function getModalPortraitSrc(params: {
   targetCharacter?: Character;
   activeIntervention: "bless" | "test" | null;
   judgementPreview: JudgementResult | null;
+  revealed: boolean;
 }) {
-  const { event, targetCharacter, activeIntervention, judgementPreview } = params;
+  const { event, targetCharacter, activeIntervention, judgementPreview, revealed } = params;
+
+  if (!revealed) {
+    if (activeIntervention === "test" || event.trigger === "warning") {
+      return RYO_PORTRAITS.tense;
+    }
+
+    return RYO_PORTRAITS.normal;
+  }
 
   if (judgementPreview?.rank === "critical") {
     return RYO_PORTRAITS.divine;
@@ -102,10 +111,6 @@ function getModalPortraitSrc(params: {
     (event.trigger === "warning" && (targetCharacter?.lifespanRemaining ?? 99) <= 1 && !activeIntervention)
   ) {
     return RYO_PORTRAITS.sadness;
-  }
-
-  if (activeIntervention === "test" || event.trigger === "warning") {
-    return RYO_PORTRAITS.tense;
   }
 
   return RYO_PORTRAITS.normal;
@@ -201,6 +206,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     targetCharacter,
     activeIntervention: activeRollingIntervention,
     judgementPreview,
+    revealed: rollingState?.revealed ?? false,
   });
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
 
