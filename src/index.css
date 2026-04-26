@@ -707,3 +707,82 @@ button {
     min-height: 360px;
   }
 }
+
+/* Login screen */
+.login-screen {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1rem;
+}
+
+.login-card {
+  display: flex;
+  width: min(440px, 100%);
+  flex-direction: column;
+  gap: 1.25rem;
+  border: 1px solid rgba(146, 175, 199, 0.18);
+  border-radius: 20px;
+  background: rgba(8, 17, 28, 0.92);
+  padding: 2rem 1.75rem;
+}
+
+.login-card__title {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.login-card__description {
+  margin: 0;
+  color: #9ab0c2;
+  line-height: 1.7;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.login-form__input {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #f4f7fb;
+  padding: 0.72rem 0.9rem;
+  font: inherit;
+}
+
+.login-form__input:focus {
+  outline: 1px solid rgba(93, 137, 216, 0.65);
+}
+
+.login-form__input--error {
+  outline: 1px solid rgba(232, 110, 110, 0.65);
+}
+
+.login-form__error {
+  margin: 0;
+  color: #f0b29f;
+  font-size: 0.88rem;
+}
+
+.login-form__submit {
+  align-self: flex-start;
+}
+
+/* Top-bar user section */
+.top-bar__user {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.top-bar__user-name {
+  max-width: 200px;
+  overflow: hidden;
+  color: #9ab0c2;
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
