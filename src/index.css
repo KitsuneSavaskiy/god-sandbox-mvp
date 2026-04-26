@@ -216,6 +216,30 @@ button {
   gap: 0.7rem;
 }
 
+.viewport-overlay__controls {
+  pointer-events: auto;
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  align-items: flex-end;
+}
+
+.viewport-overlay__chip--controls {
+  align-self: auto;
+}
+
+.viewport-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.viewport-controls__button {
+  min-width: 2.8rem;
+}
+
 .status-dot {
   display: inline-block;
   width: 0.55rem;
@@ -291,6 +315,75 @@ button {
   margin: 0.6rem 0 0;
   color: #9ab0c2;
   font-size: 0.92rem;
+}
+
+.notes-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.notes-toggle {
+  align-self: flex-start;
+}
+
+.notes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.65rem 0.75rem;
+}
+
+.event-cause {
+  margin-top: 0.85rem;
+}
+
+.judgement-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.judgement-grid,
+.judgement-changes {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.judgement-rank {
+  border-radius: 999px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.82rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.judgement-rank--fumble {
+  background: rgba(168, 52, 52, 0.2);
+  color: #f0b29f;
+}
+
+.judgement-rank--failure {
+  background: rgba(80, 95, 116, 0.22);
+  color: #f6d98c;
+}
+
+.judgement-rank--success {
+  background: rgba(93, 137, 216, 0.16);
+  color: #bed8f8;
+}
+
+.judgement-rank--greatSuccess {
+  background: rgba(107, 225, 141, 0.16);
+  color: #b4efc0;
+}
+
+.judgement-rank--critical {
+  background: rgba(247, 210, 90, 0.18);
+  color: #ffe9a8;
 }
 
 .bloodline-grid,
@@ -413,6 +506,136 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
+}
+
+.roll-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 1rem;
+  text-align: center;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.roll-panel p {
+  margin: 0;
+}
+
+.roll-panel .subpanel,
+.roll-panel .event-actions {
+  align-self: stretch;
+}
+
+.roll-panel--rolling {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.roll-panel--test {
+  box-shadow: inset 0 0 0 1px rgba(203, 93, 93, 0.18);
+}
+
+.roll-panel--test.roll-panel--rolling .roll-panel__die {
+  animation: test-pulse 0.35s ease-in-out infinite alternate;
+}
+
+.roll-panel--critical {
+  border: 1px solid rgba(247, 210, 90, 0.65);
+  background: rgba(247, 210, 90, 0.1);
+  box-shadow: 0 0 22px rgba(247, 210, 90, 0.18);
+}
+
+.roll-panel--greatSuccess {
+  border: 1px solid rgba(149, 235, 183, 0.55);
+  background: rgba(107, 225, 141, 0.1);
+  box-shadow: 0 0 18px rgba(107, 225, 141, 0.16);
+}
+
+.roll-panel--success {
+  border: 1px solid rgba(139, 180, 244, 0.45);
+  background: rgba(93, 137, 216, 0.1);
+}
+
+.roll-panel--failure {
+  border: 1px solid rgba(108, 126, 151, 0.4);
+  background: rgba(80, 95, 116, 0.12);
+}
+
+.roll-panel--fumble {
+  border: 1px solid rgba(232, 110, 110, 0.55);
+  background: rgba(168, 52, 52, 0.15);
+  box-shadow: 0 0 18px rgba(168, 52, 52, 0.16);
+}
+
+.roll-panel__die {
+  display: grid;
+  width: 4.25rem;
+  height: 4.25rem;
+  place-items: center;
+  border: 1px solid rgba(246, 196, 83, 0.4);
+  border-radius: 16px;
+  background: rgba(246, 196, 83, 0.12);
+  color: #fff4d1;
+  font-size: 1.8rem;
+  font-weight: 700;
+  transition:
+    transform 0.18s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.roll-panel__die--rolling {
+  transform: rotate(-4deg) scale(1.02);
+}
+
+.roll-panel__die--test {
+  box-shadow: 0 0 18px rgba(168, 52, 52, 0.14);
+}
+
+@keyframes test-pulse {
+  from {
+    transform: rotate(-4deg) scale(1.01);
+    box-shadow: 0 0 10px rgba(168, 52, 52, 0.14);
+  }
+
+  to {
+    transform: rotate(2deg) scale(1.06);
+    box-shadow: 0 0 18px rgba(232, 110, 110, 0.24);
+  }
+}
+
+.roll-panel__die--critical {
+  border-color: rgba(247, 210, 90, 0.85);
+  background: rgba(247, 210, 90, 0.24);
+  box-shadow: 0 0 18px rgba(247, 210, 90, 0.28);
+}
+
+.roll-panel__die--greatSuccess {
+  border-color: rgba(149, 235, 183, 0.72);
+  background: rgba(107, 225, 141, 0.2);
+  box-shadow: 0 0 16px rgba(107, 225, 141, 0.22);
+}
+
+.roll-panel__die--success {
+  border-color: rgba(139, 180, 244, 0.72);
+  background: rgba(93, 137, 216, 0.2);
+}
+
+.roll-panel__die--failure {
+  border-color: rgba(147, 160, 177, 0.6);
+  background: rgba(74, 85, 104, 0.22);
+}
+
+.roll-panel__die--fumble {
+  border-color: rgba(232, 110, 110, 0.78);
+  background: rgba(168, 52, 52, 0.24);
+  box-shadow: 0 0 16px rgba(168, 52, 52, 0.22);
 }
 
 @media (max-width: 980px) {

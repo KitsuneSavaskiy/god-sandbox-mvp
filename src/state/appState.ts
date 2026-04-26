@@ -10,7 +10,7 @@ import {
   submitCommand,
   triggerManualEvent,
 } from "../domain/world";
-import type { InterventionKind, TimeControl, WorldState } from "../domain/types";
+import type { InterventionKind, JudgementResult, TimeControl, WorldState } from "../domain/types";
 
 type AppAction =
   | { type: "tick" }
@@ -20,7 +20,7 @@ type AppAction =
   | { type: "triggerManualEvent" }
   | { type: "submitCommand"; input: string }
   | { type: "recoverEventPhase" }
-  | { type: "resolveEvent"; intervention: InterventionKind };
+  | { type: "resolveEvent"; intervention: InterventionKind; judgement?: JudgementResult };
 
 function appReducer(state: WorldState, action: AppAction): WorldState {
   const safeState = recoverStalledEventState(state);
@@ -41,7 +41,7 @@ function appReducer(state: WorldState, action: AppAction): WorldState {
     case "recoverEventPhase":
       return recoverStalledEventState(safeState);
     case "resolveEvent":
-      return resolveActiveEvent(safeState, action.intervention);
+      return resolveActiveEvent(safeState, action.intervention, action.judgement);
     default:
       return safeState;
   }

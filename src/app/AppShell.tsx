@@ -132,6 +132,8 @@ export function AppShell() {
             characters={state.characters}
             bloodlines={bloodlines}
             latestEventSummary={state.latestEventSummary}
+            latestJudgement={state.latestJudgement}
+            momentum={state.momentum}
             protectionRemaining={protectionRemaining}
             hasLivingCharacters={hasLivingCharacters}
             paused={state.phase === "event"}
@@ -150,7 +152,9 @@ export function AppShell() {
       <EventModal
         event={state.activeEvent}
         targetCharacter={activeEventTarget}
-        onResolve={(intervention) => dispatch({ type: "resolveEvent", intervention })}
+        tick={state.tick}
+        momentum={state.momentum}
+        onResolve={(intervention, judgement) => dispatch({ type: "resolveEvent", intervention, judgement })}
       />
     </div>
   );

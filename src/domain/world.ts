@@ -4,6 +4,7 @@ import type {
   DayPhase,
   EventSummary,
   InterventionKind,
+  JudgementResult,
   LogEntry,
   Season,
   TimeControl,
@@ -206,11 +207,45 @@ function getInterventionDescription(trigger: WorldEvent["trigger"], target: Char
   }
 }
 
-function buildInterventionEvent(target: Character, trigger: "manual" | "warning", tick: number): WorldEvent {
+function getInterventionTriggerSummary(trigger: WorldEvent["trigger"], target: Character) {
+  switch (trigger) {
+    case "warning":
+      return `発火条件: ${target.name} の残寿命が ${target.lifespanRemaining} となり、命運警告が立ちました。`;
+    case "manual":
+    default:
+      return `発火条件: 神の命令で ${target.name} への手動イベントが呼び出されました。`;
+  }
+}
+
+function getInterventionCauseSummary(trigger: WorldEvent["trigger"], target: Character) {
+  const latestNotable = target.notable[target.notable.length - 1];
+
+  switch (trigger) {
+    case "warning":
+      return latestNotable
+        ? `直前の兆し: 「${latestNotable}」を抱えた ${target.name} の命火が限界に近づきました。`
+        : `${target.name} の寿命低下が続き、介入が必要な臨界点に達しました。`;
+    case "manual":
+    default:
+      return latestNotable
+        ? `対象との関係: いま注目している ${target.name} は「${latestNotable}」の余韻を残しています。`
+        : `対象との関係: いま注目している ${target.name} に、使徒が神託の場を整えました。`;
+  }
+}
+
+function buildInterventionEvent(
+  target: Character,
+  trigger: "manual" | "warning",
+  tick: number,
+  presetIntervention?: InterventionKind,
+): WorldEvent {
   return {
     id: `event-${tick}-${target.id}-${trigger}`,
     title: getInterventionTitle(trigger, target),
     description: getInterventionDescription(trigger, target),
+    triggerSummary: getInterventionTriggerSummary(trigger, target),
+    causeSummary: getInterventionCauseSummary(trigger, target),
+    presetIntervention,
     trigger,
     layer: "intervention",
     targetCharacterId: target.id,
@@ -251,17 +286,6 @@ function buildMilestoneSummary(target: Character, tick: number): EventSummary {
   );
 }
 
-function buildWarningSummary(target: Character, tick: number): EventSummary {
-  return createSummary(
-    "notable",
-    "warning",
-    `${target.name} の命火が弱まっています`,
-    `${target.name} の残寿命は ${target.lifespanRemaining}。まだ止めずに観察できますが、見逃せない変化です。`,
-    target.name,
-    tick,
-  );
-}
-
 function buildDeathSummary(target: Character, tick: number, deathReason: string): EventSummary {
   return createSummary(
     "notable",
@@ -290,6 +314,7 @@ function beginEvent(state: WorldState, event: WorldEvent, apostleMessage: string
     activeEvent: event,
     apostleMessage,
     latestEventSummary: summary,
+    latestJudgement: null,
   };
 
   return pushLog(withFocus, "event", `${event.title}: ${event.description}`);
@@ -327,6 +352,345 @@ function getDeathReason(character: Character): string {
   }
 
   return "静かに寿命を迎えました。";
+}
+
+function clampLifespan(value: number) {
+  return Math.max(0, value);
+}
+
+function appendNotable(character: Character, entry: string): Character {
+  return {
+    ...character,
+    notable: [...character.notable, entry].slice(-4),
+  };
+}
+
+export function getInterventionModifier(
+  character: Character,
+  intervention: "bless" | "test",
+  momentum = 0,
+) {
+  let modifier = 0;
+
+  if (intervention === "bless" && character.favorite) {
+    modifier += 1;
+  }
+
+  if (intervention === "test" && character.notable.length >= 2) {
+    modifier += 1;
+  }
+
+  if (intervention === "test") {
+    modifier += Math.min(momentum, 2);
+  }
+
+  if (character.lifespanRemaining <= 1) {
+    modifier -= 1;
+  }
+
+  return modifier;
+}
+
+export function rankJudgement(roll: number, total: number): JudgementResult["rank"] {
+  if (roll === 1) {
+    return "fumble";
+  }
+
+  if (roll === 20) {
+    return "critical";
+  }
+
+  if (total >= 18) {
+    return "greatSuccess";
+  }
+
+  if (total >= 11) {
+    return "success";
+  }
+
+  return "failure";
+}
+
+export function getJudgementRankLabel(rank: JudgementResult["rank"]) {
+  switch (rank) {
+    case "critical":
+      return "クリティカル";
+    case "greatSuccess":
+      return "大成功";
+    case "success":
+      return "成功";
+    case "failure":
+      return "失敗";
+    case "fumble":
+    default:
+      return "ファンブル";
+  }
+}
+
+export function previewJudgement(
+  character: Character,
+  intervention: "bless" | "test",
+  tick: number,
+  trigger: WorldEvent["trigger"],
+  momentum: number,
+  roll = Math.floor(Math.random() * 20) + 1,
+): JudgementResult {
+  return intervention === "bless"
+    ? buildBlessJudgement(character, trigger, tick, roll)
+    : buildTestJudgement(character, tick, momentum, roll);
+}
+
+function createJudgement(
+  action: "bless" | "test",
+  targetCharacterName: string,
+  modifier: number,
+  tick: number,
+  roll = Math.floor(Math.random() * 20) + 1,
+): JudgementResult {
+  const total = roll + modifier;
+
+  return {
+    action,
+    targetCharacterName,
+    formula: `1d20 ${modifier >= 0 ? `+ ${modifier}` : `- ${Math.abs(modifier)}`}`,
+    roll,
+    modifier,
+    total,
+    rank: rankJudgement(roll, total),
+    effect: "",
+    sideEffect: null,
+    changes: [],
+    tick,
+  };
+}
+
+function buildBlessJudgement(
+  character: Character,
+  trigger: WorldEvent["trigger"],
+  tick: number,
+  roll?: number,
+): JudgementResult {
+  const judgement = createJudgement(
+    "bless",
+    character.name,
+    getInterventionModifier(character, "bless"),
+    tick,
+    roll,
+  );
+
+  switch (judgement.rank) {
+    case "critical":
+      judgement.effect = "奇跡的な加護が降り、残寿命 +3 / 加護 +1。";
+      break;
+    case "greatSuccess":
+      judgement.effect = "強い加護が届き、残寿命 +2 / 加護 +1。";
+      break;
+    case "success":
+      judgement.effect = "加護がしっかり届き、残寿命 +2。";
+      break;
+    case "failure":
+      judgement.effect = "祈りは届きましたが、はっきりした加護にはなりませんでした。";
+      judgement.sideEffect = "変化はほとんど起きませんでした。";
+      break;
+    case "fumble":
+    default:
+      judgement.effect = "祈りが乱れ、命火がやや弱まりました。";
+      judgement.sideEffect = "残寿命が 1 減少しました。";
+      break;
+  }
+
+  judgement.changes = [
+    {
+      label: "加護",
+      before: character.blessings,
+      after:
+        judgement.rank === "critical" || judgement.rank === "greatSuccess"
+          ? character.blessings + 1
+          : character.blessings,
+    },
+    {
+      label: "残寿命",
+      before: character.lifespanRemaining,
+      after:
+        judgement.rank === "critical"
+          ? character.lifespanRemaining + 3
+          : judgement.rank === "greatSuccess" || judgement.rank === "success"
+            ? character.lifespanRemaining + 2
+            : judgement.rank === "fumble"
+              ? clampLifespan(character.lifespanRemaining - 1)
+              : character.lifespanRemaining,
+    },
+  ];
+  return judgement;
+}
+
+function buildTestJudgement(
+  character: Character,
+  tick: number,
+  momentum: number,
+  roll?: number,
+): JudgementResult {
+  const modifier = getInterventionModifier(character, "test", momentum);
+  const judgement = createJudgement("test", character.name, modifier, tick, roll);
+  const momentumReward =
+    judgement.rank === "critical" ? 3 : judgement.rank === "greatSuccess" ? 2 : judgement.rank === "success" ? 1 : 0;
+
+  switch (judgement.rank) {
+    case "critical":
+      judgement.effect = "試練 +2 / 加護 +1 / Momentum +3。危険を越えて大きく成長しました。";
+      break;
+    case "greatSuccess":
+      judgement.effect = "試練 +2 / 加護 +1 / Momentum +2。危うい試練を糧に変えました。";
+      break;
+    case "success":
+      judgement.effect = "試練 +1 / Momentum +1。危険を乗り切りました。";
+      break;
+    case "failure":
+      judgement.effect = "試練 +1。代償は払いましたが、経験自体は残りました。";
+      judgement.sideEffect = "試練 +1 と引き換えに、残寿命が 1 減少しました。";
+      break;
+    case "fumble":
+    default:
+      judgement.effect = "試練に打ちのめされ、大きくよろめきました。";
+      judgement.sideEffect = "残寿命が 1 減少し、加護も 1 失いました。";
+      break;
+  }
+
+  judgement.changes = [
+    {
+      label: "試練",
+      before: character.trials,
+      after:
+        judgement.rank === "critical" || judgement.rank === "greatSuccess"
+          ? character.trials + 2
+          : judgement.rank === "success" || judgement.rank === "failure"
+            ? character.trials + 1
+            : character.trials,
+    },
+    {
+      label: "残寿命",
+      before: character.lifespanRemaining,
+      after:
+        judgement.rank === "failure" || judgement.rank === "fumble"
+          ? clampLifespan(character.lifespanRemaining - 1)
+          : character.lifespanRemaining,
+    },
+    {
+      label: "加護",
+      before: character.blessings,
+      after:
+        judgement.rank === "critical" || judgement.rank === "greatSuccess"
+          ? character.blessings + 1
+          : judgement.rank === "fumble"
+            ? Math.max(0, character.blessings - 1)
+            : character.blessings,
+    },
+    {
+      label: "Momentum",
+      before: momentum,
+      after: momentum + momentumReward,
+    },
+  ];
+  return judgement;
+}
+
+function applyBlessOutcome(
+  character: Character,
+  trigger: WorldEvent["trigger"],
+  judgement: JudgementResult,
+): Character {
+  switch (judgement.rank) {
+    case "critical":
+      return appendNotable(
+        {
+          ...character,
+          blessings: character.blessings + 1,
+          lifespanRemaining: character.lifespanRemaining + 3,
+          warningIssued: false,
+        },
+        "奇跡の加護が降りた",
+      );
+    case "greatSuccess":
+      return appendNotable(
+        {
+          ...character,
+          blessings: character.blessings + 1,
+          lifespanRemaining: character.lifespanRemaining + 2,
+          warningIssued: false,
+        },
+        "強い加護を受けた",
+      );
+    case "success":
+      return appendNotable(
+        {
+          ...character,
+          lifespanRemaining: character.lifespanRemaining + 2,
+          warningIssued: trigger === "warning" ? false : character.warningIssued,
+        },
+        "加護が命火を支えた",
+      );
+    case "failure":
+      return appendNotable(character, "祈りは届いたが形にならなかった");
+    case "fumble":
+    default:
+      return appendNotable(
+        {
+          ...character,
+          lifespanRemaining: clampLifespan(character.lifespanRemaining - 1),
+        },
+        "祈りが乱れた",
+      );
+  }
+}
+
+function applyTestOutcome(character: Character, judgement: JudgementResult): Character {
+  switch (judgement.rank) {
+    case "critical":
+      return appendNotable(
+        {
+          ...character,
+          trials: character.trials + 2,
+          blessings: character.blessings + 1,
+        },
+        "試練を超越した",
+      );
+    case "greatSuccess":
+      return appendNotable(
+        {
+          ...character,
+          trials: character.trials + 2,
+          blessings: character.blessings + 1,
+        },
+        "試練を乗り越えた",
+      );
+    case "success":
+      return appendNotable(
+        {
+          ...character,
+          trials: character.trials + 1,
+        },
+        "試練を受け止めた",
+      );
+    case "failure":
+      return appendNotable(
+        {
+          ...character,
+          trials: character.trials + 1,
+          lifespanRemaining: clampLifespan(character.lifespanRemaining - 1),
+        },
+        "試練に揺らいだ",
+      );
+    case "fumble":
+    default:
+      return appendNotable(
+        {
+          ...character,
+          lifespanRemaining: clampLifespan(character.lifespanRemaining - 1),
+          blessings: Math.max(0, character.blessings - 1),
+        },
+        "試練に打ちのめされた",
+      );
+  }
 }
 
 function resolveDeaths(state: WorldState): WorldState {
@@ -524,7 +888,7 @@ function resolveInterventionMessage(
   updatedCharacter: Character,
 ): string {
   if (intervention === "watch") {
-    return `使徒は ${updatedCharacter.name} を静かに見守り、${event.title} を記録へ刻みました。観察記録 ${previousCharacter.notable.length} → ${updatedCharacter.notable.length}。`;
+    return `使徒は ${updatedCharacter.name} を静かに見守り、${event.title} の兆しを見抜きました。notable ${previousCharacter.notable.length} → ${updatedCharacter.notable.length}。notable が 2 件以上あると次の Test が少し有利になります。`;
   }
 
   if (intervention === "bless") {
@@ -536,29 +900,14 @@ function resolveInterventionMessage(
   return `使徒は ${updatedCharacter.name} に試練を与えました。試練 ${previousCharacter.trials} → ${updatedCharacter.trials} (+${updatedCharacter.trials - previousCharacter.trials})。`;
 }
 
-function applyIntervention(character: Character, event: WorldEvent, intervention: InterventionKind): Character {
-  if (intervention === "watch") {
-    return {
-      ...character,
-      notable: [...character.notable, `${event.title} を見届けた`].slice(-4),
-    };
-  }
+function applyWatchIntervention(character: Character, event: WorldEvent): Character {
+  const observedNote =
+    event.trigger === "warning" ? "命火の揺らぎを見抜いた" : `${event.title} を見届けた`;
 
-  if (intervention === "bless") {
-    return {
-      ...character,
-      blessings: character.blessings + 1,
-      lifespanRemaining: event.trigger === "warning" ? character.lifespanRemaining + 1 : character.lifespanRemaining,
-      warningIssued: event.trigger === "warning" ? false : character.warningIssued,
-      notable: [...character.notable, "加護を受けた"].slice(-4),
-    };
-  }
-
-  return {
-    ...character,
-    trials: character.trials + 1,
-    notable: [...character.notable, "試練を受けた"].slice(-4),
-  };
+  return appendNotable(
+    character,
+    observedNote,
+  );
 }
 
 export function createInitialWorldState(): WorldState {
@@ -578,6 +927,7 @@ export function createInitialWorldState(): WorldState {
       "Aki",
       0,
     ),
+    latestJudgement: null,
     apostleMessage:
       "使徒は日輪と潮音の二つの血統を見守っています。いまは時間を止めたまま、神が観察を始めるのを待っています。",
     logs: [
@@ -589,6 +939,7 @@ export function createInitialWorldState(): WorldState {
     ],
     logSerial: 0,
     lastInterventionTick: -INTERVENTION_COOLDOWN_TICKS,
+    momentum: 0,
   };
 }
 
@@ -715,7 +1066,11 @@ export function triggerManualEvent(state: WorldState): WorldState {
   );
 }
 
-export function resolveActiveEvent(state: WorldState, intervention: InterventionKind): WorldState {
+export function resolveActiveEvent(
+  state: WorldState,
+  intervention: InterventionKind,
+  precomputedJudgement?: JudgementResult,
+): WorldState {
   if (!state.activeEvent) {
     return recoverStalledEventState(pushLog(state, "system", "いま解決すべきイベントはありません。"));
   }
@@ -725,13 +1080,31 @@ export function resolveActiveEvent(state: WorldState, intervention: Intervention
     return ensureObservingState(state, "使徒は対象を見失いました。", RECOVERY_LOG);
   }
 
-  const resolvedTarget = applyIntervention(target, state.activeEvent, intervention);
+  const judgementResult =
+    intervention === "bless" || intervention === "test"
+      ? precomputedJudgement && precomputedJudgement.action === intervention
+        ? precomputedJudgement
+        : previewJudgement(target, intervention, state.tick, state.activeEvent.trigger, state.momentum)
+      : null;
+
+  const resolvedTarget =
+    intervention === "watch"
+      ? applyWatchIntervention(target, state.activeEvent)
+      : intervention === "bless"
+        ? applyBlessOutcome(target, state.activeEvent.trigger, judgementResult!)
+        : applyTestOutcome(target, judgementResult!);
 
   const updatedCharacters = state.characters.map((character) =>
     character.id === target.id ? resolvedTarget : character,
   );
 
-  const resultMessage = resolveInterventionMessage(state.activeEvent, intervention, target, resolvedTarget);
+  const resultMessage =
+    intervention === "watch"
+      ? resolveInterventionMessage(state.activeEvent, intervention, target, resolvedTarget)
+      : `式神は ${target.name} への ${intervention === "bless" ? "Bless" : "Test"} を ${getJudgementRankLabel(
+          judgementResult!.rank,
+        )} と裁定しました。${judgementResult!.effect}`;
+  const nextMomentum = judgementResult?.changes.find((change) => change.label === "Momentum")?.after ?? state.momentum;
   const summary = createSummary(
     "intervention",
     state.activeEvent.trigger,
@@ -749,7 +1122,9 @@ export function resolveActiveEvent(state: WorldState, intervention: Intervention
     characters: updatedCharacters,
     apostleMessage: resultMessage,
     latestEventSummary: summary,
+    latestJudgement: judgementResult ?? null,
     lastInterventionTick: state.tick,
+    momentum: nextMomentum,
   };
 
   nextState = pushLog(nextState, "command", `${intervention.toUpperCase()} -> ${target.name}: ${resultMessage}`);
@@ -817,12 +1192,33 @@ export function submitCommand(state: WorldState, rawInput: string): WorldState {
     };
   }
 
+  if (targetName && verb === "watch") {
+    const eventState = beginEvent(
+      {
+        ...state,
+        focusCharacterId: target.id,
+      },
+      buildInterventionEvent(target, "manual", state.tick + 1, "watch"),
+      `使徒は命令 "${command}" を受け、${target.name} をただちに見守りました。`,
+    );
+
+    return resolveActiveEvent(
+      pushLog(eventState, "command", `Command accepted: ${command}`),
+      "watch",
+    );
+  }
+
   const eventState = beginEvent(
     {
       ...state,
       focusCharacterId: target.id,
     },
-    buildInterventionEvent(target, "manual", state.tick + 1),
+    buildInterventionEvent(
+      target,
+      "manual",
+      state.tick + 1,
+      targetName && (verb === "bless" || verb === "test") ? (verb as InterventionKind) : undefined,
+    ),
     `使徒は命令 "${command}" を受け、${target.name} に向けて介入の場を整えました。`,
   );
 
