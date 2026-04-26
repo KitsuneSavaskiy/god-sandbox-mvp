@@ -13,7 +13,12 @@ import {
 } from "../domain/world";
 import { useAppState } from "../state/appState";
 
-export function AppShell() {
+interface AppShellProps {
+  userName: string;
+  onLogout: () => void;
+}
+
+export function AppShell({ userName, onLogout }: AppShellProps) {
   const [state, dispatch] = useAppState();
   const focusedCharacter = getFocusedCharacter(state);
   const activeEventTarget = state.activeEvent
@@ -110,6 +115,12 @@ export function AppShell() {
             onClick={() => dispatch({ type: "stepTick" })}
           >
             1 tick
+          </button>
+        </div>
+        <div className="top-bar__user">
+          <span className="top-bar__user-name">見守る神: {userName}</span>
+          <button className="button button--ghost" onClick={onLogout}>
+            退出
           </button>
         </div>
       </header>
