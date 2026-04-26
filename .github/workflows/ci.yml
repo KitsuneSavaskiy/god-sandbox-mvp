@@ -36,6 +36,14 @@ jobs:
             echo "No typecheck script yet."
           fi
 
+      - name: Domain tests
+        run: |
+          if [ -f package.json ] && npm run | grep -q "test:domain"; then
+            npm run test:domain
+          else
+            echo "No test:domain script yet."
+          fi
+
       - name: Lint
         run: |
           if [ -f package.json ] && npm run | grep -q "lint"; then
