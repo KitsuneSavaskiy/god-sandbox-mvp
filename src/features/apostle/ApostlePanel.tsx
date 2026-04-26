@@ -17,6 +17,8 @@ interface ApostlePanelProps {
   onTriggerManualEvent: () => void;
 }
 
+const RYO_PORTRAIT_NORMAL = "/art/portraits/ryo/ryo_normal.jpeg";
+
 function getPortraitGuide(name?: string) {
   return {
     subjectLabel: "アート基準キャラ: Ryo（後続PBIで正式追加）",
@@ -139,14 +141,21 @@ export function ApostlePanel({
       <div className="subpanel art-receptacle">
         <div className="summary-card__header">
           <h3>アート受け皿</h3>
-          <span className="placeholder-chip">仮枠</span>
+          <span className="placeholder-chip">仮接続</span>
         </div>
-        <div className="art-slot art-slot--portrait">
-          <span className="art-slot__eyebrow">portrait slot / placeholder</span>
-          <strong>{portraitGuide.subjectLabel}</strong>
-          <span>{portraitGuide.toneLabel}</span>
-          <span>{portraitGuide.expressionLine}</span>
-          <p className="summary-note">{portraitGuide.note}</p>
+        <div className="art-slot art-slot--portrait art-slot--with-image">
+          <img
+            className="art-slot__image"
+            src={RYO_PORTRAIT_NORMAL}
+            alt="Ryo portrait base"
+          />
+          <div className="art-slot__meta">
+            <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
+            <strong>{portraitGuide.subjectLabel}</strong>
+            <span>{portraitGuide.toneLabel}</span>
+            <span>{portraitGuide.expressionLine}</span>
+            <p className="summary-note">{portraitGuide.note}</p>
+          </div>
         </div>
       </div>
 
