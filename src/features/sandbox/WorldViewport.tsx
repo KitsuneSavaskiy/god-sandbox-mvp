@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import * as THREE from "three";
 import type { Character, DayPhase, Season } from "../../domain/types";
 
@@ -18,6 +19,56 @@ const elementColors: Record<Character["element"], number> = {
   Water: 0x4d7bcf,
 };
 
+const BOARD_BOUNDS = {
+  minX: -6.2,
+  maxX: 6.2,
+  minZ: -4.2,
+  maxZ: 4.2,
+};
+
+const CAMERA_HEIGHT = 11;
+const CAMERA_DISTANCE = 8;
+const MIN_ZOOM = 0.85;
+const MAX_ZOOM = 1.8;
+const FALLBACK_VIEWPORT_SIZE = 1;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampCenter(center: { x: number; z: number }) {
+  return {
+    x: clamp(center.x, BOARD_BOUNDS.minX, BOARD_BOUNDS.maxX),
+    z: clamp(center.z, BOARD_BOUNDS.minZ, BOARD_BOUNDS.maxZ),
+  };
+}
+
+function getViewportSize(container: HTMLDivElement | null) {
+  const width = container?.clientWidth ?? 0;
+  const height = container?.clientHeight ?? 0;
+
+  return {
+    width: Math.max(width, FALLBACK_VIEWPORT_SIZE),
+    height: Math.max(height, FALLBACK_VIEWPORT_SIZE),
+    valid: width > 0 && height > 0,
+  };
+}
+
+function getFocusTarget(characters: Character[], focusCharacterId: string) {
+  return (
+    characters.find((character) => character.id === focusCharacterId && character.alive) ??
+    characters.find((character) => character.alive) ??
+    null
+  );
+}
+
+function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z: number }, zoom: number) {
+  camera.position.set(center.x, CAMERA_HEIGHT, center.z + CAMERA_DISTANCE);
+  camera.zoom = zoom;
+  camera.lookAt(center.x, 0, center.z);
+  camera.updateProjectionMatrix();
+}
+
 export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, season }: WorldViewportProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -27,7 +78,12 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const ambientLightRef = useRef<THREE.AmbientLight | null>(null);
   const directionalLightRef = useRef<THREE.DirectionalLight | null>(null);
   const boardRef = useRef<THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial> | null>(null);
+  const dragStateRef = useRef<{ pointerId: number; x: number; y: number } | null>(null);
+  const [cameraMode, setCameraMode] = useState<"follow" | "free">("follow");
+  const [cameraCenter, setCameraCenter] = useState({ x: 0, z: 0 });
+  const [cameraZoom, setCameraZoom] = useState(1);
 
+  const focusTarget = getFocusTarget(characters, focusCharacterId);
   const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
@@ -37,21 +93,22 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       return undefined;
     }
 
+    const initialViewport = getViewportSize(containerRef.current);
+
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x101826);
 
     const camera = new THREE.PerspectiveCamera(
       45,
-      containerRef.current.clientWidth / Math.max(containerRef.current.clientHeight, 1),
+      initialViewport.width / initialViewport.height,
       0.1,
       100,
     );
-    camera.position.set(0, 11, 8);
-    camera.lookAt(0, 0, 0);
+    applyCameraPose(camera, cameraCenter, cameraZoom);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(containerRef.current.clientWidth, containerRef.current.clientHeight);
+    renderer.setSize(initialViewport.width, initialViewport.height);
     containerRef.current.appendChild(renderer.domElement);
 
     const ambient = new THREE.AmbientLight(0xffffff, 1.4);
@@ -76,16 +133,14 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     };
 
     const handleResize = () => {
-      if (!containerRef.current) {
+      const viewport = getViewportSize(containerRef.current);
+      if (!viewport.valid) {
         return;
       }
 
-      const width = containerRef.current.clientWidth;
-      const height = Math.max(containerRef.current.clientHeight, 1);
-
-      camera.aspect = width / height;
+      camera.aspect = viewport.width / viewport.height;
       camera.updateProjectionMatrix();
-      renderer.setSize(width, height);
+      renderer.setSize(viewport.width, viewport.height);
       renderScene();
     };
 
@@ -125,6 +180,17 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       boardRef.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    if (cameraMode !== "follow") {
+      return;
+    }
+
+    const nextCenter = focusTarget ? clampCenter(focusTarget.position) : { x: 0, z: 0 };
+    setCameraCenter((current) =>
+      current.x === nextCenter.x && current.z === nextCenter.z ? current : nextCenter,
+    );
+  }, [cameraMode, focusTarget]);
 
   useEffect(() => {
     const renderer = rendererRef.current;
@@ -171,6 +237,18 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
 
     renderer.render(scene, camera);
   }, [dayPhase, season]);
+
+  useEffect(() => {
+    const renderer = rendererRef.current;
+    const scene = sceneRef.current;
+    const camera = cameraRef.current;
+    if (!renderer || !scene || !camera) {
+      return;
+    }
+
+    applyCameraPose(camera, cameraCenter, cameraZoom);
+    renderer.render(scene, camera);
+  }, [cameraCenter, cameraZoom]);
 
   useEffect(() => {
     const units = unitsRef.current;
@@ -227,8 +305,52 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     renderer.render(scene, camera);
   }, [characters, focusCharacterId, paused]);
 
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if ((event.target as HTMLElement).closest(".viewport-overlay__controls")) {
+      return;
+    }
+    dragStateRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const dragState = dragStateRef.current;
+    if (!dragState || dragState.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const deltaX = event.clientX - dragState.x;
+    const deltaY = event.clientY - dragState.y;
+    dragStateRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    setCameraMode("free");
+    setCameraCenter((current) =>
+      clampCenter({
+        x: current.x - deltaX * (0.025 / cameraZoom),
+        z: current.z + deltaY * (0.025 / cameraZoom),
+      }),
+    );
+  };
+
+  const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (dragStateRef.current?.pointerId === event.pointerId) {
+      dragStateRef.current = null;
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleResetFocus = () => {
+    setCameraMode("follow");
+    setCameraCenter(focusTarget ? clampCenter(focusTarget.position) : { x: 0, z: 0 });
+  };
+
   return (
-    <div className="viewport-root">
+    <div
+      className="viewport-root"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerLeave={handlePointerUp}
+    >
       <div className="viewport-root__canvas" ref={containerRef} />
       <div className="viewport-overlay">
         <div className="viewport-overlay__chip">
@@ -244,6 +366,30 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span>土</span>
           <span>金</span>
           <span>水</span>
+        </div>
+        <div className="viewport-overlay__controls">
+          <div className="viewport-overlay__chip viewport-overlay__chip--controls">
+            視点 {cameraMode === "follow" ? `自動追従 / ${focusTarget?.name ?? "対象なし"}` : "自由視点"}
+          </div>
+          <div className="viewport-controls">
+            <button
+              className="button button--ghost viewport-controls__button"
+              type="button"
+              onClick={() => setCameraZoom((current) => clamp(current - 0.15, MIN_ZOOM, MAX_ZOOM))}
+            >
+              -
+            </button>
+            <button
+              className="button button--ghost viewport-controls__button"
+              type="button"
+              onClick={() => setCameraZoom((current) => clamp(current + 0.15, MIN_ZOOM, MAX_ZOOM))}
+            >
+              +
+            </button>
+            <button className="button button--ghost viewport-controls__button" type="button" onClick={handleResetFocus}>
+              フォーカスに戻る
+            </button>
+          </div>
         </div>
       </div>
     </div>

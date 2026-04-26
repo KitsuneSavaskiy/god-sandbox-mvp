@@ -48,6 +48,9 @@ export interface WorldEvent {
   id: string;
   title: string;
   description: string;
+  triggerSummary: string;
+  causeSummary: string;
+  presetIntervention?: InterventionKind;
   trigger: EventTrigger;
   layer: EventLayer;
   targetCharacterId: string;
@@ -60,6 +63,28 @@ export interface EventSummary {
   title: string;
   description: string;
   targetCharacterName: string;
+  tick: number;
+}
+
+export type JudgementRank = "fumble" | "failure" | "success" | "greatSuccess" | "critical";
+
+export interface JudgementChange {
+  label: string;
+  before: number;
+  after: number;
+}
+
+export interface JudgementResult {
+  action: "bless" | "test";
+  targetCharacterName: string;
+  formula: string;
+  roll: number;
+  modifier: number;
+  total: number;
+  rank: JudgementRank;
+  effect: string;
+  sideEffect: string | null;
+  changes: JudgementChange[];
   tick: number;
 }
 
@@ -87,8 +112,10 @@ export interface WorldState {
   characters: Character[];
   activeEvent: WorldEvent | null;
   latestEventSummary: EventSummary | null;
+  latestJudgement: JudgementResult | null;
   apostleMessage: string;
   logs: LogEntry[];
   logSerial: number;
   lastInterventionTick: number;
+  momentum: number;
 }
