@@ -27,6 +27,14 @@ const triggerLabels: Record<WorldEvent["trigger"], string> = {
   death: "死亡",
 };
 
+const RYO_PORTRAITS = {
+  normal: "/art/portraits/ryo/ryo_normal.jpeg",
+  tense: "/art/portraits/ryo/ryo_tense.jpeg",
+  sadness: "/art/portraits/ryo/ryo_sadness.jpeg",
+  joy: "/art/portraits/ryo/ryo_joy.jpeg",
+  divine: "/art/portraits/ryo/ryo_divine.jpeg",
+} as const;
+
 interface RollingState {
   intervention: "bless" | "test";
   judgement: JudgementResult;
@@ -67,6 +75,45 @@ function getEventArtGuide(event: WorldEvent, targetCharacter?: Character) {
         shotLine: "推奨構図: 上空からの光 + 視線誘導",
       };
   }
+}
+
+function getModalPortraitSrc(params: {
+  event: WorldEvent;
+  targetCharacter?: Character;
+  activeIntervention: "bless" | "test" | null;
+  judgementPreview: JudgementResult | null;
+  revealed: boolean;
+}) {
+  const { event, targetCharacter, activeIntervention, judgementPreview, revealed } = params;
+
+  if (!revealed) {
+    if (activeIntervention === "test" || event.trigger === "warning") {
+      return RYO_PORTRAITS.tense;
+    }
+
+    return RYO_PORTRAITS.normal;
+  }
+
+  if (judgementPreview?.rank === "critical") {
+    return RYO_PORTRAITS.divine;
+  }
+
+  if (
+    judgementPreview?.action === "bless" &&
+    (judgementPreview.rank === "success" || judgementPreview.rank === "greatSuccess")
+  ) {
+    return RYO_PORTRAITS.joy;
+  }
+
+  if (
+    judgementPreview?.rank === "failure" ||
+    judgementPreview?.rank === "fumble" ||
+    (event.trigger === "warning" && (targetCharacter?.lifespanRemaining ?? 99) <= 1 && !activeIntervention)
+  ) {
+    return RYO_PORTRAITS.sadness;
+  }
+
+  return RYO_PORTRAITS.normal;
 }
 
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
@@ -154,6 +201,13 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const isRolling =
     !!presetPreviewIntervention || rollingState?.intervention === "bless" || rollingState?.intervention === "test";
   const judgementPreview = rollingState?.judgement ?? null;
+  const portraitSrc = getModalPortraitSrc({
+    event,
+    targetCharacter,
+    activeIntervention: activeRollingIntervention,
+    judgementPreview,
+    revealed: rollingState?.revealed ?? false,
+  });
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
 
   const handleResolve = (intervention: InterventionKind) => {
@@ -204,10 +258,17 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     <div className="modal-backdrop" role="presentation">
       <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="event-title">
         <div className="modal-card__media">
-          <div className="art-slot art-slot--portrait">
-            <span className="art-slot__eyebrow">portrait slot / placeholder</span>
-            <strong>基準キャラ: Ryo（未接続）</strong>
-            <span>{eventArtGuide.portraitLine}</span>
+          <div className="art-slot art-slot--portrait art-slot--with-image">
+            <img
+              className="art-slot__image"
+              src={portraitSrc}
+              alt="Ryo portrait expression"
+            />
+            <div className="art-slot__meta">
+              <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
+              <strong>基準キャラ: Ryo（未接続）</strong>
+              <span>{eventArtGuide.portraitLine}</span>
+            </div>
           </div>
           <div className="art-slot art-slot--illustration">
             <span className="art-slot__eyebrow">event illustration slot / placeholder</span>

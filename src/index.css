@@ -370,8 +370,28 @@ button {
   color: #e9eef6;
 }
 
+.art-slot--with-image {
+  overflow: hidden;
+  padding: 0;
+}
+
 .art-slot--illustration {
   min-height: 168px;
+}
+
+.art-slot__image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: rgba(7, 16, 24, 0.7);
+}
+
+.art-slot__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.9rem;
 }
 
 .art-slot__eyebrow {
