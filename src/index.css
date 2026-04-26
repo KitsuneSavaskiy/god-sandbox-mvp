@@ -387,6 +387,11 @@ button {
   background: rgba(7, 16, 24, 0.7);
 }
 
+.art-slot__image--illustration {
+  aspect-ratio: 16 / 10;
+  min-height: 168px;
+}
+
 .art-slot__meta {
   display: flex;
   flex-direction: column;

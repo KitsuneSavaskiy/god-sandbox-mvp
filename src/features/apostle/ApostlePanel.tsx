@@ -51,9 +51,9 @@ function getPanelPortraitSrc(paused: boolean, latestJudgement: JudgementResult |
 function getPortraitGuide(name?: string) {
   return {
     subjectLabel: "アート基準キャラ: Ryo（後続PBIで正式追加）",
-    toneLabel: name ? `仮接続先: ${name}` : "仮接続先: なし",
+    toneLabel: name ? `現在の表示対象: ${name}` : "現在の表示対象: なし",
     expressionLine: "推奨差分: 平静 / 気づき / 緊張 / 覚悟",
-    note: "この枠は、後で Ryo の表情差分を差し込むための generic な仮受け皿です。",
+    note: "この枠は、Ryo の表情差分を後続PBIで差し替え運用できる generic な portrait 受け皿です。",
   };
 }
 
@@ -171,7 +171,7 @@ export function ApostlePanel({
       <div className="subpanel art-receptacle">
         <div className="summary-card__header">
           <h3>アート受け皿</h3>
-          <span className="placeholder-chip">仮接続</span>
+          <span className="placeholder-chip">接続済み</span>
         </div>
         <div className="art-slot art-slot--portrait art-slot--with-image">
           <img
