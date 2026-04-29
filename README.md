@@ -1,8 +1,8 @@
 ﻿# god-sandbox-mvp
 
-Private MVP repository for a god-sandbox prototype managed with Codex.
+Codex と一緒に開発している、神視点箱庭プロトタイプの非公開 MVP リポジトリです。
 
-Bot routine PR smoke test 4.
+自動作業 PR の smoke test 記録: 4。
 
 ---
 
@@ -54,15 +54,15 @@ chmod +x start.sh
 
 ---
 
-## Getting Started (for developers)
+## 開発者向けセットアップ
 
-### Requirements
+### 必要なもの
 
 - **Node.js 22.x** — [nodejs.org](https://nodejs.org/)
-- **npm** (bundled with Node.js)
+- **npm** (Node.js に同梱)
 - **Git**
 
-### Setup
+### セットアップ
 
 ```bash
 git clone https://github.com/KitsuneSavaskiy/god-sandbox-mvp.git
@@ -70,22 +70,22 @@ cd god-sandbox-mvp
 npm ci
 ```
 
-### Run frontend
+### フロントエンド起動
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:5173/` in your browser.
+ブラウザで `http://localhost:5173/` を開いてください。
 
-### Basic flow
+### 基本の流れ
 
-1. Login screen appears — enter any name to proceed.
-2. The sandbox world loads and ticks automatically.
-3. Events fire periodically; an EventModal pops up with choices.
-4. Select a choice to apply world intervention and continue.
+1. ログイン画面が表示されます。任意の名前を入力すると進めます。
+2. 箱庭世界が読み込まれ、tick が自動で進みます。
+3. 条件を満たすと EventModal が開き、介入の選択肢が表示されます。
+4. 選択肢を選ぶと世界への介入が適用され、進行が続きます。
 
-### Checks
+### 確認コマンド
 
 ```bash
 npm run typecheck    # TypeScript type check
@@ -93,27 +93,27 @@ npm run test:domain  # Domain unit tests
 npm run build        # Production build
 ```
 
-### Troubleshooting
+### トラブルシュート
 
-| Problem | Solution |
+| 問題 | 対応 |
 |---|---|
-| `npm run dev` fails to start | Make sure Node.js 22.x is installed and `npm ci` completed successfully. |
-| Black screen after launch | Open DevTools Console (F12) and check for errors. |
-| Port 5173 already in use | Stop the other process using port 5173, or run `npm run dev -- --port 5174` to use a different port. |
+| `npm run dev` が起動しない | Node.js 22.x が入っていることと、`npm ci` が成功していることを確認してください。 |
+| 起動後に黒画面になる | DevTools Console (F12) を開き、runtime error が出ていないか確認してください。 |
+| Port 5173 が使用中 | 5173 番を使っている別プロセスを止めるか、`npm run dev -- --port 5174` で別ポートを使ってください。 |
 
 ---
 
-### Optional: local REST API
+### 任意: ローカル REST API
 
-Start the local API server in a separate terminal:
+別ターミナルでローカル API サーバーを起動します。
 
 ```bash
 npm run api:dev
 ```
 
-The server listens on `http://localhost:8787`.
+サーバーは `http://localhost:8787` で待ち受けます。
 
-Health check:
+疎通確認:
 
 ```bash
 curl http://localhost:8787/api/health

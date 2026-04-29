@@ -1,10 +1,10 @@
 # god-sandbox-api
 
-Local REST API skeleton for development use (PBI-BE-API-001).
+開発用のローカル REST API ひな形です (PBI-BE-API-001)。
 
-Built with Node.js standard `http` module — no external dependencies.
+Node.js 標準の `http` モジュールだけで作られており、外部依存はありません。
 
-## Start
+## 起動
 
 ```bash
 npm run api:dev
@@ -12,14 +12,14 @@ npm run api:dev
 PORT=8787 node server/rest-api.mjs
 ```
 
-## Endpoints
+## エンドポイント
 
-| Method | Path           | Description              |
+| Method | Path           | 説明                     |
 |--------|----------------|--------------------------|
-| GET    | /api/health    | Server liveness check    |
-| POST   | /api/login     | Stub login               |
-| GET    | /api/session   | Stub session check       |
-| POST   | /api/logout    | Stub logout              |
+| GET    | /api/health    | サーバーの疎通確認       |
+| POST   | /api/login     | 仮ログイン               |
+| GET    | /api/session   | 仮セッション確認         |
+| POST   | /api/logout    | 仮ログアウト             |
 
 ### GET /api/health
 
@@ -29,12 +29,12 @@ PORT=8787 node server/rest-api.mjs
 
 ### POST /api/login
 
-Request body:
+リクエスト body:
 ```json
 { "playerName": "Kitsune" }
 ```
 
-Response:
+レスポンス:
 ```json
 { "ok": true, "user": { "id": "local-user", "name": "Kitsune" }, "token": "local-dev-token" }
 ```
@@ -51,23 +51,23 @@ Response:
 { "ok": true }
 ```
 
-## Notes
+## 注意点
 
-- CORS is open (`*`) for local development.
-- No persistent session or real authentication.
-- Front-end integration is out of scope for this PBI.
+- ローカル開発用に CORS は `*` で開いています。
+- 永続セッションや実認証はまだありません。
+- フロントエンド接続はこの PBI の範囲外です。
 
 ---
 
 # god-sandbox-local-game-data
 
-Local file storage layer for game data (PBI-BE-FS-001).
+ゲームデータ用のローカルファイル保存層です (PBI-BE-FS-001)。
 
-Uses only Node.js standard `fs/promises` and `path` — no external dependencies, no REST server.
+Node.js 標準の `fs/promises` と `path` だけを使います。外部依存や REST サーバーはありません。
 
-## Data root
+## データルート
 
-`god-sandbox-data/` is created in the working directory at runtime and is git-ignored.
+`god-sandbox-data/` は実行時に作業ディレクトリ直下へ作られます。このディレクトリは git 管理対象外です。
 
 ```text
 god-sandbox-data/
@@ -82,24 +82,24 @@ god-sandbox-data/
     character-passports/
 ```
 
-All directories are created upfront by `initDirs()`.
+必要なディレクトリは `initDirs()` によって先に作成されます。
 
 ## API
 
-| Function | Description |
+| 関数 | 説明 |
 |---|---|
-| `initDirs()` | Create all data directories |
-| `readConfig()` | Read local config JSON |
-| `writeConfig(data)` | Write local config JSON |
-| `readSave(saveName)` | Read a named save JSON |
-| `writeSave(saveName, data)` | Write a named save JSON |
-| `readSession(sessionName)` | Read a named session JSON |
-| `writeSession(sessionName, data)` | Write a named session JSON |
+| `initDirs()` | 必要なデータディレクトリを作成する |
+| `readConfig()` | ローカル設定 JSON を読む |
+| `writeConfig(data)` | ローカル設定 JSON を書く |
+| `readSave(saveName)` | 指定名の save JSON を読む |
+| `writeSave(saveName, data)` | 指定名の save JSON を書く |
+| `readSession(sessionName)` | 指定名の session JSON を読む |
+| `writeSession(sessionName, data)` | 指定名の session JSON を書く |
 
-Returns `null` if the file does not exist. Throws on malformed JSON.
-`saveName` / `sessionName` must not contain `/`, `\`, or `..`.
+ファイルが存在しない場合は `null` を返します。壊れた JSON は例外にします。
+`saveName` / `sessionName` には `/`、`\`、`..` を含めてはいけません。
 
-## Smoke test
+## smoke test
 
 ```bash
 npm run data:smoke
@@ -122,7 +122,7 @@ Character Passport v1 のローカル出力層です (PBI-BE-FS-002)。
 
 ## 主要API
 
-| Function | Description |
+| 関数 | 説明 |
 |---|---|
 | `createCharacterPassportV1(input)` | Character Passport v1 の JSON を組み立てる |
 | `writeCharacterPassportFile(passport)` | Passport JSON をローカルファイルへ保存する |
