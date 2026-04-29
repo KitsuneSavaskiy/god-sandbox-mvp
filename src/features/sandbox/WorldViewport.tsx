@@ -9,6 +9,14 @@ interface WorldViewportProps {
   dayPhase: DayPhase;
   paused: boolean;
   season: Season;
+  tick: number;
+}
+
+function chaosOmen(tick: number, paused: boolean): string {
+  if (paused) return "Something stirs in the world.";
+  if (tick < 5) return "The world is calm.";
+  if (tick < 12) return "A faint unease drifts through the void.";
+  return "A faint distortion trembles at the edge of the world.";
 }
 
 const elementColors: Record<Character["element"], number> = {
@@ -28,7 +36,7 @@ const BOARD_BOUNDS = {
 
 const CAMERA_HEIGHT = 11;
 const CAMERA_DISTANCE = 8;
-const MIN_ZOOM = 0.85;
+const MIN_ZOOM = 0.45;
 const MAX_ZOOM = 1.8;
 const FALLBACK_VIEWPORT_SIZE = 1;
 
@@ -69,7 +77,7 @@ function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z
   camera.updateProjectionMatrix();
 }
 
-export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, season }: WorldViewportProps) {
+export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, season, tick }: WorldViewportProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -84,6 +92,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const [cameraZoom, setCameraZoom] = useState(1);
 
   const focusTarget = getFocusTarget(characters, focusCharacterId);
+  const omen = chaosOmen(tick, paused);
   const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
@@ -366,6 +375,12 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span>土</span>
           <span>金</span>
           <span>水</span>
+        </div>
+        <div
+          className="viewport-overlay__chip"
+          style={{ position: "absolute", bottom: "1rem", left: "50%", transform: "translateX(-50%)", fontSize: "0.72rem", opacity: 0.8 }}
+        >
+          {omen}
         </div>
         <div className="viewport-overlay__controls">
           <div className="viewport-overlay__chip viewport-overlay__chip--controls">
