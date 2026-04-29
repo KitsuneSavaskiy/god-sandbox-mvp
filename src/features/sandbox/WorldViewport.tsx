@@ -36,7 +36,7 @@ const BOARD_BOUNDS = {
 
 const CAMERA_HEIGHT = 11;
 const CAMERA_DISTANCE = 8;
-const MIN_ZOOM = 0.85;
+const MIN_ZOOM = 0.45;
 const MAX_ZOOM = 1.8;
 const FALLBACK_VIEWPORT_SIZE = 1;
 
