@@ -1,0 +1,93 @@
+{
+  "characterId": "sample-ren",
+  "name": "Ren",
+  "originGame": "god-sandbox-mvp",
+  "element": "metal",
+  "combatClass": "knight",
+  "baseAttributes": {
+    "vision": 2,
+    "power": 3,
+    "guard": 5,
+    "discipline": 6,
+    "flow": 2
+  },
+  "faith": {
+    "value": 50,
+    "obedienceBias": "cautious",
+    "commandInterpretation": "measured",
+    "hazardResponse": "guarded",
+    "autonomyAlignment": "balanced",
+    "sources": {
+      "blessings": 1,
+      "trials": 2,
+      "chaosExposure": 0
+    }
+  },
+  "growth": {
+    "blessings": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 0,
+      "metal": 1,
+      "water": 0
+    },
+    "trials": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 1,
+      "metal": 2,
+      "water": 0
+    },
+    "chaosExposure": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 0,
+      "metal": 0,
+      "water": 0
+    }
+  },
+  "skills": [
+    {
+      "kind": "skill",
+      "id": "iron-lunge",
+      "name": "Iron Lunge",
+      "element": "metal",
+      "skillType": "attack",
+      "description": "前線を押し込みながら制約を刻む。",
+      "targetPattern": "line",
+      "range": 2,
+      "powerPerTile": 2,
+      "secondaryEffect": {
+        "type": "debuff",
+        "key": "fractured",
+        "value": 1,
+        "duration": 1,
+        "target": "enemy"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "kind": "ability",
+      "id": "iron-vow",
+      "name": "Iron Vow",
+      "source": "trial",
+      "element": "metal",
+      "abilityType": "reaction",
+      "description": "封印を受けた直後、規律へ変換する。",
+      "trigger": {
+        "type": "onStatusReceived",
+        "status": "sealed"
+      },
+      "effects": [
+        {
+          "type": "buff",
+          "key": "focus",
+          "value": 1,
+          "duration": 1,
+          "target": "self"
+        }
+      ]
+    }
+  ]
+}

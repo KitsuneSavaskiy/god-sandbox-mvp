@@ -1,0 +1,166 @@
+# AIキャラクター制作ワークフロー最小サンプル
+
+この資料は、GodSandbox を AIキャラクター制作・育成・外部連携サンドボックスとして試すための最小ワークフローです。
+
+対象読者は、AIキャラクターを作り、自作ゲーム、Mod、外部ツールへ持ち出したい開発者・Modder・技術寄りユーザーです。
+
+このサンプルは実装ではありません。実LLM接続、BYOK / BYOM、provider設定UI、API key保存、外部ゲーム本体、battle logic は扱いません。
+
+## このサンプルで見る流れ
+
+1. サンプルキャラを確認する。
+2. mock / template 発話の入力と出力を見る。
+3. Faith / Growth / Skill / Ability の確認ポイントを見る。
+4. Character Passport v1 JSON を確認する。
+5. 外部ゲームやModが読む前提のJSON境界を確認する。
+
+## 成果物
+
+サンプルファイルは `samples/creator-workflow/` にあります。
+
+- `sample-character-source.json`: Passport export 前のサンプルキャラ source snapshot
+- `utterance-request.mock-template.json`: mock / template 発話へ渡す provider-neutral request
+- `utterance-response.mock.json`: mock 発話の期待例
+- `utterance-response.template.json`: template 発話の期待例
+- `character-passport.v1.json`: 外部ゲームやModが読む前提の Character Passport v1 JSON
+
+## 1. キャラを作る
+
+最小サンプルキャラは `Ren` です。
+
+Ren は `metal` のキャラで、v1 の固定対応により `combatClass` は `knight` です。
+
+```text
+element: metal
+combatClass: knight
+```
+
+`metal = knight` の対応は、Character Passport v1 の契約です。
+外部ゲームやModは、この対応を前提に読み込めます。
+
+キャラ作成時点で確認する主な情報は次の通りです。
+
+- `characterId`: exportファイル名にも使う安全なID
+- `name`: 表示名
+- `element`: 五行
+- `combatClass`: 五行と1対1対応する職種
+- `baseAttributes`: `vision / power / guard / discipline / flow`
+- `faith`: 命令解釈、危険命令への反応、自律判断との距離
+- `growth`: 加護、試練、カオス接触による五行別の成長
+- `skills`: 能動的に使う行動
+- `abilities`: 受動、反応、aura 系の効果
+
+## 2. 発話を見る
+
+発話サンプルは実LLMを呼びません。
+
+`samples/creator-workflow/utterance-request.mock-template.json` は、既存の Application boundary である `UtteranceRequest` と同じ考え方の provider-neutral な入力です。
+
+mock / template provider は、この request から発話確認を行います。
+
+```text
+UtteranceRequest
+  -> mock provider
+  -> template provider
+  -> UtteranceResponse
+```
+
+mock の期待例は `utterance-response.mock.json` です。
+
+```json
+{
+  "status": "ok",
+  "providerKind": "mock",
+  "text": "Renは静かに状況を見つめている。"
+}
+```
+
+template の期待例は `utterance-response.template.json` です。
+
+```json
+{
+  "status": "ok",
+  "providerKind": "template",
+  "text": "Renは、試練の気配を前にして拳を握った。"
+}
+```
+
+ここでは prompt全文、API key、user secret は扱いません。
+Character Passport JSON も、AI会話モデルの内部履歴として扱いません。
+
+## 3. Faith / Growth / Skill / Ability を確認する
+
+Ren の `faith` は、単なる命令成功率ではありません。
+
+このサンプルでは次の観点を見ます。
+
+- `value`: Faith の丸め済み値
+- `obedienceBias`: 命令へどの程度慎重に向き合うか
+- `commandInterpretation`: 命令を文字通り受け取るか、文脈込みで解釈するか
+- `hazardResponse`: 危険命令や危険状況への反応
+- `autonomyAlignment`: 自律判断と神の命令のせめぎ合い
+- `trustBand`: 外部ゲーム側がざっくり扱いやすい信頼帯
+- `sources`: 加護、試練、カオス接触の寄与
+
+`growth` は、成長を五行別に見ます。
+
+- `blessings`: 加護による成長
+- `trials`: 試練による成長
+- `chaosExposure`: カオス接触による変化
+
+`skills` と `abilities` は別配列です。
+
+- `skills`: Ren が能動的に使う `Iron Lunge`
+- `abilities`: 条件に反応して発動する `Iron Vow`
+
+この分離により、外部ゲームやModは「行動として選ぶもの」と「条件で反応するもの」を混同せずに扱えます。
+
+## 4. Character Passport をexportする
+
+現在の server 側 smoke は、Character Passport v1 の export JSON と契約検査を確認できます。
+
+```bash
+npm run passport:smoke
+```
+
+このコマンドは、ローカルに次のファイルを出力します。
+
+```text
+god-sandbox-data/exports/character-passports/sample-ren.character-passport.json
+```
+
+`god-sandbox-data/` は実行時データであり、git 管理対象外です。
+
+このPBIで追加する `samples/creator-workflow/character-passport.v1.json` は、外部ゲームやModが読む形を理解するための静的サンプルです。
+実行時に生成される export ファイルそのものではありません。
+
+## 5. 外部ゲームやModが読むJSONを確認する
+
+外部ゲームやModは、GodSandbox の内部状態を直接読むのではなく、Character Passport v1 JSON を読みます。
+
+読み取り時の最小確認ポイントは次の通りです。
+
+- `schemaVersion` が `character-passport/v1` である
+- `originGame` が `god-sandbox-mvp` である
+- `element` と `combatClass` が固定対応している
+- `baseAttributes` が `vision / power / guard / discipline / flow` を持つ
+- `faith` が命令解釈、危険反応、自律判断の情報を持つ
+- `growth` が `blessings / trials / chaosExposure` を五行別に持つ
+- `skills` と `abilities` が別配列になっている
+- `attributes` / `history` / `rogue` の旧prototype要素へ依存していない
+
+この境界により、GodSandbox は完成品ゲームとして閉じるのではなく、AIキャラクターを外へ渡す sandbox として扱えます。
+
+## 今回やらないこと
+
+- 実LLM接続
+- BYOK / BYOM 実装
+- provider設定UI
+- API key保存
+- secret handling 実装
+- sample external game 本体
+- battle logic
+- UI変更
+- server API 拡張
+- package変更
+- CI workflow変更
