@@ -3,6 +3,13 @@ import { ApostlePanel } from "../features/apostle/ApostlePanel";
 import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
+import { createMockProvider } from "../infrastructure/llm/mockProvider";
+import { createTemplateProvider } from "../infrastructure/llm/templateProvider";
+import { buildUtterancePreviewRequest } from "../presentation/utterance/buildUtterancePreviewRequest";
+import {
+  UtterancePreviewPanel,
+  type UtterancePreviewResult,
+} from "../presentation/utterance/UtterancePreviewPanel";
 import {
   getAliveCharacterCount,
   getBloodlineSummaries,
@@ -17,6 +24,11 @@ interface AppShellProps {
   userName: string;
   onLogout: () => void;
 }
+
+const UTTERANCE_PREVIEW_PROVIDERS = [
+  { label: "mockProvider", provider: createMockProvider() },
+  { label: "templateProvider", provider: createTemplateProvider() },
+];
 
 export function AppShell({ userName, onLogout }: AppShellProps) {
   const [state, dispatch] = useAppState();
@@ -49,6 +61,33 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
 
     return () => window.clearInterval(timerId);
   }, [dispatch, hasLivingCharacters, state.phase, state.timeControl]);
+
+  async function generateUtterancePreview(): Promise<UtterancePreviewResult[]> {
+    if (!focusedCharacter) {
+      return [];
+    }
+
+    const request = buildUtterancePreviewRequest({
+      character: focusedCharacter,
+      latestEventSummary: state.latestEventSummary,
+      latestJudgement: state.latestJudgement,
+      tick: state.tick,
+    });
+
+    const responses = await Promise.all(
+      UTTERANCE_PREVIEW_PROVIDERS.map(async ({ label, provider }) => ({
+        label,
+        response: await provider.generate(request),
+      })),
+    );
+
+    return responses.map(({ label, response }) => ({
+      providerLabel: label,
+      status: response.status,
+      text: response.text,
+      reason: response.reason,
+    }));
+  }
 
   return (
     <div className="app-shell">
@@ -151,6 +190,12 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
             paused={state.phase === "event"}
             onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
             onTriggerManualEvent={() => dispatch({ type: "triggerManualEvent" })}
+          />
+
+          <UtterancePreviewPanel
+            disabled={!hasLivingCharacters}
+            focusedCharacter={focusedCharacter}
+            onGenerate={generateUtterancePreview}
           />
 
           <CommandConsole
