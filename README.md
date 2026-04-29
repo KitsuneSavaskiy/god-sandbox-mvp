@@ -100,3 +100,21 @@ npm run build        # Production build
 | `npm run dev` fails to start | Make sure Node.js 22.x is installed and `npm ci` completed successfully. |
 | Black screen after launch | Open DevTools Console (F12) and check for errors. |
 | Port 5173 already in use | Stop the other process using port 5173, or run `npm run dev -- --port 5174` to use a different port. |
+
+---
+
+### Optional: local REST API
+
+Start the local API server in a separate terminal:
+
+```bash
+npm run api:dev
+```
+
+The server listens on `http://localhost:8787`.
+
+Health check:
+
+```bash
+curl http://localhost:8787/api/health
+```
