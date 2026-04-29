@@ -30,7 +30,7 @@ Chaos:
 
 ```text
 Blessing / Trial / Chaos は Faith に影響するが、Faith だけの材料ではない。
-それぞれ attributes / statusAffinity / abilities にも影響する。
+影響先は growth category ごとに異なる。
 ```
 
 ## growth Structure
@@ -67,39 +67,71 @@ Blessing / Trial / Chaos は Faith に影響するが、Faith だけの材料で
 
 ```text
 Blessing:
-Faith, attributes, buff-oriented abilities
+- Faith に影響する
+- Attributes に影響する
+- Abilities に影響する
+- StatusAffinity には原則直接影響しない
+- 意味: 安定成長・加護能力
 
 Trial:
-Faith, statusAffinity, resilience-oriented abilities
+- Faith に影響する
+- Attributes に影響する
+- StatusAffinity に影響する
+- Abilities に影響する
+- 意味: 苦難による成長・耐性・逆境能力
 
 Chaos:
-Faith volatility, unusual attributes, chaos-oriented abilities
+- Faith に影響する
+- Attributes に影響する
+- StatusAffinity に影響する
+- Abilities に影響する
+- 意味: 不安定な変質・例外能力
 ```
 
 ## Ability Categories
 
 ```text
-classAbility:
+Class Ability:
 職種由来の基本能力。
 
-blessingAbility:
+Blessing Ability:
 加護由来の能力。
 
-trialAbility:
+Trial Ability:
 試練由来の能力。
 
-chaosAbility:
+Chaos Ability:
 カオス由来の不安定・例外的能力。
+```
+
+JSON keys:
+
+```text
+Human label -> JSON key
+
+Class Ability -> class
+Blessing Ability -> blessing
+Trial Ability -> trial
+Chaos Ability -> chaos
 ```
 
 ## Skill And Ability
 
 ```text
 Skill:
-能動的に使う行動。
+能動的に選択して使う行動。
+例: 攻撃、回復、移動技、範囲魔法。
 
 Ability:
-条件で発動する性質、パッシブ、反応、例外効果。
+条件で発動する性質、パッシブ、反応、オーラ。
+例: 被弾時に発動、状態異常時に発動、周囲に常時効果。
+```
+
+Character Passport storage rule:
+
+```text
+Character Passport v1 では、能動行動は `skills` に保存する。
+条件発動・常時効果・反応効果は `abilities` に保存する。
 ```
 
 ## ability Schema Draft
@@ -137,13 +169,24 @@ abilitySources:
 class, blessing, trial, chaos
 
 abilityTypes:
-active, passive, reaction, aura
+passive, reaction, aura
+
+skillTypes:
+attack, heal, move, support, control
 
 triggerTypes:
 onTurnStart, onTurnEnd, onStatusReceived, onAllyDamaged, onFaithCommand, manual
 
 effectTypes:
 buff, debuff, statusCondition, heal, damage, move, cleanse, summon, modifyFaith
+```
+
+## Character Passport Reflection
+
+```text
+Character Passport v1 should keep:
+- skills: active actions
+- abilities: passive / reaction / aura effects
 ```
 
 ## Not Decided Yet
