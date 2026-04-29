@@ -5,22 +5,32 @@ import { initDirs } from './local-game-data.mjs';
 
 const DATA_ROOT = resolve(process.cwd(), 'god-sandbox-data');
 const PASSPORT_DIR = join(DATA_ROOT, 'exports', 'character-passports');
-const SCHEMA_VERSION = 'character-passport/v1';
-const FIVE_PHASE_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
-const BASE_ATTRIBUTE_KEYS = ['vision', 'power', 'guard', 'discipline', 'flow'];
-const VALID_ELEMENTS = new Set(FIVE_PHASE_KEYS);
-const VALID_CLASSES = new Set(['ranger', 'mage', 'guardian', 'knight', 'healer']);
-const VALID_OBEDIENCE_BIASES = new Set(['cautious', 'fervent', 'stable', 'disciplined', 'adaptive']);
-const VALID_COMMAND_INTERPRETATIONS = new Set(['skeptical', 'measured', 'literal', 'contextual']);
-const VALID_HAZARD_RESPONSES = new Set(['avoidant', 'guarded', 'resolute']);
-const VALID_AUTONOMY_ALIGNMENTS = new Set(['selfDirected', 'balanced', 'deferential']);
-const COMBAT_CLASS_BY_ELEMENT = {
-  wood: 'ranger',
-  fire: 'mage',
-  earth: 'guardian',
-  metal: 'knight',
-  water: 'healer',
-};
+export const PASSPORT_EXPORT_CONTRACT = Object.freeze({
+  schemaVersion: 'character-passport/v1',
+  fivePhaseElements: ['wood', 'fire', 'earth', 'metal', 'water'],
+  combatClasses: ['ranger', 'mage', 'guardian', 'knight', 'healer'],
+  combatClassByElement: {
+    wood: 'ranger',
+    fire: 'mage',
+    earth: 'guardian',
+    metal: 'knight',
+    water: 'healer',
+  },
+  baseAttributes: ['vision', 'power', 'guard', 'discipline', 'flow'],
+  faithObedienceBiases: ['cautious', 'fervent', 'stable', 'disciplined', 'adaptive'],
+  faithCommandInterpretations: ['skeptical', 'measured', 'literal', 'contextual'],
+  faithHazardResponses: ['avoidant', 'guarded', 'resolute'],
+  faithAutonomyAlignments: ['selfDirected', 'balanced', 'deferential'],
+  faithTrustBands: ['dismissive', 'wary', 'steady', 'trusting', 'devoted'],
+  growthCategories: ['blessings', 'trials', 'chaosExposure'],
+});
+
+const VALID_ELEMENTS = new Set(PASSPORT_EXPORT_CONTRACT.fivePhaseElements);
+const VALID_CLASSES = new Set(PASSPORT_EXPORT_CONTRACT.combatClasses);
+const VALID_OBEDIENCE_BIASES = new Set(PASSPORT_EXPORT_CONTRACT.faithObedienceBiases);
+const VALID_COMMAND_INTERPRETATIONS = new Set(PASSPORT_EXPORT_CONTRACT.faithCommandInterpretations);
+const VALID_HAZARD_RESPONSES = new Set(PASSPORT_EXPORT_CONTRACT.faithHazardResponses);
+const VALID_AUTONOMY_ALIGNMENTS = new Set(PASSPORT_EXPORT_CONTRACT.faithAutonomyAlignments);
 
 function assertSafeName(name, label) {
   if (!name || typeof name !== 'string') {
@@ -92,7 +102,7 @@ function getFaithTrustBand(value) {
 function assertFivePhaseValueMap(record, label) {
   assertPlainObject(record, label);
 
-  for (const key of FIVE_PHASE_KEYS) {
+  for (const key of PASSPORT_EXPORT_CONTRACT.fivePhaseElements) {
     assertFiniteNumber(record[key], `${label}.${key}`);
   }
 }
@@ -100,7 +110,7 @@ function assertFivePhaseValueMap(record, label) {
 function normalizeBaseAttributes(baseAttributes) {
   assertPlainObject(baseAttributes, 'baseAttributes');
 
-  for (const key of BASE_ATTRIBUTE_KEYS) {
+  for (const key of PASSPORT_EXPORT_CONTRACT.baseAttributes) {
     assertFiniteNumber(baseAttributes[key], `baseAttributes.${key}`);
   }
 
@@ -184,7 +194,7 @@ function normalizeAbilities(abilities) {
 }
 
 function assertCombatClassMatchesElement(element, combatClass) {
-  const expectedCombatClass = COMBAT_CLASS_BY_ELEMENT[element];
+  const expectedCombatClass = PASSPORT_EXPORT_CONTRACT.combatClassByElement[element];
 
   if (combatClass !== expectedCombatClass) {
     throw new Error(
@@ -204,7 +214,7 @@ export function createCharacterPassportV1(input) {
   assertCombatClassMatchesElement(input.element, input.combatClass);
 
   return {
-    schemaVersion: SCHEMA_VERSION,
+    schemaVersion: PASSPORT_EXPORT_CONTRACT.schemaVersion,
     characterId: input.characterId,
     name: input.name,
     originGame: 'god-sandbox-mvp',
@@ -224,7 +234,7 @@ export function adaptCharacterPassportSourceToExport(source) {
 }
 
 export async function writeCharacterPassportFile(passport) {
-  if (passport.schemaVersion !== SCHEMA_VERSION) {
+  if (passport.schemaVersion !== PASSPORT_EXPORT_CONTRACT.schemaVersion) {
     throw new Error(`Unexpected schemaVersion: ${passport.schemaVersion}`);
   }
   assertSafeName(passport.characterId, 'characterId');
@@ -325,14 +335,67 @@ function sampleRenPassportSource() {
   };
 }
 
+function assertSameKeys(record, expectedKeys, label) {
+  const actualKeys = Object.keys(record);
+  const expectedJson = JSON.stringify(expectedKeys);
+  const actualJson = JSON.stringify(actualKeys);
+
+  if (actualJson !== expectedJson) {
+    throw new Error(`Unexpected ${label} keys: expected ${expectedJson}, received ${actualJson}`);
+  }
+}
+
+function assertExportJsonMatchesContract(saved) {
+  if ('attributes' in saved || 'history' in saved) {
+    throw new Error('Legacy attributes/history fields must not be preserved in Character Passport v1 export.');
+  }
+
+  if (saved.combatClass === 'rogue') {
+    throw new Error('Legacy rogue combatClass must not be preserved in Character Passport v1 export.');
+  }
+
+  assertSameKeys(saved.baseAttributes, PASSPORT_EXPORT_CONTRACT.baseAttributes, 'baseAttributes');
+  assertSameKeys(saved.faith.sources, PASSPORT_EXPORT_CONTRACT.growthCategories, 'faith.sources');
+  assertSameKeys(saved.growth, PASSPORT_EXPORT_CONTRACT.growthCategories, 'growth');
+
+  for (const category of PASSPORT_EXPORT_CONTRACT.growthCategories) {
+    assertSameKeys(saved.growth[category], PASSPORT_EXPORT_CONTRACT.fivePhaseElements, `growth.${category}`);
+  }
+
+  for (const key of ['value', 'obedienceBias', 'commandInterpretation', 'hazardResponse', 'autonomyAlignment', 'trustBand']) {
+    if (!(key in saved.faith)) {
+      throw new Error(`Missing faith.${key} in Character Passport v1 export.`);
+    }
+  }
+
+  if (!PASSPORT_EXPORT_CONTRACT.faithTrustBands.includes(saved.faith.trustBand)) {
+    throw new Error(`Unexpected faith.trustBand: ${saved.faith.trustBand}`);
+  }
+
+  if (!Array.isArray(saved.skills) || !Array.isArray(saved.abilities)) {
+    throw new Error('skills and abilities must be separate arrays.');
+  }
+
+  if (saved.skills.some((skill) => skill.kind !== 'skill')) {
+    throw new Error('skills must contain skill entries only.');
+  }
+
+  if (saved.abilities.some((ability) => ability.kind !== 'ability')) {
+    throw new Error('abilities must contain ability entries only.');
+  }
+}
+
 if (process.argv[2] === 'smoke') {
   console.log('passport:smoke start');
 
   const passport = adaptCharacterPassportSourceToExport(sampleRenPassportSource());
   const filePath = await writeCharacterPassportFile(passport);
   const saved = JSON.parse(await readFile(filePath, 'utf-8'));
+  const { assertPassportExportContractMatchesDomain } = await import('./passport-contract-smoke.mjs');
 
-  if (saved.schemaVersion !== SCHEMA_VERSION) {
+  await assertPassportExportContractMatchesDomain(PASSPORT_EXPORT_CONTRACT);
+
+  if (saved.schemaVersion !== PASSPORT_EXPORT_CONTRACT.schemaVersion) {
     throw new Error(`Unexpected schemaVersion: ${saved.schemaVersion}`);
   }
 
@@ -347,6 +410,8 @@ if (process.argv[2] === 'smoke') {
   if (saved.skills.length !== 1 || saved.abilities.length !== 1) {
     throw new Error('Expected one skill and one ability in the exported sample.');
   }
+
+  assertExportJsonMatchesContract(saved);
 
   console.log('passport file:', filePath);
   console.log('passport schema ok:', saved.schemaVersion);
