@@ -128,6 +128,21 @@ Application source snapshot / Domain draft
 
 `Character Passport JSON` は export contract であり、内部会話モデルではありません。
 
+## drift 防止
+
+`server/character-passport.mjs` は `PASSPORT_EXPORT_CONTRACT` を公開し、server 側で使う export 契約のローカル定義を一箇所に集約します。
+`npm run passport:smoke` は smoke 専用の `server/passport-contract-smoke.mjs` を読み込み、TypeScript AST 経由で `src/domain/passport/**` の canonical 定義と照合します。
+
+これにより、次の定義が Domain と server export adapter でズレた場合は smoke が失敗します。
+
+- `schemaVersion`
+- `fivePhaseElements`
+- `combatClasses`
+- `combatClassByElement`
+- `baseAttributes`
+- Faith 関連 enum
+- `growthCategories`
+
 ## 何ができるか
 
 - Character Passport v1 の export JSON を組み立てる
@@ -139,6 +154,7 @@ Application source snapshot / Domain draft
 
 | 関数 | 説明 |
 |---|---|
+| `PASSPORT_EXPORT_CONTRACT` | server export adapter が参照する契約スナップショット |
 | `createCharacterPassportV1(input)` | Domain 寄りの draft から Character Passport v1 export JSON を組み立てる |
 | `adaptCharacterPassportSourceToExport(source)` | Application source snapshot を export JSON へ変換する adapter |
 | `writeCharacterPassportFile(passport)` | Passport JSON をローカルファイルへ保存する |
@@ -263,6 +279,7 @@ npm run passport:smoke
 3. `schemaVersion` が `character-passport/v1` になっている
 4. `element` と `combatClass` の固定対応違反を拒否できる
 5. `characterId` の path traversal / slash を拒否できる
+6. Domain canonical 定義と server export contract が drift していない
 
 ## 今回まだ含まないもの
 
