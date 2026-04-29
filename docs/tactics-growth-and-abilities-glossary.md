@@ -1,16 +1,16 @@
-# Growth And Abilities Glossary
+# 成長と特殊能力の用語辞書
 
-This document fixes the vocabulary for Blessing, Trial, Chaos, growth, and abilities before Character Passport v1 grows beyond its current minimal schema.
+この資料は、Character Passport v1 が現在の最小スキーマから拡張される前に、加護（Blessing）、試練（Trial）、カオス（Chaos）、成長（growth）、特殊能力（abilities）の意味を固定するための用語辞書です。
 
-It is a design glossary, not an implementation. It does not define formulas, runtime behavior, REST APIs, or frontend UI.
+これは設計辞書であり、実装ではありません。数式、実行時挙動、REST API、フロントエンド UI は定義しません。
 
-## Purpose
+## この資料の目的
 
-- Treat Blessing, Trial, and Chaos as sources of growth, resistance, and special abilities, not only as Faith inputs.
-- Fix the meaning of `growth` and `abilities` before Character Passport v1 implementation expands.
-- Give future tactics-game developers a shared language for interpreting character export data.
+- 加護 / 試練 / カオスを、信仰度（Faith）だけでなく、成長・耐性・特殊能力の源泉として扱う。
+- Character Passport v1 の実装が拡張される前に、`growth` と `abilities` の意味を固定する。
+- 将来のタクティクスゲーム開発者が、キャラクター export データを同じ意味で読めるようにする。
 
-## Blessing / Trial / Chaos
+## 加護 / 試練 / カオス
 
 ```text
 Blessing:
@@ -26,14 +26,14 @@ Chaos:
 尖った成長、例外能力、Faith解釈の揺らぎの源泉。
 ```
 
-## Relationship To Faith
+## 信仰度（Faith）との関係
 
 ```text
-Blessing / Trial / Chaos は Faith に影響するが、Faith だけの材料ではない。
-影響先は growth category ごとに異なる。
+加護 / 試練 / カオスは信仰度（Faith）に影響するが、Faith だけの材料ではない。
+影響先は成長カテゴリ（growth category）ごとに異なる。
 ```
 
-## growth Structure
+## 成長（growth）構造案
 
 ```json
 {
@@ -63,7 +63,7 @@ Blessing / Trial / Chaos は Faith に影響するが、Faith だけの材料で
 }
 ```
 
-## Growth Influence Targets
+## 成長要素の影響先
 
 ```text
 Blessing:
@@ -88,7 +88,7 @@ Chaos:
 - 意味: 不安定な変質・例外能力
 ```
 
-## Ability Categories
+## 特殊能力の分類
 
 ```text
 Class Ability:
@@ -104,10 +104,10 @@ Chaos Ability:
 カオス由来の不安定・例外的能力。
 ```
 
-JSON keys:
+JSON key 対応:
 
 ```text
-Human label -> JSON key
+人間向けラベル -> JSON key
 
 Class Ability -> class
 Blessing Ability -> blessing
@@ -115,7 +115,7 @@ Trial Ability -> trial
 Chaos Ability -> chaos
 ```
 
-## Skill And Ability
+## 技（Skill）と特殊能力（Ability）の境界
 
 ```text
 Skill:
@@ -127,14 +127,14 @@ Ability:
 例: 被弾時に発動、状態異常時に発動、周囲に常時効果。
 ```
 
-Character Passport storage rule:
+Character Passport での保存先:
 
 ```text
 Character Passport v1 では、能動行動は `skills` に保存する。
 条件発動・常時効果・反応効果は `abilities` に保存する。
 ```
 
-## ability Schema Draft
+## ability schema 案
 
 ```json
 {
@@ -159,7 +159,7 @@ Character Passport v1 では、能動行動は `skills` に保存する。
 }
 ```
 
-## Canonical Keys
+## canonical key 一覧
 
 ```text
 growthCategories:
@@ -181,15 +181,15 @@ effectTypes:
 buff, debuff, statusCondition, heal, damage, move, cleanse, summon, modifyFaith
 ```
 
-## Character Passport Reflection
+## Character Passport への反映方針
 
 ```text
-Character Passport v1 should keep:
-- skills: active actions
-- abilities: passive / reaction / aura effects
+Character Passport v1 は次の保存先を維持する:
+- skills: 能動行動
+- abilities: passive / reaction / aura 効果
 ```
 
-## Not Decided Yet
+## 今回まだ決めないもの
 
 - 数式
 - Faith の増減量

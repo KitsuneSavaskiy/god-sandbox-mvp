@@ -1,16 +1,19 @@
-# Five Phases Tactics Glossary
+# 五行タクティクス用語辞書
 
-This document fixes the vocabulary for Character Passport v1 and a future Five Phases tactics game.
+この資料は、Character Passport v1 と将来の五行ベースのタクティクス戦闘ゲームに向けて、用語の意味を固定するための辞書です。
 
-It is a design glossary, not an implementation. No runtime behavior, battle formula, API, or persistence rule is defined here.
+これは設計辞書であり、実装ではありません。実行時挙動、戦闘式、API、永続化ルールはここでは定義しません。
 
-## Purpose
+## この資料の目的
 
-- Give developers one shared interpretation of Five Phases tactics terms.
-- Keep Character Passport v1 fields readable before battle code exists.
-- Separate glossary decisions from future implementation details.
+- 五行タクティクス用語の解釈を開発者間で揃える。
+- 戦闘コードが存在する前に、Character Passport v1 の各項目を読める状態にする。
+- 用語の決定と、将来の実装詳細を分離する。
 
-## Five Phases And Classes
+## 五行と職種
+
+この資料では、木（wood）、火（fire）、土（earth）、金（metal）、水（water）を五行（element）として扱います。
+MVP では、職種（combatClass）と五行は 1:1 で対応します。
 
 ```text
 wood  = ranger
@@ -20,14 +23,14 @@ metal = knight
 water = healer
 ```
 
-MVP rule:
+MVP でのルール:
 
 ```text
 MVPでは element と combatClass は 1:1 固定。
 将来は分離可能だが、v1では分離しない。
 ```
 
-## Five Phases Core Roles
+## 五行の代表機能
 
 ```text
 wood:
@@ -46,7 +49,7 @@ water:
 根源・回復・継承
 ```
 
-## Combat Classes
+## 職種定義
 
 ```text
 Ranger:
@@ -59,13 +62,13 @@ Guardian:
 土。防御、陣地、補給、安定を担う。
 
 Knight:
-金。突撃前衛ではなく、境界を守り、規律で行動を制限する boundary controller。
+金。突撃前衛ではなく、境界を守り、規律で行動を制限する境界制御役。
 
 Healer:
 水。単なるHP回復役ではなく、浄化、復元、位置調整、継承を担う。
 ```
 
-## Attributes
+## 基本ステータス
 
 ```text
 Vision:
@@ -85,7 +88,7 @@ Flow:
 回避まではMVPでは含めない。
 ```
 
-## Status Conditions And Debuffs
+## 状態異常とデバフの区別
 
 ```text
 Status condition:
@@ -95,7 +98,7 @@ Debuff:
 数値・盤面性能・命中・防御などを下げる性能低下。
 ```
 
-Representative examples:
+代表例:
 
 ```text
 Rooted:
@@ -105,7 +108,7 @@ Entangled:
 デバフ。視界、経路、罠回避などの盤面対応力を下げる。
 ```
 
-## Status Conditions
+## 状態異常
 
 ```text
 wood  = Rooted
@@ -115,10 +118,10 @@ metal = Sealed
 water = Chilled
 ```
 
-`Chilled` is the water status condition. Its primary effect is **action order reduction**.
-If firepower reduction or movement reduction is added later, treat it as a secondary effect.
+`Chilled` は水の状態異常です。主効果は **行動順低下** に固定します。
+火力低下や移動低下を後から入れる場合は、副効果として扱います。
 
-## Buffs
+## バフ
 
 ```text
 wood  = Growth
@@ -128,7 +131,7 @@ metal = Focus
 water = Flowing
 ```
 
-## Debuffs
+## デバフ
 
 ```text
 wood  = Entangled
@@ -138,10 +141,10 @@ metal = Fractured
 water = Displaced
 ```
 
-`Displaced` has **position drift / positional disadvantage** as its primary effect.
-Do not mix it with accuracy reduction or action order reduction.
+`Displaced` は **位置ずれ・配置不利** を主効果にします。
+命中低下や行動順低下とは混ぜません。
 
-## statusAffinity
+## 状態異常適性（statusAffinity）
 
 ```text
 statusAffinity は、状態異常の「付与されやすさ / 抵抗しやすさ」を表す。
@@ -156,7 +159,7 @@ statusAffinity は、状態異常の「付与されやすさ / 抵抗しやす�
 +2 = とても抵抗しやすい
 ```
 
-## Faith
+## 信仰度（Faith）
 
 ```text
 Faith は五行とは別軸。
@@ -165,7 +168,7 @@ Faith は五行とは別軸。
 命令解釈、危険命令への反応、自律判断とのせめぎ合いを含む。
 ```
 
-Faith value:
+信仰度の値（Faith value）:
 
 ```text
 0-20:
@@ -184,7 +187,7 @@ Faith value:
 強く信頼し、危険な命令にも従いやすい
 ```
 
-obedienceBias:
+服従傾向（obedienceBias）:
 
 ```text
 cautious:
@@ -203,7 +206,7 @@ adaptive:
 状況に合わせて柔軟に従う
 ```
 
-Faith.source:
+信仰度の由来（Faith.source）:
 
 ```text
 blessings:
@@ -216,12 +219,12 @@ chaosExposure:
 カオス兆候や不安定な世界状況に晒された履歴量
 ```
 
-## Generating And Overcoming
+## 相生 / 相剋
 
-No numeric multiplier is defined yet.
-For MVP, define only effect categories.
+数値倍率はまだ決めません。
+MVP では効果カテゴリだけを定義します。
 
-Generating cycle:
+相生:
 
 ```text
 wood -> fire:
@@ -240,7 +243,7 @@ water -> wood:
 Healer の浄化・復元で Ranger の視野・機動が伸びる
 ```
 
-Overcoming cycle:
+相剋:
 
 ```text
 wood -> earth:
@@ -259,7 +262,7 @@ metal -> wood:
 Knight が Ranger の拘束・罠・蔦を切断する
 ```
 
-## Attack Pattern Policy
+## attack pattern 方針
 
 ```text
 技は以下で制御する:
@@ -269,7 +272,7 @@ Knight が Ranger の拘束・罠・蔦を切断する
 - secondary effect
 ```
 
-Five Phases range tendencies:
+五行ごとの範囲傾向:
 
 ```text
 wood:
@@ -288,7 +291,7 @@ water:
 位置操作、押し流し、全体弱効果、指定位置操作
 ```
 
-## Canonical Keys
+## canonical key 一覧
 
 ```text
 elements:
