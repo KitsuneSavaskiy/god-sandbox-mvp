@@ -202,7 +202,7 @@ web:
 backend proxy または server-side config を使う。
 ```
 
-## 8. platform ごとの provider / credential 可否
+## 8. platform ごとの provider 可否
 
 | platform | allowed | forbidden | exception |
 |---|---|---|---|
@@ -215,7 +215,20 @@ backend proxy または server-side config を使う。
 この表を優先します。
 文章で判断が揺れる場合は、この allowed / forbidden / exception の表に従います。
 
-## 9. Provider 種別
+## 9. platform ごとの credential / storage 可否
+
+| platform | allowed | forbidden | exception |
+|---|---|---|---|
+| web | server-side secret storage | client-side の標準 provider API key 保存、localStorage への secret 保存 | backend proxy が server-side config を使う場合のみ |
+| mobile native | backend 発行の短命 token、短命 token 用の OS secure storage | 標準 provider API key 保存、mobile BYOK、file-based config への secret 保存 | provider が短命 token を正式にサポートし、backend が scope / TTL / provider を制御する場合のみ |
+| desktop native | OS secure storage への user secret 保存 | file-based config への secret 保存 | OS secure storage が使える場合のみ標準 provider API key を `userDirectProvider` に使える |
+| desktop node | 非秘密設定の local file config | file-based config への secret 保存 | secure storage が使えない local 開発では `mockProvider` / `templateProvider` を使う |
+| demo / free | 非秘密の provider kind / generation mode | secret の自動保存、無断 provider fallback | ユーザーが明示選択した demo 用 credential のみ |
+
+標準 provider API key とは、OpenAI / Anthropic などの通常 API key を指します。
+server-issued short-lived token は標準 API key ではなく、backend が scope / TTL / provider を制御する限定 credential として扱います。
+
+## 10. Provider 種別
 
 ```text
 mockProvider:
@@ -246,7 +259,7 @@ demoProvider:
 外部または無料LLMを使う可能性がある。ユーザーの明示選択が必要。
 ```
 
-## 10. Free provider / fallback 方針
+## 11. Free provider / fallback 方針
 
 ```text
 無料LLM provider は自動fallbackにしない。
@@ -268,7 +281,7 @@ serverProxyProvider -> demoProvider への自動fallbackは禁止
 userDirectProvider -> free provider への自動fallbackは禁止
 ```
 
-## 11. Provider failure fallback と no-utterance の区別
+## 12. Provider failure fallback と no-utterance の区別
 
 ```text
 provider failure fallback:
@@ -289,7 +302,7 @@ no-utterance:
 その状況では発話を生成しない。UIには何も追加しない。
 ```
 
-## 12. UtterancePolicy
+## 13. UtterancePolicy
 
 ```text
 UtterancePolicy は Application に置く。
@@ -326,7 +339,7 @@ MVP 方針:
 発話生成は、世界の tick loop や EventModal の表示制御を直接変えてはいけません。
 生成条件は UtterancePolicy に集約し、UI から個別に散らして判定しないようにします。
 
-## 13. Data minimization
+## 14. Data minimization
 
 ```text
 BuildUtteranceContext は必要最小限の文脈だけを渡す。
@@ -359,7 +372,7 @@ BuildUtteranceContext は必要最小限の文脈だけを渡す。
 文脈を送りすぎると、コスト・遅延・漏えいリスク・provider lock-in が増える。
 ```
 
-## 14. Secret handling
+## 15. Secret handling
 
 ```text
 - Web / mobile に標準APIキーを置かない
@@ -377,7 +390,7 @@ secret handling は provider 実装よりも外側の運用ルールでもあり
 API key や user secret は Presentation state、local JSON config、通常ログに置きません。
 mobile native の secure storage は短命 token や platform token の保管には使えますが、標準 API key の永続保存には使いません。
 
-## 15. Safety / logging
+## 16. Safety / logging
 
 ```text
 - Chaos / Trial 由来の発話でも、過激すぎる表現は抑制する
@@ -390,7 +403,7 @@ mobile native の secure storage は短命 token や platform token の保管に
 通常ログに残す場合は、provider 名、成功 / 失敗、所要時間、短い error code などに限定します。
 キャラクター情報、prompt 全文、response 全文、API key、user secret は通常ログに出しません。
 
-## 16. Character Passport との境界
+## 17. Character Passport との境界
 
 ```text
 Character Passport:
@@ -410,7 +423,7 @@ Character Passport は外部ゲーム連携のための versioned export contrac
 発話生成は、その場の世界状態から作る live context です。
 両者は情報が重なることがありますが、保存先も責務も異なります。
 
-## 17. Bayesian investment rule
+## 18. Bayesian investment rule
 
 ```text
 この機能は価値が高いが、不確実性も高い。
@@ -431,7 +444,7 @@ PBI ごとの判断観点:
 
 この順序は、実 provider 接続前に「ゲームとして発話が楽しいか」「UI に必要か」「コストや遅延に見合うか」を検証するためのものです。
 
-## 18. 今回見送るもの
+## 19. 今回見送るもの
 
 ```text
 - 実LLM接続
