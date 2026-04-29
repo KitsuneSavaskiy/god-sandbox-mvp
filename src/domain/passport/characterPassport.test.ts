@@ -2,13 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { createCharacterPassportV1 } from "./characterPassport";
 import { createEmptyGrowth, createGrowthSourceTotals } from "./growth";
-import {
-  BUFF_BY_ELEMENT,
-  COMBAT_CLASS_BY_ELEMENT,
-  DEBUFF_BY_ELEMENT,
-  STATUS_CONDITION_BY_ELEMENT,
-  createBaseAttributes,
-} from "./fivePhases";
+import { createBaseAttributes } from "./fivePhases";
 
 function buildPassport() {
   return createCharacterPassportV1({
@@ -83,14 +77,6 @@ function buildPassport() {
 }
 
 describe("character passport domain", () => {
-  it("keeps five-phase mappings aligned across class, status, buff, and debuff", () => {
-    expect(COMBAT_CLASS_BY_ELEMENT.wood).toBe("ranger");
-    expect(COMBAT_CLASS_BY_ELEMENT.water).toBe("healer");
-    expect(STATUS_CONDITION_BY_ELEMENT.metal).toBe("sealed");
-    expect(BUFF_BY_ELEMENT.earth).toBe("fortify");
-    expect(DEBUFF_BY_ELEMENT.fire).toBe("overheated");
-  });
-
   it("models faith as command interpretation rather than a raw success chance", () => {
     const passport = buildPassport();
 
@@ -101,14 +87,37 @@ describe("character passport domain", () => {
     expect(passport.faith.autonomyAlignment).toBe("balanced");
   });
 
-  it("rejects an element and combat class mismatch", () => {
-    expect(() =>
-      createCharacterPassportV1({
-        ...buildPassport(),
-        element: "wood",
-        combatClass: "mage",
+  it("keeps element and combatClass as independent passport values", () => {
+    const passport = createCharacterPassportV1({
+      ...buildPassport(),
+      element: "wood",
+      combatClass: "mage",
+      baseAttributes: createBaseAttributes({
+        vision: 1,
+        power: 8,
+        guard: 2,
+        discipline: 3,
+        flow: 4,
       }),
-    ).toThrow(/Combat class mismatch/);
+      skills: [
+        {
+          ...buildPassport().skills[0],
+          element: "fire",
+        },
+      ],
+      abilities: [
+        {
+          ...buildPassport().abilities[0],
+          element: "water",
+        },
+      ],
+    });
+
+    expect(passport.element).toBe("wood");
+    expect(passport.combatClass).toBe("mage");
+    expect(passport.baseAttributes.power).toBe(8);
+    expect(passport.skills[0]?.element).toBe("fire");
+    expect(passport.abilities[0]?.element).toBe("water");
   });
 
   it("keeps skills and abilities as distinct boundaries in the passport", () => {

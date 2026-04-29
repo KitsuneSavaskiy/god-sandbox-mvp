@@ -1,11 +1,6 @@
 import { createFaith, type Faith, type FaithDraft } from "./faith";
 import { cloneGrowth, type CharacterGrowth } from "./growth";
-import {
-  getCombatClassForElement,
-  type BasicAttributeSet,
-  type CombatClass,
-  type FivePhaseElement,
-} from "./fivePhases";
+import type { BasicAttributeSet, CombatClass, FivePhaseElement } from "./fivePhases";
 import type { AbilityDefinition, SkillDefinition } from "./skill";
 
 export const CHARACTER_PASSPORT_SCHEMA_VERSION = "character-passport/v1";
@@ -39,14 +34,6 @@ export interface CharacterPassportV1 {
 }
 
 export function createCharacterPassportV1(draft: CharacterPassportDraft): CharacterPassportV1 {
-  const expectedCombatClass = getCombatClassForElement(draft.element);
-
-  if (draft.combatClass !== expectedCombatClass) {
-    throw new Error(
-      `Combat class mismatch for ${draft.element}: expected ${expectedCombatClass}, received ${draft.combatClass}.`,
-    );
-  }
-
   return {
     schemaVersion: CHARACTER_PASSPORT_SCHEMA_VERSION,
     characterId: draft.characterId,
