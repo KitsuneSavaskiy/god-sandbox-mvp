@@ -1,0 +1,22 @@
+{
+  "requestId": "creator-workflow-sample-ren-test-001",
+  "character": {
+    "id": "sample-ren",
+    "name": "Ren",
+    "personalitySummary": "規律を重んじる寡黙な見習い騎士。危険な命令には即答せず、守るべき相手を優先する。",
+    "faithSummary": "value 50 / cautious / measured / guarded / balanced。神の声を聞くが、危険な命令は状況を確認してから動く。",
+    "growthSummary": "metal trial 2、earth trial 1、metal blessing 1。試練で規律と防御寄りに伸びている。",
+    "statusSummary": "封印への反応能力 Iron Vow と、直線攻撃 Iron Lunge を持つ。"
+  },
+  "situation": {
+    "eventKind": "test",
+    "eventSummary": "古い門が閉じ、Ren は仲間を守るため前線に残る判断を迫られている。",
+    "chaosSummary": "カオス接触はまだない。",
+    "worldSummary": "creator workflow sample の単体確認。"
+  },
+  "constraints": {
+    "maxLength": 80,
+    "language": "ja",
+    "mode": "safe"
+  }
+}
