@@ -307,7 +307,15 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
               <span>{eventArtGuide.portraitLine}</span>
             </div>
           </div>
-          <div className="art-slot art-slot--illustration">
+          <div
+            className={[
+              "art-slot",
+              "art-slot--illustration",
+              illustrationLoadFailed ? "" : "art-slot--with-image art-slot--illustration-image",
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
             {illustrationLoadFailed ? (
               <>
                 <span className="art-slot__eyebrow">{illustrationSlot.title} / placeholder</span>
