@@ -56,3 +56,45 @@ Response:
 - CORS is open (`*`) for local development.
 - No persistent session or real authentication.
 - Front-end integration is out of scope for this PBI.
+
+---
+
+# god-sandbox-local-game-data
+
+Local file storage layer for game data (PBI-BE-FS-001).
+
+Uses only Node.js standard `fs/promises` and `path` — no external dependencies, no REST server.
+
+## Data root
+
+`god-sandbox-data/` is created in the working directory at runtime and is git-ignored.
+
+```text
+god-sandbox-data/
+  config/
+    local-config.json
+  saves/
+    <saveName>.json
+  sessions/
+    <sessionName>.json
+```
+
+## API
+
+| Function | Description |
+|---|---|
+| `readConfig()` | Read local config JSON |
+| `writeConfig(data)` | Write local config JSON |
+| `readSave(saveName)` | Read a named save JSON |
+| `writeSave(saveName, data)` | Write a named save JSON |
+| `readSession(sessionName)` | Read a named session JSON |
+| `writeSession(sessionName, data)` | Write a named session JSON |
+
+Returns `null` if the file does not exist. Throws on malformed JSON.
+`saveName` / `sessionName` must not contain `/`, `\`, or `..`.
+
+## Smoke test
+
+```bash
+npm run data:smoke
+```
