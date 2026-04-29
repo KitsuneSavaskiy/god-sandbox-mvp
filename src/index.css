@@ -379,6 +379,10 @@ button {
   min-height: 168px;
 }
 
+.art-slot--illustration-image {
+  min-height: 0;
+}
+
 .art-slot__image {
   display: block;
   width: 100%;
@@ -539,25 +543,56 @@ button {
 
 .modal-card {
   display: grid;
-  width: min(900px, 100%);
-  gap: 1rem;
+  width: min(980px, 100%);
+  gap: 1.25rem;
   border: 1px solid rgba(146, 175, 199, 0.18);
   border-radius: 20px;
   background: #0c1826;
   padding: 1rem;
-  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
 }
 
 .modal-card__media {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
 .modal-card__body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.modal-card__media .art-slot--with-image {
+  border-style: solid;
+  border-color: rgba(246, 196, 83, 0.18);
+  background: rgba(15, 25, 38, 0.94);
+}
+
+.modal-card__media .art-slot--portrait {
+  min-height: 0;
+}
+
+.modal-card__media .art-slot__image {
+  object-position: center top;
+}
+
+.modal-card__media .art-slot--portrait .art-slot__image {
+  max-height: 360px;
+}
+
+.modal-card__media .art-slot__image--illustration {
+  min-height: 0;
+  aspect-ratio: 16 / 9;
+  max-height: 210px;
+  object-position: center;
+}
+
+.modal-card__media .art-slot__meta {
+  gap: 0.4rem;
+  padding: 0.95rem;
+  line-height: 1.6;
 }
 
 .event-actions {
