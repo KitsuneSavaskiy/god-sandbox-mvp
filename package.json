@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "test:domain": "vitest run src/domain/world.test.ts",
     "api:dev": "node server/rest-api.mjs",
-    "data:smoke": "node server/local-game-data.mjs"
+    "data:smoke": "node server/local-game-data.mjs",
+    "passport:smoke": "node server/character-passport.mjs smoke"
   },
   "dependencies": {
     "react": "^19.0.0",

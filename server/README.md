@@ -98,3 +98,65 @@ Returns `null` if the file does not exist. Throws on malformed JSON.
 ```bash
 npm run data:smoke
 ```
+
+---
+
+# god-sandbox-character-passport
+
+Character Passport v1 export module (PBI-BE-FS-002).
+
+Generates a portable JSON file representing a character from god-sandbox-mvp,
+suitable for import by other games (e.g. future tactics combat game).
+
+Uses only Node.js standard `fs/promises` — no external dependencies, no REST server.
+
+## Output location
+
+`god-sandbox-data/exports/character-passports/<characterId>.character-passport.json`
+
+## Schema: character-passport/v1
+
+```json
+{
+  "schemaVersion": "character-passport/v1",
+  "characterId": "sample-ren",
+  "name": "Ren",
+  "originGame": "god-sandbox-mvp",
+  "combatClass": "rogue",
+  "faith": {
+    "value": 50,
+    "obedienceBias": "cautious"
+  },
+  "attributes": {
+    "hp": 8,
+    "attack": 3,
+    "defense": 2,
+    "will": 4,
+    "vision": 5,
+    "stealth": 3,
+    "support": 1,
+    "chaosAffinity": 2
+  },
+  "abilities": [],
+  "history": {
+    "blessings": [],
+    "trials": [],
+    "chaosEvents": []
+  }
+}
+```
+
+Valid `combatClass` values: `vanguard`, `mage`, `rogue`, `healer`
+
+## API
+
+| Function | Description |
+|---|---|
+| `buildPassport(fields)` | Build a passport object from character fields |
+| `exportPassport(passport)` | Write passport JSON to the exports directory, returns file path |
+
+## Smoke test
+
+```bash
+npm run passport:smoke
+```
