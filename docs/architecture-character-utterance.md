@@ -12,7 +12,33 @@
 - API key / secret handling / prompt / provider config の責務を分離する。
 - 実 LLM 接続へ進む前に、docs-only で境界を固定する。
 
-## 2. レイヤー配置
+## 2. platform 用語定義
+
+この資料では、`native` という語を単独では使いません。
+`desktop native` と `mobile native` は secret handling の前提が違うため、必ず分けて扱います。
+
+```text
+web:
+browser 上で動く Web アプリ。
+
+desktop native:
+OS の secure storage を使える desktop アプリ。
+
+desktop node:
+Node.js process と local file system を使える desktop / local 開発環境。
+
+mobile native:
+iOS / Android の native アプリ。
+
+native:
+曖昧なので、単独では設計判断に使わない。
+```
+
+MVP では、`mobile native` に標準 API key を保存しません。
+`mobile native` の BYOK は禁止です。
+例外的に mobile で direct 接続を検討する場合でも、backend が発行する短命 token に限定し、標準 API key とは別物として扱います。
+
+## 3. レイヤー配置
 
 ```text
 Domain:
@@ -53,7 +79,7 @@ Infrastructure は provider 実装、provider-specific serializer、config / sec
 Presentation は画面表示とユーザー操作だけを担当します。
 Composition Root は、どの concrete provider implementation を Application の `LlmProvider` port に注入するかを決めます。
 
-## 3. utteranceContext の配置
+## 4. utteranceContext の配置
 
 ```text
 utteranceContext は Domain に置かない。
@@ -70,7 +96,7 @@ Domain は Character / Faith / Growth / Status などの意味を持つが、LLM
 `utteranceContext` は、発話生成のために Application が一時的に作る provider-neutral DTO です。
 Domain model と似た情報を含むことはありますが、Domain model そのものではありません。
 
-## 4. BuildUtteranceContext / BuildUtteranceRequest / Prompt serialization の責務
+## 5. BuildUtteranceContext / BuildUtteranceRequest / Prompt serialization の責務
 
 `PromptBuilder` という名前は、Domain が prompt を持つように誤解されやすいため使いません。
 責務は次の3段階に分けます。
@@ -99,7 +125,7 @@ Domain が prompt template を持つ
 React UI が prompt を組み立てる
 ```
 
-## 5. Provider Selection Policy
+## 6. Provider Selection Policy
 
 ```text
 UI は concrete provider implementation を直接選ばない。
@@ -122,7 +148,7 @@ LoginScreen や WorldViewport が OpenAIProvider を直接 import する
 
 provider selection は「どの provider を使いたいか」という user intent と、「実際にどの実装を注入するか」という composition の責務を分けます。
 
-## 6. Provider config と secret の分離
+## 7. Provider config と secret の分離
 
 ```text
 LLM provider 設定は LlmProviderConfigRepository port から取得する。
@@ -161,15 +187,35 @@ desktop/node:
 非秘密設定は local file config 可。
 API key は desktopSecureConfigRepository など secure storage が使える場合のみ保存可。
 
-native mobile:
-OS secure storage / keychain を使える場合のみ userDirectProvider を許可。
+desktop native:
+userDirectProvider を許可してよい。
+ただし API key は desktopSecureConfigRepository など OS secure storage にのみ保存する。
+desktopFileConfigRepository や JSON file への secret 保存は禁止。
+
+mobile native:
+serverProxyProvider または backend 発行の短命 token のみ許可。
+標準 API key 保存は禁止。
+userDirectProvider は禁止。
 
 web:
 標準APIキーを保持しない。
 backend proxy または server-side config を使う。
 ```
 
-## 7. Provider 種別
+## 8. platform ごとの provider / credential 可否
+
+| platform | allowed | forbidden | exception |
+|---|---|---|---|
+| web | `serverProxyProvider` | 標準 API key 保存、`userDirectProvider` | backend proxy 内の server-side config |
+| mobile native | `serverProxyProvider`、backend 発行の短命 token | 標準 API key 保存、mobile BYOK、`userDirectProvider` | provider が短命 token を正式にサポートし、backend が scope / TTL を制御する場合のみ |
+| desktop native | `serverProxyProvider`、`userDirectProvider` | JSON file への secret 保存 | OS secure storage が使える場合のみ user direct を許可 |
+| desktop node | `serverProxyProvider`、開発用 `mockProvider` / `templateProvider` | file config への secret 保存 | local 開発で secure storage がない場合は user direct を使わない |
+| demo / free | ユーザーが明示選択した `demoProvider` | 自動 fallback | デモ用途として明示された範囲のみ |
+
+この表を優先します。
+文章で判断が揺れる場合は、この allowed / forbidden / exception の表に従います。
+
+## 9. Provider 種別
 
 ```text
 mockProvider:
@@ -186,8 +232,8 @@ serverProxyProvider:
 API key を server 側で扱う provider。
 
 userDirectProvider:
-desktop/native かつ platform-secure storage が使える場合のみ許可。
-webでは原則禁止。
+desktop native かつ platform-secure storage が使える場合のみ許可。
+web / mobile native では禁止。
 ```
 
 `templateProvider` と `demoProvider` の違い:
@@ -200,7 +246,7 @@ demoProvider:
 外部または無料LLMを使う可能性がある。ユーザーの明示選択が必要。
 ```
 
-## 8. Free provider / fallback 方針
+## 10. Free provider / fallback 方針
 
 ```text
 無料LLM provider は自動fallbackにしない。
@@ -222,7 +268,7 @@ serverProxyProvider -> demoProvider への自動fallbackは禁止
 userDirectProvider -> free provider への自動fallbackは禁止
 ```
 
-## 9. Provider failure fallback と no-utterance の区別
+## 11. Provider failure fallback と no-utterance の区別
 
 ```text
 provider failure fallback:
@@ -243,7 +289,7 @@ no-utterance:
 その状況では発話を生成しない。UIには何も追加しない。
 ```
 
-## 10. UtterancePolicy
+## 12. UtterancePolicy
 
 ```text
 UtterancePolicy は Application に置く。
@@ -280,7 +326,7 @@ MVP 方針:
 発話生成は、世界の tick loop や EventModal の表示制御を直接変えてはいけません。
 生成条件は UtterancePolicy に集約し、UI から個別に散らして判定しないようにします。
 
-## 11. Data minimization
+## 13. Data minimization
 
 ```text
 BuildUtteranceContext は必要最小限の文脈だけを渡す。
@@ -313,22 +359,25 @@ BuildUtteranceContext は必要最小限の文脈だけを渡す。
 文脈を送りすぎると、コスト・遅延・漏えいリスク・provider lock-in が増える。
 ```
 
-## 12. Secret handling
+## 14. Secret handling
 
 ```text
 - Web / mobile に標準APIキーを置かない
 - OpenAI / Anthropic 通常APIは server proxy 経由
 - OpenAI Realtime 直結時のみ backend 発行の短命 token を使う
 - Anthropic は server proxy 標準
-- userDirectProvider は desktop/native + platform-secure storage 前提
+- userDirectProvider は desktop native + platform-secure storage 前提
+- mobile native では userDirectProvider を禁止する
+- mobile native の例外は backend 発行の短命 token のみ
 - API key / prompt全文 / user secret を通常ログに出さない
 - secret漏えい時は revoke / rotate する
 ```
 
 secret handling は provider 実装よりも外側の運用ルールでもあります。
 API key や user secret は Presentation state、local JSON config、通常ログに置きません。
+mobile native の secure storage は短命 token や platform token の保管には使えますが、標準 API key の永続保存には使いません。
 
-## 13. Safety / logging
+## 15. Safety / logging
 
 ```text
 - Chaos / Trial 由来の発話でも、過激すぎる表現は抑制する
@@ -341,7 +390,7 @@ API key や user secret は Presentation state、local JSON config、通常ロ�
 通常ログに残す場合は、provider 名、成功 / 失敗、所要時間、短い error code などに限定します。
 キャラクター情報、prompt 全文、response 全文、API key、user secret は通常ログに出しません。
 
-## 14. Character Passport との境界
+## 16. Character Passport との境界
 
 ```text
 Character Passport:
@@ -361,7 +410,7 @@ Character Passport は外部ゲーム連携のための versioned export contrac
 発話生成は、その場の世界状態から作る live context です。
 両者は情報が重なることがありますが、保存先も責務も異なります。
 
-## 15. Bayesian investment rule
+## 17. Bayesian investment rule
 
 ```text
 この機能は価値が高いが、不確実性も高い。
@@ -382,7 +431,7 @@ PBI ごとの判断観点:
 
 この順序は、実 provider 接続前に「ゲームとして発話が楽しいか」「UI に必要か」「コストや遅延に見合うか」を検証するためのものです。
 
-## 16. 今回見送るもの
+## 18. 今回見送るもの
 
 ```text
 - 実LLM接続
