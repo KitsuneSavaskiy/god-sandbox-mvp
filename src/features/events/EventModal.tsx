@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { RYO_ILLUSTRATIONS, RYO_PORTRAITS } from "../../assets/artPaths";
 import { getInterventionModifier, getJudgementRankLabel, previewJudgement } from "../../domain/world";
 import type { Character, InterventionKind, JudgementResult, WorldEvent } from "../../domain/types";
 
@@ -26,20 +27,6 @@ const triggerLabels: Record<WorldEvent["trigger"], string> = {
   aging: "流しイベント",
   death: "死亡",
 };
-
-const RYO_PORTRAITS = {
-  normal: "/art/portraits/ryo/ryo_normal.jpeg",
-  tense: "/art/portraits/ryo/ryo_tense.jpeg",
-  sadness: "/art/portraits/ryo/ryo_sadness.jpeg",
-  joy: "/art/portraits/ryo/ryo_joy.jpeg",
-  divine: "/art/portraits/ryo/ryo_divine.jpeg",
-} as const;
-
-const RYO_ILLUSTRATIONS = {
-  watch: "/art/illustrations/ryo/ryo_watch.jpeg",
-  bless: "/art/illustrations/ryo/ryo_bless.jpeg",
-  test: "/art/illustrations/ryo/ryo_test.jpeg",
-} as const;
 
 interface RollingState {
   intervention: "bless" | "test";

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { RYO_PORTRAITS } from "../../assets/artPaths";
 import { getJudgementRankLabel } from "../../domain/world";
 import type { BloodlineSummary, Character, EventSummary, JudgementResult } from "../../domain/types";
 
@@ -16,14 +17,6 @@ interface ApostlePanelProps {
   onSelectCharacter: (characterId: string) => void;
   onTriggerManualEvent: () => void;
 }
-
-const RYO_PORTRAITS = {
-  normal: "/art/portraits/ryo/ryo_normal.jpeg",
-  tense: "/art/portraits/ryo/ryo_tense.jpeg",
-  sadness: "/art/portraits/ryo/ryo_sadness.jpeg",
-  joy: "/art/portraits/ryo/ryo_joy.jpeg",
-  divine: "/art/portraits/ryo/ryo_divine.jpeg",
-} as const;
 
 function getPanelPortraitSrc(paused: boolean, latestJudgement: JudgementResult | null) {
   if (paused) {
