@@ -1,19 +1,22 @@
-import { readFile, writeFile, mkdir, unlink, access } from 'fs/promises';
+import { readFile, writeFile, mkdir, unlink, access, rm, mkdtemp } from 'fs/promises';
+import { tmpdir } from 'os';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
-const DATA_ROOT = resolve(process.cwd(), 'god-sandbox-data');
+let DATA_ROOT = resolve(process.cwd(), 'god-sandbox-data');
 
-const DIRS = [
-  join(DATA_ROOT, 'config'),
-  join(DATA_ROOT, 'saves'),
-  join(DATA_ROOT, 'sessions'),
-  join(DATA_ROOT, 'characters'),
-  join(DATA_ROOT, 'exports', 'character-passports'),
-];
+function getDirs() {
+  return [
+    join(DATA_ROOT, 'config'),
+    join(DATA_ROOT, 'saves'),
+    join(DATA_ROOT, 'sessions'),
+    join(DATA_ROOT, 'characters'),
+    join(DATA_ROOT, 'exports', 'character-passports'),
+  ];
+}
 
 export async function initDirs() {
-  await Promise.all(DIRS.map(d => mkdir(d, { recursive: true })));
+  await Promise.all(getDirs().map(d => mkdir(d, { recursive: true })));
 }
 
 function validateName(name) {
@@ -50,30 +53,36 @@ async function writeJson(filePath, data) {
 }
 
 export async function readConfig() {
+  await initDirs();
   return readJson(join(DATA_ROOT, 'config', 'local-config.json'));
 }
 
 export async function writeConfig(data) {
+  await initDirs();
   return writeJson(join(DATA_ROOT, 'config', 'local-config.json'), data);
 }
 
 export async function readSave(saveName) {
   validateName(saveName);
+  await initDirs();
   return readJson(join(DATA_ROOT, 'saves', `${saveName}.json`));
 }
 
 export async function writeSave(saveName, data) {
   validateName(saveName);
+  await initDirs();
   return writeJson(join(DATA_ROOT, 'saves', `${saveName}.json`), data);
 }
 
 export async function readSession(sessionName) {
   validateName(sessionName);
+  await initDirs();
   return readJson(join(DATA_ROOT, 'sessions', `${sessionName}.json`));
 }
 
 export async function writeSession(sessionName, data) {
   validateName(sessionName);
+  await initDirs();
   return writeJson(join(DATA_ROOT, 'sessions', `${sessionName}.json`), data);
 }
 
@@ -84,12 +93,21 @@ const isMain = Boolean(process.argv[1]) && resolve(process.argv[1]) === __filena
 if (isMain && process.argv[2] === 'smoke') {
   console.log('data:smoke start');
 
+  DATA_ROOT = await mkdtemp(join(tmpdir(), 'god-sandbox-data-smoke-'));
+  console.log('temp data root:', DATA_ROOT);
+
+  await readConfig();
+  await Promise.all(getDirs().map(d => access(d)));
+  console.log('public API init ok:', getDirs().map(d => d.replace(DATA_ROOT + '/', '')).join(', '));
+
+  await rm(DATA_ROOT, { recursive: true, force: true });
+  DATA_ROOT = await mkdtemp(join(tmpdir(), 'god-sandbox-data-smoke-'));
   await initDirs();
   console.log('initDirs ok');
 
   // Verify all directories exist
-  await Promise.all(DIRS.map(d => access(d)));
-  console.log('all dirs ok:', DIRS.map(d => d.replace(DATA_ROOT + '/', '')).join(', '));
+  await Promise.all(getDirs().map(d => access(d)));
+  console.log('all dirs ok:', getDirs().map(d => d.replace(DATA_ROOT + '/', '')).join(', '));
 
   await writeConfig({ gameVersion: '0.1.0', locale: 'ja' });
   const cfg = await readConfig();
