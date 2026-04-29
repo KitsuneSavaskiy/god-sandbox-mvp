@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { Character, EventSummary, JudgementResult } from "../../domain/types";
-import { buildUtterancePreviewRequest } from "./buildUtterancePreviewRequest";
+import type { LlmProvider } from "./types";
+import {
+  buildUtteranceRequest,
+  generateUtterancePreview,
+} from "./generateUtterancePreview";
 
 const character: Character = {
   id: "ren",
@@ -32,9 +36,9 @@ const warningSummary: EventSummary = {
   tick: 12,
 };
 
-describe("buildUtterancePreviewRequest", () => {
+describe("utterance preview application use case", () => {
   it("builds a provider-neutral warning request from focused character and latest event", () => {
-    const request = buildUtterancePreviewRequest({
+    const request = buildUtteranceRequest({
       character,
       latestEventSummary: warningSummary,
       latestJudgement: null,
@@ -42,7 +46,7 @@ describe("buildUtterancePreviewRequest", () => {
     });
 
     expect(request).toMatchObject({
-      requestId: "limited-ui-12-ren",
+      requestId: "utterance-preview-12-ren",
       character: {
         id: "ren",
         name: "Ren",
@@ -76,7 +80,7 @@ describe("buildUtterancePreviewRequest", () => {
       tick: 13,
     };
 
-    const request = buildUtterancePreviewRequest({
+    const request = buildUtteranceRequest({
       character,
       latestEventSummary: warningSummary,
       latestJudgement,
@@ -86,5 +90,39 @@ describe("buildUtterancePreviewRequest", () => {
     expect(request.situation.eventKind).toBe("test");
     expect(request.situation.eventSummary).toContain("Test 結果");
     expect(request.situation.eventSummary).toContain("試練を越えて勢いを得た。");
+  });
+
+  it("runs preview providers through the LlmProvider port without provider-specific data", async () => {
+    const provider: LlmProvider = {
+      kind: "mock",
+      async generate(request) {
+        expect(request.requestId).toBe("utterance-preview-12-ren");
+        expect(JSON.stringify(request)).not.toContain("apiKey");
+        expect(JSON.stringify(request)).not.toContain("userSecret");
+
+        return {
+          status: "ok",
+          providerKind: "mock",
+          text: `${request.character.name} は静かに応えた。`,
+        };
+      },
+    };
+
+    await expect(
+      generateUtterancePreview({
+        providers: [{ label: "mockProvider", provider }],
+        character,
+        latestEventSummary: warningSummary,
+        latestJudgement: null,
+        tick: 12,
+      }),
+    ).resolves.toEqual([
+      {
+        providerLabel: "mockProvider",
+        status: "ok",
+        text: "Ren は静かに応えた。",
+        reason: undefined,
+      },
+    ]);
   });
 });

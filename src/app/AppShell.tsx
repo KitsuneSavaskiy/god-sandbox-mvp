@@ -5,10 +5,12 @@ import { EventModal } from "../features/events/EventModal";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
 import { createMockProvider } from "../infrastructure/llm/mockProvider";
 import { createTemplateProvider } from "../infrastructure/llm/templateProvider";
-import { buildUtterancePreviewRequest } from "../presentation/utterance/buildUtterancePreviewRequest";
+import {
+  generateUtterancePreview as runUtterancePreviewUseCase,
+  type UtterancePreviewResult,
+} from "../application/utterance/generateUtterancePreview";
 import {
   UtterancePreviewPanel,
-  type UtterancePreviewResult,
 } from "../presentation/utterance/UtterancePreviewPanel";
 import {
   getAliveCharacterCount,
@@ -62,31 +64,18 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
     return () => window.clearInterval(timerId);
   }, [dispatch, hasLivingCharacters, state.phase, state.timeControl]);
 
-  async function generateUtterancePreview(): Promise<UtterancePreviewResult[]> {
+  async function handleGenerateUtterancePreview(): Promise<UtterancePreviewResult[]> {
     if (!focusedCharacter) {
       return [];
     }
 
-    const request = buildUtterancePreviewRequest({
+    return runUtterancePreviewUseCase({
+      providers: UTTERANCE_PREVIEW_PROVIDERS,
       character: focusedCharacter,
       latestEventSummary: state.latestEventSummary,
       latestJudgement: state.latestJudgement,
       tick: state.tick,
     });
-
-    const responses = await Promise.all(
-      UTTERANCE_PREVIEW_PROVIDERS.map(async ({ label, provider }) => ({
-        label,
-        response: await provider.generate(request),
-      })),
-    );
-
-    return responses.map(({ label, response }) => ({
-      providerLabel: label,
-      status: response.status,
-      text: response.text,
-      reason: response.reason,
-    }));
   }
 
   return (
@@ -195,7 +184,7 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
           <UtterancePreviewPanel
             disabled={!hasLivingCharacters}
             focusedCharacter={focusedCharacter}
-            onGenerate={generateUtterancePreview}
+            onGenerate={handleGenerateUtterancePreview}
           />
 
           <CommandConsole

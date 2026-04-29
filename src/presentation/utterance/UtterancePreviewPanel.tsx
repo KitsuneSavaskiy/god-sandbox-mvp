@@ -1,12 +1,6 @@
 import { useState } from "react";
+import type { UtterancePreviewResult } from "../../application/utterance/generateUtterancePreview";
 import type { Character } from "../../domain/types";
-
-export interface UtterancePreviewResult {
-  providerLabel: string;
-  status: "ok" | "unavailable" | "no-utterance";
-  text: string | null;
-  reason?: string;
-}
 
 interface UtterancePreviewPanelProps {
   focusedCharacter?: Character;
