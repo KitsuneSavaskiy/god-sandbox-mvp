@@ -51,3 +51,70 @@ chmod +x start.sh
 3. 依存パッケージが自動でインストールされます（初回のみ時間がかかります）。
 4. 開発サーバーが起動し、ブラウザで `http://localhost:5173` を開くとゲームが遊べます。
 5. 終了するには `Ctrl+C` を押してください。
+
+---
+
+## Getting Started (for developers)
+
+### Requirements
+
+- **Node.js 22.x** — [nodejs.org](https://nodejs.org/)
+- **npm** (bundled with Node.js)
+- **Git**
+
+### Setup
+
+```bash
+git clone https://github.com/KitsuneSavaskiy/god-sandbox-mvp.git
+cd god-sandbox-mvp
+npm ci
+```
+
+### Run frontend
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:5173/` in your browser.
+
+### Basic flow
+
+1. Login screen appears — enter any name to proceed.
+2. The sandbox world loads and ticks automatically.
+3. Events fire periodically; an EventModal pops up with choices.
+4. Select a choice to apply world intervention and continue.
+
+### Checks
+
+```bash
+npm run typecheck    # TypeScript type check
+npm run test:domain  # Domain unit tests
+npm run build        # Production build
+```
+
+### Troubleshooting
+
+| Problem | Solution |
+|---|---|
+| `npm run dev` fails to start | Make sure Node.js 22.x is installed and `npm ci` completed successfully. |
+| Black screen after launch | Open DevTools Console (F12) and check for errors. |
+| Port 5173 already in use | Stop the other process using port 5173, or run `npm run dev -- --port 5174` to use a different port. |
+
+---
+
+### Optional: local REST API
+
+Start the local API server in a separate terminal:
+
+```bash
+npm run api:dev
+```
+
+The server listens on `http://localhost:8787`.
+
+Health check:
+
+```bash
+curl http://localhost:8787/api/health
+```
