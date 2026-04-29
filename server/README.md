@@ -109,22 +109,38 @@ npm run data:smoke
 
 # god-sandbox-character-passport
 
-Character Passport v1 のローカル出力層です (PBI-BE-FS-002)。
+Character Passport v1 のローカル出力層です。
 
 箱庭で育てたキャラクターを、あとで別ゲームへ持ち出すための JSON を作ります。
-今回は **ローカルファイルへ出力するだけ** です。REST API やフロント接続は行いません。
+今回は **ローカルファイルへ出力するだけ** で、REST API やフロント接続は行いません。
+
+## 接続方針
+
+Character Passport の意味は `src/domain/passport/**` を正とします。
+server 側は、その意味を import して会話モデル化するのではなく、**export 契約の整形と file write を吸収する adapter** として扱います。
+
+```text
+Application source snapshot / Domain draft
+  -> server/character-passport.mjs
+  -> Character Passport export JSON
+  -> god-sandbox-data/exports/character-passports/*.json
+```
+
+`Character Passport JSON` は export contract であり、内部会話モデルではありません。
 
 ## 何ができるか
 
-- Character Passport v1 の JSON を作る
+- Character Passport v1 の export JSON を組み立てる
+- Application source snapshot から export 形へ変換する
 - `god-sandbox-data/exports/character-passports/` に保存する
-- smoke コマンドで、初見の開発者でも出力結果をすぐ確認できる
+- smoke コマンドで、adapter と file write の最小確認ができる
 
 ## 主要API
 
 | 関数 | 説明 |
 |---|---|
-| `createCharacterPassportV1(input)` | Character Passport v1 の JSON を組み立てる |
+| `createCharacterPassportV1(input)` | Domain 寄りの draft から Character Passport v1 export JSON を組み立てる |
+| `adaptCharacterPassportSourceToExport(source)` | Application source snapshot を export JSON へ変換する adapter |
 | `writeCharacterPassportFile(passport)` | Passport JSON をローカルファイルへ保存する |
 
 ## Character Passport v1 の最小仕様
@@ -137,40 +153,88 @@ Character Passport v1 のローカル出力層です (PBI-BE-FS-002)。
   "characterId": "sample-ren",
   "name": "Ren",
   "originGame": "god-sandbox-mvp",
-  "combatClass": "rogue",
+  "element": "metal",
+  "combatClass": "knight",
+  "baseAttributes": {
+    "vision": 2,
+    "power": 3,
+    "guard": 5,
+    "discipline": 6,
+    "flow": 2
+  },
   "faith": {
     "value": 50,
-    "obedienceBias": "cautious"
+    "obedienceBias": "cautious",
+    "commandInterpretation": "measured",
+    "hazardResponse": "guarded",
+    "autonomyAlignment": "balanced",
+    "trustBand": "steady",
+    "sources": {
+      "blessings": 1,
+      "trials": 2,
+      "chaosExposure": 0
+    }
   },
-  "attributes": {
-    "hp": 8,
-    "attack": 3,
-    "defense": 2,
-    "will": 4,
-    "vision": 5,
-    "stealth": 3,
-    "support": 1,
-    "chaosAffinity": 2
+  "growth": {
+    "blessings": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 0,
+      "metal": 1,
+      "water": 0
+    },
+    "trials": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 1,
+      "metal": 2,
+      "water": 0
+    },
+    "chaosExposure": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 0,
+      "metal": 0,
+      "water": 0
+    }
   },
-  "abilities": [],
-  "history": {
-    "blessings": [],
-    "trials": [],
-    "chaosEvents": []
-  }
+  "skills": [],
+  "abilities": []
 }
 ```
 
-### `combatClass`
+## 既存 server-only prototype との差分
 
-今の v1 では次の 4 種のみ許可します。
+以前の `server/character-passport.mjs` は、`attributes` / `history` / `rogue` などの server-only 仮スキーマを持っていました。
+PBI-PASSPORT-EXPORT-INTEGRATION-001 以降は、それを延命せず、Domain で確定した次の意味へ寄せます。
 
-- `vanguard`
+- `element` と `combatClass` は 1:1 固定
+- `baseAttributes` は `vision / power / guard / discipline / flow`
+- `faith` は value だけでなく、命令解釈・危険命令への反応・自律判断寄りの項目を含む
+- `growth` は `blessings / trials / chaosExposure` を五行ごとに持つ
+- `skills` は能動行動、`abilities` は受動 / 反応 / aura 効果
+
+## `combatClass`
+
+v1 では次の 5 種のみ許可します。
+
+- `ranger`
 - `mage`
-- `rogue`
+- `guardian`
+- `knight`
 - `healer`
 
-### `characterId`
+対応は固定です。
+
+```text
+wood  = ranger
+fire  = mage
+earth = guardian
+metal = knight
+water = healer
+```
+
+## `characterId`
 
 `characterId` は export ファイル名に使われます。
 安全のため、空文字、`/`、`\`、`..` を含む値は拒否します。
@@ -192,11 +256,13 @@ god-sandbox-data/
 npm run passport:smoke
 ```
 
-これで次の 3 点を確認できます。
+これで次の 5 点を確認できます。
 
-1. Passport JSON が生成できる
+1. Domain 寄りの Passport export JSON が生成できる
 2. `god-sandbox-data/exports/character-passports/` に保存できる
 3. `schemaVersion` が `character-passport/v1` になっている
+4. `element` と `combatClass` の固定対応違反を拒否できる
+5. `characterId` の path traversal / slash を拒否できる
 
 ## 今回まだ含まないもの
 
