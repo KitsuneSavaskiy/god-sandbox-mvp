@@ -133,6 +133,7 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
             dayPhase={dayPhase}
             paused={state.phase === "event"}
             season={season}
+            tick={state.tick}
           />
         </section>
 
