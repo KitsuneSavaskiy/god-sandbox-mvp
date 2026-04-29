@@ -62,6 +62,34 @@ function getFocusTarget(characters: Character[], focusCharacterId: string) {
   );
 }
 
+function getChaosOmen(characters: Character[], paused: boolean, focusTarget: Character | null) {
+  const livingCharacters = characters.filter((character) => character.alive);
+  const warnedCharacters = livingCharacters.filter((character) => character.warningIssued).length;
+  const totalNotables = livingCharacters.reduce((total, character) => total + character.notable.length, 0);
+
+  if (paused) {
+    return `Chaos omen: ${focusTarget?.name ?? "The world"} holds its breath at the edge of change.`;
+  }
+
+  if (livingCharacters.length === 0) {
+    return "Chaos omen: The world falls silent beneath a spent sky.";
+  }
+
+  if (livingCharacters.length < characters.length) {
+    return "Chaos omen: The air tastes faintly of ash and unfinished vows.";
+  }
+
+  if (warnedCharacters > 0) {
+    return "Chaos omen: A faint distortion trembles at the edge of the world.";
+  }
+
+  if (totalNotables >= 6) {
+    return "Chaos omen: Whispered echoes gather beneath the calm surface.";
+  }
+
+  return "Chaos omen: The world is calm, but not entirely still.";
+}
+
 function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z: number }, zoom: number) {
   camera.position.set(center.x, CAMERA_HEIGHT, center.z + CAMERA_DISTANCE);
   camera.zoom = zoom;
@@ -87,6 +115,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
+  const chaosOmen = getChaosOmen(characters, paused, focusTarget);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -359,6 +388,9 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
         </div>
         <div className="viewport-overlay__chip viewport-overlay__chip--center">
           {dayPhaseLabel} / {seasonLabel}
+        </div>
+        <div className="viewport-overlay__chip viewport-overlay__chip--center">
+          {chaosOmen}
         </div>
         <div className="viewport-overlay__legend">
           <span>木</span>
