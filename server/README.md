@@ -51,6 +51,20 @@ Response:
 { "ok": true }
 ```
 
+## Request logging (PBI-BE-API-002)
+
+Every request is assigned a unique request id (`<timestamp>-<seq>`).
+
+- Console output: `METHOD /path STATUS [requestId]`
+- Response header: `X-Request-Id: <requestId>`
+
+Example console output:
+
+```
+GET /api/health 200 [1714383600000-1]
+POST /api/login 200 [1714383601234-2]
+```
+
 ## Notes
 
 - CORS is open (`*`) for local development.

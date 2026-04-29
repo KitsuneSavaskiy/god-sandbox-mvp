@@ -8,11 +8,17 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-function json(res, status, body) {
+let _seq = 0;
+function generateRequestId() {
+  return `${Date.now()}-${++_seq}`;
+}
+
+function json(res, status, body, requestId) {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
     "Content-Type": "application/json",
     "Content-Length": Buffer.byteLength(payload),
+    "X-Request-Id": requestId,
     ...CORS_HEADERS,
   });
   res.end(payload);
@@ -39,48 +45,46 @@ async function parseJSON(req) {
 
 const server = createServer(async (req, res) => {
   const { method, url } = req;
+  const requestId = generateRequestId();
 
   if (method === "OPTIONS") {
-    res.writeHead(204, CORS_HEADERS);
+    res.writeHead(204, { "X-Request-Id": requestId, ...CORS_HEADERS });
     res.end();
+    console.log(`${method} ${url} 204 [${requestId}]`);
     return;
   }
 
+  let status = 200;
   try {
     if (method === "GET" && url === "/api/health") {
-      json(res, 200, { ok: true, service: "god-sandbox-api" });
-      return;
-    }
-
-    if (method === "POST" && url === "/api/login") {
+      json(res, 200, { ok: true, service: "god-sandbox-api" }, requestId);
+    } else if (method === "POST" && url === "/api/login") {
       const body = await parseJSON(req);
       const name = body.playerName ?? "Guest";
       json(res, 200, {
         ok: true,
         user: { id: "local-user", name },
         token: "local-dev-token",
-      });
-      return;
+      }, requestId);
+    } else if (method === "GET" && url === "/api/session") {
+      json(res, 200, { ok: true, authenticated: false }, requestId);
+    } else if (method === "POST" && url === "/api/logout") {
+      json(res, 200, { ok: true }, requestId);
+    } else {
+      status = 404;
+      json(res, 404, { ok: false, error: "Not found" }, requestId);
     }
-
-    if (method === "GET" && url === "/api/session") {
-      json(res, 200, { ok: true, authenticated: false });
-      return;
-    }
-
-    if (method === "POST" && url === "/api/logout") {
-      json(res, 200, { ok: true });
-      return;
-    }
-
-    json(res, 404, { ok: false, error: "Not found" });
   } catch (err) {
     if (err instanceof SyntaxError) {
-      json(res, 400, { ok: false, error: "Invalid JSON" });
+      status = 400;
+      json(res, 400, { ok: false, error: "Invalid JSON" }, requestId);
     } else {
-      json(res, 500, { ok: false, error: "Internal server error" });
+      status = 500;
+      json(res, 500, { ok: false, error: "Internal server error" }, requestId);
     }
   }
+
+  console.log(`${method} ${url} ${status} [${requestId}]`);
 });
 
 server.listen(PORT, () => {
