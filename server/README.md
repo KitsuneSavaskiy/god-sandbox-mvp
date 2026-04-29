@@ -170,6 +170,11 @@ Character Passport v1 のローカル出力層です (PBI-BE-FS-002)。
 - `rogue`
 - `healer`
 
+### `characterId`
+
+`characterId` は export ファイル名に使われます。
+安全のため、空文字、`/`、`\`、`..` を含む値は拒否します。
+
 ## 出力先
 
 ```text
