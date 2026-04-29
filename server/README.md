@@ -77,12 +77,18 @@ god-sandbox-data/
     <saveName>.json
   sessions/
     <sessionName>.json
+  characters/
+  exports/
+    character-passports/
 ```
+
+All directories are created upfront by `initDirs()`.
 
 ## API
 
 | Function | Description |
 |---|---|
+| `initDirs()` | Create all data directories |
 | `readConfig()` | Read local config JSON |
 | `writeConfig(data)` | Write local config JSON |
 | `readSave(saveName)` | Read a named save JSON |
