@@ -1,8 +1,20 @@
-import { readFile, writeFile, mkdir, unlink } from 'fs/promises';
+import { readFile, writeFile, mkdir, unlink, access } from 'fs/promises';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const DATA_ROOT = resolve(process.cwd(), 'god-sandbox-data');
+
+const DIRS = [
+  join(DATA_ROOT, 'config'),
+  join(DATA_ROOT, 'saves'),
+  join(DATA_ROOT, 'sessions'),
+  join(DATA_ROOT, 'characters'),
+  join(DATA_ROOT, 'exports', 'character-passports'),
+];
+
+export async function initDirs() {
+  await Promise.all(DIRS.map(d => mkdir(d, { recursive: true })));
+}
 
 function validateName(name) {
   if (!name || typeof name !== 'string') {
@@ -65,12 +77,19 @@ export async function writeSession(sessionName, data) {
   return writeJson(join(DATA_ROOT, 'sessions', `${sessionName}.json`), data);
 }
 
-// Smoke test — runs when invoked directly: node server/local-game-data.mjs
+// Smoke test — node server/local-game-data.mjs smoke
 const __filename = fileURLToPath(import.meta.url);
 const isMain = Boolean(process.argv[1]) && resolve(process.argv[1]) === __filename;
 
-if (isMain) {
+if (isMain && process.argv[2] === 'smoke') {
   console.log('data:smoke start');
+
+  await initDirs();
+  console.log('initDirs ok');
+
+  // Verify all directories exist
+  await Promise.all(DIRS.map(d => access(d)));
+  console.log('all dirs ok:', DIRS.map(d => d.replace(DATA_ROOT + '/', '')).join(', '));
 
   await writeConfig({ gameVersion: '0.1.0', locale: 'ja' });
   const cfg = await readConfig();
