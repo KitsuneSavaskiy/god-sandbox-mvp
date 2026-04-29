@@ -9,6 +9,14 @@ interface WorldViewportProps {
   dayPhase: DayPhase;
   paused: boolean;
   season: Season;
+  tick: number;
+}
+
+function chaosOmen(tick: number, paused: boolean): string {
+  if (paused) return "Something stirs in the world.";
+  if (tick < 5) return "The world is calm.";
+  if (tick < 12) return "A faint unease drifts through the void.";
+  return "A faint distortion trembles at the edge of the world.";
 }
 
 const elementColors: Record<Character["element"], number> = {
@@ -62,34 +70,6 @@ function getFocusTarget(characters: Character[], focusCharacterId: string) {
   );
 }
 
-function getChaosOmen(characters: Character[], paused: boolean, focusTarget: Character | null) {
-  const livingCharacters = characters.filter((character) => character.alive);
-  const warnedCharacters = livingCharacters.filter((character) => character.warningIssued).length;
-  const totalNotables = livingCharacters.reduce((total, character) => total + character.notable.length, 0);
-
-  if (paused) {
-    return `Chaos omen: ${focusTarget?.name ?? "The world"} holds its breath at the edge of change.`;
-  }
-
-  if (livingCharacters.length === 0) {
-    return "Chaos omen: The world falls silent beneath a spent sky.";
-  }
-
-  if (livingCharacters.length < characters.length) {
-    return "Chaos omen: The air tastes faintly of ash and unfinished vows.";
-  }
-
-  if (warnedCharacters > 0) {
-    return "Chaos omen: A faint distortion trembles at the edge of the world.";
-  }
-
-  if (totalNotables >= 6) {
-    return "Chaos omen: Whispered echoes gather beneath the calm surface.";
-  }
-
-  return "Chaos omen: The world is calm, but not entirely still.";
-}
-
 function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z: number }, zoom: number) {
   camera.position.set(center.x, CAMERA_HEIGHT, center.z + CAMERA_DISTANCE);
   camera.zoom = zoom;
@@ -97,7 +77,7 @@ function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z
   camera.updateProjectionMatrix();
 }
 
-export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, season }: WorldViewportProps) {
+export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, season, tick }: WorldViewportProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -112,10 +92,10 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const [cameraZoom, setCameraZoom] = useState(1);
 
   const focusTarget = getFocusTarget(characters, focusCharacterId);
+  const omen = chaosOmen(tick, paused);
   const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
-  const chaosOmen = getChaosOmen(characters, paused, focusTarget);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -389,15 +369,18 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
         <div className="viewport-overlay__chip viewport-overlay__chip--center">
           {dayPhaseLabel} / {seasonLabel}
         </div>
-        <div className="viewport-overlay__chip viewport-overlay__chip--center">
-          {chaosOmen}
-        </div>
         <div className="viewport-overlay__legend">
           <span>木</span>
           <span>火</span>
           <span>土</span>
           <span>金</span>
           <span>水</span>
+        </div>
+        <div
+          className="viewport-overlay__chip"
+          style={{ position: "absolute", bottom: "1rem", left: "50%", transform: "translateX(-50%)", fontSize: "0.72rem", opacity: 0.8 }}
+        >
+          {omen}
         </div>
         <div className="viewport-overlay__controls">
           <div className="viewport-overlay__chip viewport-overlay__chip--controls">
