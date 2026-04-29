@@ -1,5 +1,8 @@
 # Character Passport 属性独立化 移行計画
 
+この移行計画は、PBI-PASSPORT-ATTRIBUTE-POLICY-001 で定義される Character Passport stable interface 方針を前提とする。
+PBI-PASSPORT-ATTRIBUTE-POLICY-001 の監査結果により方針が変更された場合、本移行計画は追従修正する。
+
 ## この資料の目的
 
 この資料は、Character Passport の安定インターフェース方針に合わせて、既存実装と既存docsをどの順で修正するかを整理するためのdocs-only計画です。
