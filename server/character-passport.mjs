@@ -9,13 +9,6 @@ export const PASSPORT_EXPORT_CONTRACT = Object.freeze({
   schemaVersion: 'character-passport/v1',
   fivePhaseElements: ['wood', 'fire', 'earth', 'metal', 'water'],
   combatClasses: ['ranger', 'mage', 'guardian', 'knight', 'healer'],
-  combatClassByElement: {
-    wood: 'ranger',
-    fire: 'mage',
-    earth: 'guardian',
-    metal: 'knight',
-    water: 'healer',
-  },
   baseAttributes: ['vision', 'power', 'guard', 'discipline', 'flow'],
   faithObedienceBiases: ['cautious', 'fervent', 'stable', 'disciplined', 'adaptive'],
   faithCommandInterpretations: ['skeptical', 'measured', 'literal', 'contextual'],
@@ -193,16 +186,6 @@ function normalizeAbilities(abilities) {
   });
 }
 
-function assertCombatClassMatchesElement(element, combatClass) {
-  const expectedCombatClass = PASSPORT_EXPORT_CONTRACT.combatClassByElement[element];
-
-  if (combatClass !== expectedCombatClass) {
-    throw new Error(
-      `Combat class mismatch for ${element}: expected ${expectedCombatClass}, received ${combatClass}.`,
-    );
-  }
-}
-
 export function createCharacterPassportV1(input) {
   assertSafeName(input.characterId, 'characterId');
   assertNonEmptyString(input.name, 'name');
@@ -211,7 +194,6 @@ export function createCharacterPassportV1(input) {
   }
   assertEnum(input.element, VALID_ELEMENTS, 'element');
   assertEnum(input.combatClass, VALID_CLASSES, 'combatClass');
-  assertCombatClassMatchesElement(input.element, input.combatClass);
 
   return {
     schemaVersion: PASSPORT_EXPORT_CONTRACT.schemaVersion,
@@ -263,7 +245,7 @@ function sampleRenPassportSource() {
     name: 'Ren',
     originGame: 'god-sandbox-mvp',
     element: 'metal',
-    combatClass: 'knight',
+    combatClass: 'mage',
     baseAttributes: {
       vision: 2,
       power: 3,
@@ -399,8 +381,8 @@ if (process.argv[2] === 'smoke') {
     throw new Error(`Unexpected schemaVersion: ${saved.schemaVersion}`);
   }
 
-  if (saved.element !== 'metal' || saved.combatClass !== 'knight') {
-    throw new Error('Expected element/combatClass mapping to be preserved.');
+  if (saved.element !== 'metal' || saved.combatClass !== 'mage') {
+    throw new Error('Expected independent element/combatClass values to be preserved.');
   }
 
   if (saved.faith.trustBand !== 'steady') {
@@ -416,14 +398,7 @@ if (process.argv[2] === 'smoke') {
   console.log('passport file:', filePath);
   console.log('passport schema ok:', saved.schemaVersion);
   console.log('passport adapter ok:', `${saved.element}/${saved.combatClass}`);
-
-  try {
-    createCharacterPassportV1({ ...sampleRenPassportSource(), combatClass: 'mage' });
-    console.error('FAIL: should have rejected element/combatClass mismatch');
-    process.exit(1);
-  } catch (err) {
-    console.log('mapping mismatch rejected:', err.message);
-  }
+  console.log('element/combatClass independence preserved:', `${saved.element}/${saved.combatClass}`);
 
   try {
     await writeCharacterPassportFile({ ...passport, characterId: '../outside' });

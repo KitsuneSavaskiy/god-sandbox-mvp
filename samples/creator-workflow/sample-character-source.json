@@ -3,7 +3,7 @@
   "name": "Ren",
   "originGame": "god-sandbox-mvp",
   "element": "metal",
-  "combatClass": "knight",
+  "combatClass": "mage",
   "baseAttributes": {
     "vision": 2,
     "power": 3,

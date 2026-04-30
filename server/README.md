@@ -138,7 +138,6 @@ Application source snapshot / Domain draft
 - `schemaVersion`
 - `fivePhaseElements`
 - `combatClasses`
-- `combatClassByElement`
 - `baseAttributes`
 - Faith 関連 enum
 - `growthCategories`
@@ -170,7 +169,7 @@ Application source snapshot / Domain draft
   "name": "Ren",
   "originGame": "god-sandbox-mvp",
   "element": "metal",
-  "combatClass": "knight",
+  "combatClass": "mage",
   "baseAttributes": {
     "vision": 2,
     "power": 3,
@@ -224,10 +223,11 @@ Application source snapshot / Domain draft
 以前の `server/character-passport.mjs` は、`attributes` / `history` / `rogue` などの server-only 仮スキーマを持っていました。
 PBI-PASSPORT-EXPORT-INTEGRATION-001 以降は、それを延命せず、Domain で確定した次の意味へ寄せます。
 
-- `element` と `combatClass` は 1:1 固定
+- `element` は wire format 上の既存 key だが、意味としては有限パラメータの1つである「属性」
+- `element` と `combatClass` は独立した値であり、server export は組み合わせを強制しない
 - `baseAttributes` は `vision / power / guard / discipline / flow`
 - `faith` は value だけでなく、命令解釈・危険命令への反応・自律判断寄りの項目を含む
-- `growth` は `blessings / trials / chaosExposure` を五行ごとに持つ
+- `growth` は `blessings / trials / chaosExposure` を持つ
 - `skills` は能動行動、`abilities` は受動 / 反応 / aura 効果
 
 ## `combatClass`
@@ -240,15 +240,9 @@ v1 では次の 5 種のみ許可します。
 - `knight`
 - `healer`
 
-対応は固定です。
-
-```text
-wood  = ranger
-fire  = mage
-earth = guardian
-metal = knight
-water = healer
-```
+`combatClass` は `element` から自動決定しません。
+後続ゲームは必要なパラメータだけ読み、不要なものはスキップできます。
+後続ゲームは、受け取った属性名や意味を自分のゲーム内で自由に再解釈できます。
 
 ## `characterId`
 
@@ -272,12 +266,12 @@ god-sandbox-data/
 npm run passport:smoke
 ```
 
-これで次の 5 点を確認できます。
+これで次の 6 点を確認できます。
 
 1. Domain 寄りの Passport export JSON が生成できる
 2. `god-sandbox-data/exports/character-passports/` に保存できる
 3. `schemaVersion` が `character-passport/v1` になっている
-4. `element` と `combatClass` の固定対応違反を拒否できる
+4. `element` と `combatClass` が独立した値として保存される
 5. `characterId` の path traversal / slash を拒否できる
 6. Domain canonical 定義と server export contract が drift していない
 
