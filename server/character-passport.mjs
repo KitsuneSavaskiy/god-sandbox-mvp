@@ -24,6 +24,48 @@ const VALID_OBEDIENCE_BIASES = new Set(PASSPORT_EXPORT_CONTRACT.faithObedienceBi
 const VALID_COMMAND_INTERPRETATIONS = new Set(PASSPORT_EXPORT_CONTRACT.faithCommandInterpretations);
 const VALID_HAZARD_RESPONSES = new Set(PASSPORT_EXPORT_CONTRACT.faithHazardResponses);
 const VALID_AUTONOMY_ALIGNMENTS = new Set(PASSPORT_EXPORT_CONTRACT.faithAutonomyAlignments);
+const ALLOWED_SKILL_FIELDS = Object.freeze([
+  'kind',
+  'id',
+  'name',
+  'element',
+  'skillType',
+  'description',
+  'targetPattern',
+  'range',
+  'powerPerTile',
+  'secondaryEffect',
+]);
+const ALLOWED_ABILITY_FIELDS = Object.freeze([
+  'kind',
+  'id',
+  'name',
+  'source',
+  'element',
+  'abilityType',
+  'description',
+  'trigger',
+  'effects',
+]);
+const ALLOWED_TRIGGER_FIELDS_BY_TYPE = Object.freeze({
+  onTurnStart: ['type'],
+  onTurnEnd: ['type'],
+  onStatusReceived: ['type', 'status'],
+  onAllyDamaged: ['type'],
+  onFaithCommand: ['type', 'commandTag'],
+  manual: ['type'],
+});
+const ALLOWED_EFFECT_FIELDS_BY_TYPE = Object.freeze({
+  buff: ['type', 'key', 'value', 'duration', 'target'],
+  debuff: ['type', 'key', 'value', 'duration', 'target'],
+  statusCondition: ['type', 'key', 'duration', 'target'],
+  heal: ['type', 'value', 'target'],
+  damage: ['type', 'value', 'target'],
+  move: ['type', 'value', 'target'],
+  cleanse: ['type', 'target', 'key'],
+  summon: ['type', 'value', 'target'],
+  modifyFaith: ['type', 'value', 'target'],
+});
 
 function assertSafeName(name, label) {
   if (!name || typeof name !== 'string') {
@@ -64,6 +106,16 @@ function assertEnum(value, set, label) {
   }
 }
 
+function assertAllowedKeys(record, allowedKeys, label) {
+  const allowedSet = new Set(allowedKeys);
+
+  for (const key of Object.keys(record)) {
+    if (!allowedSet.has(key)) {
+      throw new Error(`Unexpected ${label}.${key} field. Allowed fields: ${allowedKeys.join(', ')}.`);
+    }
+  }
+}
+
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -94,6 +146,7 @@ function getFaithTrustBand(value) {
 
 function assertFivePhaseValueMap(record, label) {
   assertPlainObject(record, label);
+  assertAllowedKeys(record, PASSPORT_EXPORT_CONTRACT.fivePhaseElements, label);
 
   for (const key of PASSPORT_EXPORT_CONTRACT.fivePhaseElements) {
     assertFiniteNumber(record[key], `${label}.${key}`);
@@ -147,6 +200,7 @@ function normalizeFaith(faith) {
 
 function normalizeGrowth(growth) {
   assertPlainObject(growth, 'growth');
+  assertAllowedKeys(growth, PASSPORT_EXPORT_CONTRACT.growthCategories, 'growth');
   assertFivePhaseValueMap(growth.blessings, 'growth.blessings');
   assertFivePhaseValueMap(growth.trials, 'growth.trials');
   assertFivePhaseValueMap(growth.chaosExposure, 'growth.chaosExposure');
@@ -158,15 +212,39 @@ function normalizeGrowth(growth) {
   };
 }
 
+function assertTypedAllowedKeys(record, allowedFieldsByType, label) {
+  assertPlainObject(record, label);
+  assertNonEmptyString(record.type, `${label}.type`);
+
+  const allowedKeys = allowedFieldsByType[record.type];
+  if (!allowedKeys) {
+    throw new Error(`Invalid ${label}.type "${record.type}". Expected one of: ${Object.keys(allowedFieldsByType).join(', ')}`);
+  }
+
+  assertAllowedKeys(record, allowedKeys, label);
+}
+
+function assertTacticsEffect(effect, label) {
+  assertTypedAllowedKeys(effect, ALLOWED_EFFECT_FIELDS_BY_TYPE, label);
+}
+
+function assertAbilityTrigger(trigger, label) {
+  assertTypedAllowedKeys(trigger, ALLOWED_TRIGGER_FIELDS_BY_TYPE, label);
+}
+
 function normalizeSkills(skills) {
   assertArray(skills, 'skills');
 
   return skills.map((skill, index) => {
     assertPlainObject(skill, `skills[${index}]`);
+    assertAllowedKeys(skill, ALLOWED_SKILL_FIELDS, `skills[${index}]`);
     assertNonEmptyString(skill.id, `skills[${index}].id`);
     assertNonEmptyString(skill.name, `skills[${index}].name`);
     assertEnum(skill.kind, new Set(['skill']), `skills[${index}].kind`);
     assertEnum(skill.element, VALID_ELEMENTS, `skills[${index}].element`);
+    if (skill.secondaryEffect !== undefined) {
+      assertTacticsEffect(skill.secondaryEffect, `skills[${index}].secondaryEffect`);
+    }
 
     return cloneJson(skill);
   });
@@ -177,10 +255,16 @@ function normalizeAbilities(abilities) {
 
   return abilities.map((ability, index) => {
     assertPlainObject(ability, `abilities[${index}]`);
+    assertAllowedKeys(ability, ALLOWED_ABILITY_FIELDS, `abilities[${index}]`);
     assertNonEmptyString(ability.id, `abilities[${index}].id`);
     assertNonEmptyString(ability.name, `abilities[${index}].name`);
     assertEnum(ability.kind, new Set(['ability']), `abilities[${index}].kind`);
     assertEnum(ability.element, VALID_ELEMENTS, `abilities[${index}].element`);
+    assertAbilityTrigger(ability.trigger, `abilities[${index}].trigger`);
+    assertArray(ability.effects, `abilities[${index}].effects`);
+    ability.effects.forEach((effect, effectIndex) => {
+      assertTacticsEffect(effect, `abilities[${index}].effects[${effectIndex}]`);
+    });
 
     return cloneJson(ability);
   });
@@ -367,6 +451,20 @@ function assertExportJsonMatchesContract(saved) {
   }
 }
 
+function assertRejects(fn, expectedMessage, label) {
+  try {
+    fn();
+    console.error(`FAIL: should have rejected ${label}`);
+    process.exit(1);
+  } catch (err) {
+    if (!err.message.includes(expectedMessage)) {
+      console.error(`FAIL: unexpected ${label} error:`, err.message);
+      process.exit(1);
+    }
+    console.log(`${label} rejected:`, err.message);
+  }
+}
+
 if (process.argv[2] === 'smoke') {
   console.log('passport:smoke start');
 
@@ -399,6 +497,49 @@ if (process.argv[2] === 'smoke') {
   console.log('passport schema ok:', saved.schemaVersion);
   console.log('passport adapter ok:', `${saved.element}/${saved.combatClass}`);
   console.log('element/combatClass independence preserved:', `${saved.element}/${saved.combatClass}`);
+
+  assertRejects(
+    () =>
+      adaptCharacterPassportSourceToExport({
+        ...sampleRenPassportSource(),
+        growth: {
+          ...sampleRenPassportSource().growth,
+          customGrowth: emptyFivePhaseValues(),
+        },
+      }),
+    'growth.customGrowth',
+    'unknown growth key',
+  );
+
+  assertRejects(
+    () =>
+      adaptCharacterPassportSourceToExport({
+        ...sampleRenPassportSource(),
+        skills: [
+          {
+            ...sampleRenPassportSource().skills[0],
+            customSkillField: true,
+          },
+        ],
+      }),
+    'skills[0].customSkillField',
+    'unknown skill field',
+  );
+
+  assertRejects(
+    () =>
+      adaptCharacterPassportSourceToExport({
+        ...sampleRenPassportSource(),
+        abilities: [
+          {
+            ...sampleRenPassportSource().abilities[0],
+            customAbilityField: true,
+          },
+        ],
+      }),
+    'abilities[0].customAbilityField',
+    'unknown ability field',
+  );
 
   try {
     await writeCharacterPassportFile({ ...passport, characterId: '../outside' });
