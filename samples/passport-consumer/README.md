@@ -13,6 +13,16 @@
 - 別ゲーム側では、仲間、敵、NPC、カード、村人などに自由に使い直してよいです。
 - GodSandbox の内部状態や domain model をそのまま再現する必要はありません。
 
+## 読めるJSONの種類
+
+このサンプルは、次のどちらも読めるようにしています。
+
+- `character-passport/v1`: 詳細な Character Passport v1
+- `character-passport/minimal-v1`: GodSandbox の「このキャラを持ち出す」パネルが作る、初心者向けの最小紹介カード
+
+`minimal-v1` は、詳細な v1 本体を完全に置き換えるものではありません。
+まず「別ゲーム側でキャラクター情報を読む」体験を試すための、少ない項目だけを持つ形式です。
+
 ## GodSandboxから持ってくる流れ
 
 初めて触る人は、次の順番で見てください。
@@ -26,7 +36,8 @@
 7. ブラウザでこのサンプルを開き、名前、画像、紹介文、タグが出ることを確認する。
 8. 自分のゲームでは、仲間、敵、NPC、カードなどへ自由に使い直す。
 
-まだGodSandbox画面にコピー操作がない場合は、`sample-passport.json` を「コピー後の例」として読んでください。
+GodSandbox の「このキャラを持ち出す」パネルが作るJSONは、`character-passport/minimal-v1` の最小紹介カードです。
+詳細な `character-passport/v1` と同じものではありませんが、このサンプルではどちらも読めるようにしています。
 
 ## ファイル
 
@@ -71,7 +82,12 @@ http://localhost:8080/samples/passport-consumer/
 
 `sample-passport.json` の次の値を変えると、画面の表示が変わります。
 
+GodSandbox の「このキャラを持ち出す」パネルでコピーした `character-passport/minimal-v1` JSONを `sample-passport.json` に貼り替えると、別のキャラ紹介カードとして試せます。
+
 - `name`: キャラクター名
+- `displayName`: 画面表示用のキャラクター名
+- `summary`: 一言紹介
+- `tags`: 性格や特徴の短いラベル
 - `characterId`: 画像や外部ゲーム側の扱いを選ぶためのID
 - `element`: 属性。別ゲーム側では自由に意味を変えてよいです。
 - `combatClass`: 職種。属性から自動で決まるものではありません。

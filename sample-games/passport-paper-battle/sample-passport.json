@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0",
+  "characterId": "ryo-sample-001",
+  "displayName": "Ryo",
+  "summary": "森の村で暮らす、まじめで少し不器用な若者。",
+  "portraitImage": "/art/portraits/ryo/ryo_normal.jpeg",
+  "tags": ["まじめ", "村人", "成長中"]
+}

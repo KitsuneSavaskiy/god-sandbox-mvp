@@ -134,7 +134,11 @@ async function loadPassport() {
 }
 
 function makeSummary(passport) {
-  const name = passport.name ?? 'Unknown';
+  if (passport.summary) {
+    return passport.summary;
+  }
+
+  const name = getDisplayName(passport);
   const element = elementLabels[passport.element] ?? passport.element ?? '未設定の属性';
   const role = classLabels[passport.combatClass] ?? passport.combatClass ?? '役割未定';
   const trust = trustLabels[passport.faith?.trustBand] ?? '神への向き合い方はまだ分からない';
@@ -143,6 +147,10 @@ function makeSummary(passport) {
 }
 
 function makeTags(passport) {
+  if (Array.isArray(passport.tags) && passport.tags.length > 0) {
+    return passport.tags;
+  }
+
   const tags = [
     passport.element ? `属性: ${elementLabels[passport.element] ?? passport.element}` : null,
     passport.combatClass ? `使い方例: ${classLabels[passport.combatClass] ?? passport.combatClass}` : null,
@@ -157,20 +165,36 @@ function makeTags(passport) {
   return tags.filter(Boolean);
 }
 
-function renderPortrait(passport) {
-  const src = portraitByCharacterId[passport.characterId];
+function getDisplayName(passport) {
+  return passport.displayName ?? passport.name ?? 'Unknown';
+}
 
-  if (!src) {
-    return `<div class="portrait-fallback">${escapeHtml((passport.name ?? '?').slice(0, 1))}</div>`;
+function resolvePortraitSrc(passport) {
+  if (passport.portraitImage) {
+    return passport.portraitImage.startsWith('/art/')
+      ? `../../public${passport.portraitImage}`
+      : passport.portraitImage;
   }
 
-  return `<img src="${escapeHtml(src)}" alt="${escapeHtml(passport.name ?? 'Character')} portrait" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'portrait-fallback', textContent: '${escapeHtml((passport.name ?? '?').slice(0, 1))}' }))" />`;
+  return portraitByCharacterId[passport.characterId] ?? null;
+}
+
+function renderPortrait(passport) {
+  const name = getDisplayName(passport);
+  const src = resolvePortraitSrc(passport);
+
+  if (!src) {
+    return `<div class="portrait-fallback">${escapeHtml(name.slice(0, 1))}</div>`;
+  }
+
+  return `<img src="${escapeHtml(src)}" alt="${escapeHtml(name)} portrait" onerror="this.replaceWith(Object.assign(document.createElement('div'), { className: 'portrait-fallback', textContent: '${escapeHtml(name.slice(0, 1))}' }))" />`;
 }
 
 function render(passport) {
   const skill = passport.skills?.[0];
   const ability = passport.abilities?.[0];
   const tags = makeTags(passport);
+  const name = getDisplayName(passport);
 
   app.innerHTML = `
     <div class="portrait">
@@ -179,7 +203,7 @@ function render(passport) {
     <div class="content">
       <div>
         <p class="eyebrow">${escapeHtml(passport.schemaVersion ?? 'unknown schema')}</p>
-        <h1>${escapeHtml(passport.name ?? 'Unknown')}</h1>
+        <h1>${escapeHtml(name)}</h1>
       </div>
       <p class="summary">${escapeHtml(makeSummary(passport))}</p>
       <div class="tags">

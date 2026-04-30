@@ -12,6 +12,7 @@ import {
 import {
   UtterancePreviewPanel,
 } from "../presentation/utterance/UtterancePreviewPanel";
+import { PassportExportPanel } from "../presentation/passport/PassportExportPanel";
 import {
   getAliveCharacterCount,
   getBloodlineSummaries,
@@ -186,6 +187,8 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
             focusedCharacter={focusedCharacter}
             onGenerate={handleGenerateUtterancePreview}
           />
+
+          <PassportExportPanel focusedCharacter={focusedCharacter} />
 
           <CommandConsole
             disabled={state.phase === "event" || !hasLivingCharacters}
