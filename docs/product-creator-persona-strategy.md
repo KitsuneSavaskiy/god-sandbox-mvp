@@ -1,4 +1,4 @@
-# AIゲーム開発者・Modder向けペルソナ戦略
+# AIゲーム開発者・Passport consumer向けペルソナ戦略
 
 この資料は、GodSandbox の主ターゲット、LLM 利用方針、Character Passport の位置づけ、今後の PBI 優先度を揃えるための戦略メモです。
 
@@ -8,9 +8,9 @@
 
 GodSandbox は、一般消費者向けの基本無料ゲームを主戦場にしません。
 
-主ターゲットは、AI に興味があり、自分でゲームや Mod を作りたい技術寄りユーザーに置きます。
+主ターゲットは、AI に興味があり、自分で後続ゲームやPassport consumerを作りたい技術寄りユーザーに置きます。
 
-GodSandbox は完成品ゲームとして大市場で戦うより、AI キャラクターを育て、Character Passport として外へ出し、自作ゲーム、Mod、タクティクス戦闘、外部ツールへ接続するための箱庭・契約・実験場として育てます。
+GodSandbox は完成品ゲームとして大市場で戦うより、AI キャラクターを育て、Character Passport として外へ出し、自作ゲーム、後続ゲーム、タクティクス戦闘、外部ツールへ接続するための箱庭・安定JSONインターフェース・実験場として育てます。
 
 ## 事実
 
@@ -31,7 +31,7 @@ GodSandbox は完成品ゲームとして大市場で戦うより、AI キャラ
 ## 仮説
 
 - AI キャラクターを自分で作り、育て、外部へ持ち出したい技術寄りユーザーは、完成品ゲームよりも「いじれる道具」や「拡張できる環境」に価値を感じる。
-- Character Passport が安定した export contract になるほど、Mod、外部ゲーム、自作ツールへの接続価値が上がる。
+- Character Passport が安定JSONインターフェースになるほど、後続ゲーム、Passport consumer、自作ツールへの接続価値が上がる。
 - BYOK / BYOM を安全に扱える設計を先に固定すれば、運営側が無料 LLM コストを抱え込まずに、AI 体験を広げられる。
 - 小さな sample workflow を増やすほうが、大規模な完成品ゲームを急ぐよりも学習効率が高い。
 
@@ -50,11 +50,11 @@ GodSandbox がいきなりその土俵へ入ると、AI キャラクター、Cha
 主な読者像は次の通りです。
 
 - AI に興味がある。
-- 自分でゲームや Mod を作りたい。
+- 自分で後続ゲームやPassport consumerを作りたい。
 - PC ゲームやサンドボックスゲームに親和性がある。
 - ChatGPT、Claude、Gemini、ローカル LLM などに関心がある。
 - 完成品ゲームを遊ぶだけでなく、データ、ルール、キャラクター、連携先をいじりたい。
-- API、JSON、ローカル実行、Mod、plugin、export workflow に抵抗が少ない。
+- API、JSON、ローカル実行、Passport consumer、sample integration、export workflow に抵抗が少ない。
 - 小さな sample から自分の遊びや実験を作ることに価値を感じる。
 
 このペルソナは一般消費者を排除するものではありません。
@@ -65,12 +65,12 @@ GodSandbox がいきなりその土俵へ入ると、AI キャラクター、Cha
 GodSandbox は、AI キャラクターを箱庭で育てる場です。
 
 育ったキャラクターは Character Passport として外へ出せます。
-Character Passport は、自作ゲーム、Mod、タクティクス戦闘、外部ツールへキャラクターを渡すための契約です。
+Character Passport は、自作ゲーム、後続ゲーム、タクティクス戦闘、外部ツールへキャラクターを渡すための安定JSONインターフェースです。
 
 LLM 発話は、運営側が無料で無制限に提供する前提ではなく、ユーザーが契約している AI、ユーザー自身の API key、またはローカル LLM を使える方向へ寄せます。
 
 この価値提案では、GodSandbox 自体は「全部入りの完成品」ではありません。
-むしろ、AI キャラクター、成長、Faith、Skill、Ability、export contract、sample workflow を組み合わせるための開発者向け sandbox です。
+むしろ、AI キャラクター、成長、Faith、Skill、Ability、安定JSONインターフェース、sample workflow を組み合わせるための開発者向け sandbox です。
 
 ## BYOK / BYOM
 
@@ -88,24 +88,26 @@ provider 設定 UI や credential 保存は、別 PBI で platform 別の allowe
 
 Character Passport はゲーム内保存データだけではありません。
 
-外部ゲーム、Mod、自作ツールへキャラクターを渡すための contract です。
+後続ゲーム、Passport consumer、自作ツールへキャラクターを渡すための安定JSONインターフェースです。
 キャラクターの性格、成長、Faith、Skill、Ability などを外部利用可能にする接続点です。
 
 一方で、Character Passport は AI 会話モデルの内部履歴そのものではありません。
 prompt 全文、会話履歴、API key、user secret を保存する場所でもありません。
 
-Character Passport は、外部利用に必要なキャラクター概念を安定して渡すための最小契約として扱います。
+Character Passport は、外部利用に必要なキャラクター概念を安定して渡すための最小の安定JSONインターフェースとして扱います。
+後続ゲームは必要なパラメータだけを読み、不要なパラメータはスキップできます。また、受け取ったパラメータ名や意味を自分のゲーム内で自由に再解釈できます。
+ただし、後続ゲーム開発者は育成ゲーム側のパラメータや育成イベントを追加しません。パラメータと育成イベントは、GodSandbox 側で定義済みの有限集合として扱います。
 そのため、Domain canonical 定義、export adapter、contract smoke は優先度が高い領域です。
 
 ## 優先度への影響
 
 mobile first の優先度は下げます。
-理由は、BYOK / BYOM、ローカル LLM、Mod、plugin、file export、developer workflow は desktop / developer local のほうが先に試しやすいためです。
+理由は、BYOK / BYOM、ローカル LLM、Passport consumer、sample integration、file export、developer workflow は desktop / developer local のほうが先に試しやすいためです。
 
 desktop / developer local first を優先します。
 ローカル実行、ファイル出力、sample workflow、外部ツール連携を先に固めることで、技術寄りユーザーが自分の環境で試せる状態を作ります。
 
-Mod / plugin / export / sample workflow を重視します。
+Passport consumer / sample integration / export / sample workflow を重視します。
 GodSandbox の価値は、単体ゲームとして閉じるより、AI キャラクターを外へ運べることにあります。
 
 無料 LLM 体験より、ユーザー持ち込み AI と安全な接続設計を重視します。
@@ -117,7 +119,7 @@ GodSandbox の価値は、単体ゲームとして閉じるより、AI キャラ
 優先度を上げる候補:
 
 - `PBI-LLM-BYOK-BYOM-POLICY-001`
-- `PBI-MODDING-EXTENSION-POINTS-001`
+- `PBI-PASSPORT-CONSUMER-SAMPLE-INTEGRATION-001`
 - `PBI-SAMPLE-CREATOR-WORKFLOW-001`
 - `PBI-PASSPORT-EXPORT-CONTRACT-001`
 - `PBI-LLM-UTTERANCE-APP-USECASE-001`
@@ -133,13 +135,13 @@ GodSandbox の価値は、単体ゲームとして閉じるより、AI キャラ
 
 ### Hypothesis
 
-GodSandbox を AIゲーム開発者 / Modder / 技術寄りユーザー向けの sandbox として位置づけると、Character Passport、BYOK / BYOM、Mod / plugin、sample workflow の投資判断が一貫しやすくなる。
+GodSandbox を AIゲーム開発者 / Passport consumer開発者 / 技術寄りユーザー向けの sandbox として位置づけると、Character Passport、BYOK / BYOM、sample integration、sample workflow の投資判断が一貫しやすくなる。
 
 ### Expected value
 
 - 後続 PBI の優先順位が揃う。
 - LLM コスト方針の誤実装を避けやすくなる。
-- Character Passport を外部連携 contract として育てやすくなる。
+- Character Passport を外部連携の安定JSONインターフェースとして育てやすくなる。
 - 技術寄りユーザーが試せる sample workflow へ投資しやすくなる。
 
 ### Downside
@@ -156,7 +158,7 @@ docs-only のため可逆性は高い。
 ### Cost
 
 今回のコストは文書作成とレビューに限定する。
-実 provider 接続、secret handling、Mod API、UI、mobile 対応には投資しない。
+実 provider 接続、secret handling、外部API、UI、mobile 対応には投資しない。
 
 ### Evidence
 
@@ -183,10 +185,10 @@ docs-only のため可逆性は高い。
 BYOK / BYOM の allowed / forbidden / exception を platform 別に固定する。
 API key、local LLM、server proxy、desktop local、mobile native の扱いを分ける。
 
-### PBI-MODDING-EXTENSION-POINTS-001
+### PBI-PASSPORT-CONSUMER-CONTRACT-001
 
-Mod / plugin / external tool が GodSandbox のどの contract に接続できるかを整理する。
-いきなり Mod API 実装には進まず、extension point の文書化から始める。
+後続ゲーム、Passport consumer、external tool が GodSandbox のどの安定JSONインターフェースを読むかを整理する。
+いきなり外部API実装には進まず、読み取り境界とスキップ可能なパラメータの文書化から始める。
 
 ### PBI-SAMPLE-CREATOR-WORKFLOW-001
 
@@ -210,7 +212,7 @@ BYOK / BYOM 方針と衝突しない境界を作る。
 - BYOK / BYOM 実装
 - provider 設定 UI
 - API key 保存実装
-- Mod API 実装
+- 外部API実装
 - Character Passport schema 変更
 - package 変更
 - CI 変更

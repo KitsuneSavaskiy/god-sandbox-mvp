@@ -2,7 +2,7 @@
 
 この資料は、GodSandbox を AIキャラクター制作・育成・外部連携サンドボックスとして試すための最小ワークフローです。
 
-対象読者は、AIキャラクターを作り、自作ゲーム、Mod、外部ツールへ持ち出したい開発者・Modder・技術寄りユーザーです。
+対象読者は、AIキャラクターを作り、自作ゲーム、後続ゲーム、外部ツールへ持ち出したい開発者・Passport consumer開発者・技術寄りユーザーです。
 
 このサンプルは実装ではありません。実LLM接続、BYOK / BYOM、provider設定UI、API key保存、外部ゲーム本体、battle logic は扱いません。
 
@@ -12,7 +12,7 @@
 2. mock / template 発話の入力と出力を見る。
 3. Faith / Growth / Skill / Ability の確認ポイントを見る。
 4. Character Passport v1 JSON を確認する。
-5. 外部ゲームやModが読む前提のJSON境界を確認する。
+5. 後続ゲームやPassport consumerが読む前提のJSON境界を確認する。
 
 ## 成果物
 
@@ -22,31 +22,33 @@
 - `utterance-request.mock-template.json`: mock / template 発話へ渡す provider-neutral request
 - `utterance-response.mock.json`: mock 発話の期待例
 - `utterance-response.template.json`: template 発話の期待例
-- `character-passport.v1.json`: 外部ゲームやModが読む前提の Character Passport v1 JSON
+- `character-passport.v1.json`: 後続ゲームやPassport consumerが読む前提の Character Passport v1 JSON
 
 ## 1. キャラを作る
 
 最小サンプルキャラは `Ren` です。
 
-Ren は `metal` のキャラで、v1 の固定対応により `combatClass` は `knight` です。
+Ren は、サンプル上では `element` が `metal`、`combatClass` が `knight` のキャラです。
 
 ```text
 element: metal
 combatClass: knight
 ```
 
-`metal = knight` の対応は、Character Passport v1 の契約です。
-外部ゲームやModは、この対応を前提に読み込めます。
+この組み合わせはサンプル上の選択であり、Character Passport v1 の固定契約ではありません。
+`element` は wire format 上の既存keyとして維持されていますが、意味としては有限パラメータの1つである「属性」です。
+`element` は `combatClass` を自動決定しません。
+後続ゲームやPassport consumerは、必要なパラメータだけを読み、不要なパラメータはスキップできます。また、受け取ったパラメータ名や意味を自分のゲーム内で自由に再解釈できます。
 
 キャラ作成時点で確認する主な情報は次の通りです。
 
 - `characterId`: exportファイル名にも使う安全なID
 - `name`: 表示名
-- `element`: 五行
-- `combatClass`: 五行と1対1対応する職種
+- `element`: 属性
+- `combatClass`: 職種
 - `baseAttributes`: `vision / power / guard / discipline / flow`
 - `faith`: 命令解釈、危険命令への反応、自律判断との距離
-- `growth`: 加護、試練、カオス接触による五行別の成長
+- `growth`: 加護、試練、カオス接触による成長
 - `skills`: 能動的に使う行動
 - `abilities`: 受動、反応、aura 系の効果
 
@@ -102,7 +104,7 @@ Ren の `faith` は、単なる命令成功率ではありません。
 - `trustBand`: 外部ゲーム側がざっくり扱いやすい信頼帯
 - `sources`: 加護、試練、カオス接触の寄与
 
-`growth` は、成長を五行別に見ます。
+`growth` は、成長の由来を見ます。
 
 - `blessings`: 加護による成長
 - `trials`: 試練による成長
@@ -113,7 +115,7 @@ Ren の `faith` は、単なる命令成功率ではありません。
 - `skills`: Ren が能動的に使う `Iron Lunge`
 - `abilities`: 条件に反応して発動する `Iron Vow`
 
-この分離により、外部ゲームやModは「行動として選ぶもの」と「条件で反応するもの」を混同せずに扱えます。
+この分離により、後続ゲームやPassport consumerは「行動として選ぶもの」と「条件で反応するもの」を混同せずに扱えます。
 
 ## 4. Character Passport をexportする
 
@@ -131,25 +133,27 @@ god-sandbox-data/exports/character-passports/sample-ren.character-passport.json
 
 `god-sandbox-data/` は実行時データであり、git 管理対象外です。
 
-このPBIで追加する `samples/creator-workflow/character-passport.v1.json` は、外部ゲームやModが読む形を理解するための静的サンプルです。
+このPBIで追加する `samples/creator-workflow/character-passport.v1.json` は、後続ゲームやPassport consumerが読む形を理解するための静的サンプルです。
 実行時に生成される export ファイルそのものではありません。
 
-## 5. 外部ゲームやModが読むJSONを確認する
+## 5. 後続ゲームやPassport consumerが読むJSONを確認する
 
-外部ゲームやModは、GodSandbox の内部状態を直接読むのではなく、Character Passport v1 JSON を読みます。
+後続ゲームやPassport consumerは、GodSandbox の内部状態を直接読むのではなく、Character Passport v1 JSON を読みます。
 
 読み取り時の最小確認ポイントは次の通りです。
 
 - `schemaVersion` が `character-passport/v1` である
 - `originGame` が `god-sandbox-mvp` である
-- `element` と `combatClass` が固定対応している
+- `element` と `combatClass` が独立した値として読める
 - `baseAttributes` が `vision / power / guard / discipline / flow` を持つ
 - `faith` が命令解釈、危険反応、自律判断の情報を持つ
-- `growth` が `blessings / trials / chaosExposure` を五行別に持つ
+- `growth` が `blessings / trials / chaosExposure` を持つ
 - `skills` と `abilities` が別配列になっている
 - `attributes` / `history` / `rogue` の旧prototype要素へ依存していない
 
 この境界により、GodSandbox は完成品ゲームとして閉じるのではなく、AIキャラクターを外へ渡す sandbox として扱えます。
+
+後続ゲーム開発者は、育成ゲーム側のパラメータや育成イベントを追加しません。Character Passport の有限パラメータを読み、不要なものをスキップし、必要に応じて自分のゲーム内の名前や意味へ再解釈します。
 
 ## 今回やらないこと
 
