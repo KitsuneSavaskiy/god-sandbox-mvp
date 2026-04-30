@@ -4,7 +4,7 @@
 
 この資料は、GodSandbox を「AIキャラクター制作サンドボックス」として育てるための作品方向性と、クリエイター向けワークフローを固定するための文書です。
 
-ここでは、一般消費者向けの完成品ゲームとしての方向ではなく、AIに興味があり、自分でゲームやModを作りたい技術寄りユーザーに向けた作品体験を整理します。
+ここでは、一般消費者向けの完成品ゲームとしての方向ではなく、AIに興味があり、自分で後続ゲームやPassport consumerを作りたい技術寄りユーザーに向けた作品体験を整理します。
 
 この資料は実装ではありません。コード、UI、API、provider接続、Character Passport schema は変更しません。
 
@@ -22,12 +22,12 @@
 - GodSandbox は、完成品ゲームを消費する場ではなく、AIキャラクターを作り、観測し、育て、外へ出すための実験場として育てる。
 - LLM発話のコストは、原則として運営側が無料で負担し続ける前提にしない。
 - 実LLMは、ユーザーが契約しているAI、ユーザー自身のAPI key、またはローカルLLMを使う方向を主軸にする。
-- Character Passport は、外部ゲーム、Mod、自作ツールとの接続点として扱う。
+- Character Passport は、後続ゲーム、Passport consumer、自作ツールとの接続点として扱う。
 
 ### 仮説
 
-- AIキャラクターを自分で作り、別ゲームやModに持ち出したい技術寄りユーザーは、完成品ゲームの消費者よりもGodSandboxの価値を理解しやすい。
-- サンプルキャラ、サンプルexport、サンプル外部ゲームがあると、Modderや開発者は接続方法を理解しやすい。
+- AIキャラクターを自分で作り、後続ゲームやPassport consumerで読み込みたい技術寄りユーザーは、完成品ゲームの消費者よりもGodSandboxの価値を理解しやすい。
+- サンプルキャラ、サンプルexport、サンプル外部ゲームがあると、後続ゲーム開発者は接続方法を理解しやすい。
 - mock/template から始め、BYOK / BYOM やローカルLLMへ段階的に進める方が、コスト、秘密情報、provider lock-in のリスクを下げやすい。
 
 ## 作品の方向性
@@ -40,9 +40,9 @@ GodSandbox は、AIキャラクターを作るための箱庭です。
 2. 箱庭で観測する。
 3. 会話、加護、試練、カオスで変化させる。
 4. Character Passport として外へ出す。
-5. 外部ゲーム、Mod、自作ツールへ接続する。
+5. 後続ゲーム、Passport consumer、自作ツールへ接続する。
 
-ここでいう「外へ出す」とは、キャラクターの人格、信仰度、成長、スキル、能力、履歴を、別のゲームやツールが読み取れる契約へ変換することです。
+ここでいう「外へ出す」とは、キャラクターの人格、信仰度、成長、スキル、能力、履歴を、後続ゲームやツールが読み取れる安定JSONインターフェースとして出力することです。
 
 ## GodSandbox が目指す体験
 
@@ -56,7 +56,7 @@ GodSandbox が目指すのは、完成品ゲームを消費する体験ではあ
 - 育てたキャラを外に持ち出す。
 - 自分のAI providerやローカルLLMをつないで試す。
 
-プレイヤーは単なる消費者ではなく、キャラクター制作者、Modder、実験者に近い立場です。
+プレイヤーは単なる消費者ではなく、キャラクター制作者、Passport consumer開発者、実験者に近い立場です。
 
 ## クリエイターワークフロー
 
@@ -68,7 +68,7 @@ GodSandbox が目指すのは、完成品ゲームを消費する体験ではあ
 4. LLMまたはmock/templateで発話を見る。
 5. 成長結果を確認する。
 6. Character Passport をexportする。
-7. 外部ゲームやModに渡す。
+7. 後続ゲームやPassport consumerに渡す。
 8. 必要なら再調整する。
 
 この流れでは、箱庭は「遊び切る場所」ではなく、キャラクターの反応と変化を観測する場所です。
@@ -91,7 +91,7 @@ GodSandbox が目指すのは、完成品ゲームを消費する体験ではあ
 - Personality / Faith / Growth / Skill / Ability の見える化。
 - mock/template 発話と箱庭イベントの接続強化。
 - Character Passport のサンプルexport。
-- 外部ゲームまたはModのサンプルconsumer。
+- 後続ゲームまたはPassport consumerの sample integration。
 
 ## まだ作らないこと
 
@@ -101,7 +101,7 @@ GodSandbox が目指すのは、完成品ゲームを消費する体験ではあ
 - provider設定UI。
 - API key保存。
 - BYOK / BYOM の本実装。
-- plugin API。
+- Passport consumer 向けの読み取りガイド。
 - sample external game 本体。
 - mobile対応。
 - 大量コンテンツ更新を前提にした運営機能。
@@ -119,19 +119,22 @@ GodSandbox は、次の方向へ寄せすぎないようにします。
 
 これらを完全に否定するわけではありません。ただし、MVPの中心価値ではありません。
 
-## Mod / plugin / export の方向性
+## Passport consumer / sample integration / export の方向性
 
 外部接続の中心は Character Passport です。
 
 重視する方針は次の通りです。
 
-- Modderが読みやすいJSON契約を重視する。
+- 後続ゲーム開発者が読みやすい安定JSONインターフェースを重視する。
 - サンプルキャラを用意する。
 - サンプルexportを用意する。
-- サンプル外部ゲームを用意する。
-- 将来的に plugin / adapter を追加できる構造を重視する。
+- サンプル外部ゲームまたは Passport consumer を用意する。
+- 後続ゲームは必要なパラメータだけ読み、不要なパラメータはスキップできる構造を重視する。
+- 後続ゲームは、受け取ったパラメータ名や意味を自分のゲーム内で自由に再解釈できる。
 
-Modや外部ゲームは、GodSandboxの内部状態を直接知る必要はありません。Character Passport という契約を通じて、必要な情報だけを読む方針にします。
+後続ゲームやPassport consumerは、GodSandboxの内部状態を直接知る必要はありません。Character Passport という安定JSONインターフェースを通じて、必要な情報だけを読む方針にします。
+
+一方で、後続ゲーム開発者は育成ゲーム側のパラメータや育成イベントを追加しません。パラメータと育成イベントは、GodSandbox 側で定義済みの有限集合として扱います。
 
 ## LLM利用の方向性
 
@@ -170,7 +173,7 @@ MVPで目指す体験は、次の範囲です。
 4. Character Passport export
 5. sample external game
 6. BYOK/BYOM provider
-7. plugin / mod extension
+7. Passport consumer / sample integration
 
 この順序は、実LLMや外部連携へ急がず、可逆性の高い検証から進めるためのものです。
 
@@ -179,7 +182,7 @@ MVPで目指す体験は、次の範囲です。
 次に検討するPBI候補は次の通りです。
 
 - PBI-SAMPLE-CREATOR-WORKFLOW-001
-- PBI-MODDING-EXTENSION-POINTS-001
+- PBI-PASSPORT-CONSUMER-SAMPLE-INTEGRATION-001
 - PBI-PASSPORT-EXAMPLE-CONSUMER-001
 - PBI-LLM-BYOK-BYOM-POLICY-001
 - PBI-LLM-UTTERANCE-APP-USECASE-001
