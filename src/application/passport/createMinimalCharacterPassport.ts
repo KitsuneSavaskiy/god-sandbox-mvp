@@ -1,6 +1,6 @@
 import type { Character } from "../../domain/types";
 
-export const MINIMAL_CHARACTER_PASSPORT_SCHEMA_VERSION = "1.0";
+export const MINIMAL_CHARACTER_PASSPORT_SCHEMA_VERSION = "character-passport/minimal-v1";
 
 export interface MinimalCharacterPassport {
   schemaVersion: typeof MINIMAL_CHARACTER_PASSPORT_SCHEMA_VERSION;

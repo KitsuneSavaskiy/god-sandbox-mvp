@@ -87,7 +87,8 @@ export function PassportExportPanel({ focusedCharacter }: PassportExportPanelPro
       </div>
 
       <p className="summary-note">
-        別ゲームで使うための、最小のキャラ紹介JSONです。GodSandboxの内部状態はそのまま出しません。
+        別ゲームで使うための、最小のキャラ紹介JSONです。schemaVersion は character-passport/minimal-v1 です。
+        GodSandboxの内部状態はそのまま出しません。
       </p>
 
       {!focusedCharacter ? (
