@@ -1,14 +1,22 @@
 # 成長と特殊能力の用語辞書
 
-この資料は、Character Passport v1 が現在の最小スキーマから拡張される前に、加護（Blessing）、試練（Trial）、カオス（Chaos）、成長（growth）、特殊能力（abilities）の意味を固定するための用語辞書です。
+## 現在の位置づけ
+
+この資料は、加護（Blessing）、試練（Trial）、カオス（Chaos）、成長（growth）、特殊能力（abilities）を整理した旧設計を含む用語辞書です。
+五行別の `growth` 構造や、能力の `element` を前提にした例は、legacy / historical concept を含む GodSandbox world preset として扱います。
+
+現行の Character Passport core contract では、属性（`element`）は有限パラメータの1つであり、Skill、Ability、成長、職種を支配しません。
+後続ゲームは、この資料の五行presetを採用してもよいですが、採用しなくても構いません。
+後続ゲームは、受け取った属性や職種、Skill、Ability の意味を自分のゲーム内で自由に再解釈できます。
 
 これは設計辞書であり、実装ではありません。数式、実行時挙動、REST API、フロントエンド UI は定義しません。
 
 ## この資料の目的
 
 - 加護 / 試練 / カオスを、信仰度（Faith）だけでなく、成長・耐性・特殊能力の源泉として扱う。
-- Character Passport v1 の実装が拡張される前に、`growth` と `abilities` の意味を固定する。
-- 将来のタクティクスゲーム開発者が、キャラクター export データを同じ意味で読めるようにする。
+- legacy / GodSandbox world preset における `growth` と `abilities` の意味を保存する。
+- 旧設計が現行 Passport core contract と誤読されないように境界を明示する。
+- 将来のタクティクスゲーム開発者が、必要な部分だけを読み、不要な部分をスキップできるようにする。
 
 ## 加護 / 試練 / カオス
 
@@ -34,6 +42,9 @@ Chaos:
 ```
 
 ## 成長（growth）構造案
+
+以下は legacy / GodSandbox world preset の構造案です。
+現行 Character Passport core contract で、成長が必ず五行別ベクトルであることを要求するものではありません。
 
 ```json
 {
@@ -64,6 +75,9 @@ Chaos:
 ```
 
 ## 成長要素の影響先
+
+以下は GodSandbox world preset 内での成長解釈です。
+現行 Character Passport core contract では、属性や成長カテゴリが他パラメータを支配する仕様ではありません。
 
 ```text
 Blessing:
@@ -136,6 +150,9 @@ Character Passport v1 では、能動行動は `skills` に保存する。
 
 ## ability schema 案
 
+以下は GodSandbox world preset で能力を表現する場合の案です。
+`element` は能力を分類するための任意の属性値であり、Character Passport core contract 全体で能力の効果や職種を支配するものではありません。
+
 ```json
 {
   "id": "iron-vow",
@@ -188,6 +205,9 @@ Character Passport v1 は次の保存先を維持する:
 - skills: 能動行動
 - abilities: passive / reaction / aura 効果
 ```
+
+この分離は stable interface として維持します。
+ただし、この資料内の五行別成長や element 付き能力例は GodSandbox world preset の旧設計であり、すべての後続ゲームに採用を要求するものではありません。
 
 ## 今回まだ決めないもの
 
