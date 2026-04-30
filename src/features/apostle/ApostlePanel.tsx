@@ -43,10 +43,10 @@ function getPanelPortraitSrc(paused: boolean, latestJudgement: JudgementResult |
 
 function getPortraitGuide(name?: string) {
   return {
-    subjectLabel: "アート基準キャラ: Ryo（後続PBIで正式追加）",
+    subjectLabel: "アート基準キャラ: Ryo（portrait 接続済み）",
     toneLabel: name ? `現在の表示対象: ${name}` : "現在の表示対象: なし",
     expressionLine: "推奨差分: 平静 / 気づき / 緊張 / 覚悟",
-    note: "この枠は、Ryo の表情差分を後続PBIで差し替え運用できる generic な portrait 受け皿です。",
+    note: "この枠は、artPaths.ts の Ryo 表情差分を参照する generic な portrait 受け皿です。",
   };
 }
 
