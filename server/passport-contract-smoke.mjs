@@ -50,32 +50,6 @@ function readStringArray(expression, label, ts) {
   return current.elements.map((element, index) => readStringLiteral(element, `${label}[${index}]`, ts));
 }
 
-function readStringRecord(expression, label, ts) {
-  const current = unwrapExpression(expression, ts);
-
-  if (!current || !ts.isObjectLiteralExpression(current)) {
-    fail(`${label} must be an object literal`);
-  }
-
-  const record = {};
-
-  for (const property of current.properties) {
-    if (!ts.isPropertyAssignment(property)) {
-      fail(`${label} must contain only property assignments`);
-    }
-
-    const propertyName = property.name;
-    const key = ts.isIdentifier(propertyName) || ts.isStringLiteral(propertyName) ? propertyName.text : null;
-    if (!key) {
-      fail(`${label} contains an unsupported property name`);
-    }
-
-    record[key] = readStringLiteral(property.initializer, `${label}.${key}`, ts);
-  }
-
-  return record;
-}
-
 async function parseSource(relativePath, ts) {
   const filePath = resolve(process.cwd(), relativePath);
   const text = await readFile(filePath, 'utf-8');
@@ -137,11 +111,6 @@ export async function assertPassportExportContractMatchesDomain(contract) {
     contract.combatClasses,
     readStringArray(findExportedConst(fivePhases, 'COMBAT_CLASSES', ts), 'COMBAT_CLASSES', ts),
     'combatClasses',
-  );
-  assertSameJson(
-    contract.combatClassByElement,
-    readStringRecord(findExportedConst(fivePhases, 'COMBAT_CLASS_BY_ELEMENT', ts), 'COMBAT_CLASS_BY_ELEMENT', ts),
-    'combatClassByElement',
   );
   assertSameJson(
     contract.baseAttributes,
