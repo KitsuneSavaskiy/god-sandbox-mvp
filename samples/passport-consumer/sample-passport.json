@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "character-passport/v1",
+  "characterId": "ryo-sample-001",
+  "name": "Ryo",
+  "originGame": "god-sandbox-mvp",
+  "element": "wood",
+  "combatClass": "healer",
+  "baseAttributes": {
+    "vision": 4,
+    "power": 2,
+    "guard": 3,
+    "discipline": 3,
+    "flow": 5
+  },
+  "faith": {
+    "value": 58,
+    "obedienceBias": "adaptive",
+    "commandInterpretation": "contextual",
+    "hazardResponse": "guarded",
+    "autonomyAlignment": "balanced",
+    "trustBand": "steady",
+    "sources": {
+      "blessings": 2,
+      "trials": 1,
+      "chaosExposure": 1
+    }
+  },
+  "growth": {
+    "blessings": {
+      "wood": 1,
+      "fire": 0,
+      "earth": 0,
+      "metal": 0,
+      "water": 1
+    },
+    "trials": {
+      "wood": 0,
+      "fire": 0,
+      "earth": 1,
+      "metal": 0,
+      "water": 0
+    },
+    "chaosExposure": {
+      "wood": 1,
+      "fire": 0,
+      "earth": 0,
+      "metal": 0,
+      "water": 0
+    }
+  },
+  "skills": [
+    {
+      "kind": "skill",
+      "id": "forest-first-aid",
+      "name": "Forest First Aid",
+      "element": "water",
+      "skillType": "heal",
+      "description": "森で覚えた手当てで、近くの仲間を落ち着かせる。",
+      "targetPattern": "adjacent",
+      "range": 1,
+      "powerPerTile": 1,
+      "secondaryEffect": {
+        "type": "buff",
+        "key": "flowing",
+        "value": 1,
+        "duration": 1,
+        "target": "ally"
+      }
+    }
+  ],
+  "abilities": [
+    {
+      "kind": "ability",
+      "id": "listens-before-acting",
+      "name": "Listens Before Acting",
+      "source": "blessing",
+      "element": "wood",
+      "abilityType": "passive",
+      "description": "急いで決めず、周囲の様子を見てから動く。",
+      "trigger": {
+        "type": "onTurnStart"
+      },
+      "effects": [
+        {
+          "type": "buff",
+          "key": "growth",
+          "value": 1,
+          "duration": 1,
+          "target": "self"
+        }
+      ]
+    }
+  ]
+}

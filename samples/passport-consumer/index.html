@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Character Passport consumer sample</title>
+    <style>
+      :root {
+        color: #1f251f;
+        background: #f5efe3;
+        font-family: "Yu Gothic", "Hiragino Sans", Meiryo, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(141, 188, 129, 0.32), transparent 26rem),
+          linear-gradient(135deg, #fbf4e6, #e5ead9 58%, #d5e0cf);
+      }
+
+      main {
+        box-sizing: border-box;
+        width: min(960px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0;
+      }
+
+      .hero {
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: #66735d;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 7vw, 4.5rem);
+        line-height: 0.95;
+      }
+
+      .consumer-card {
+        display: grid;
+        grid-template-columns: minmax(180px, 280px) 1fr;
+        gap: 24px;
+        padding: 24px;
+        border: 1px solid rgba(45, 61, 42, 0.2);
+        border-radius: 28px;
+        background: rgba(255, 252, 244, 0.82);
+        box-shadow: 0 24px 80px rgba(39, 53, 33, 0.16);
+      }
+
+      .portrait {
+        position: relative;
+        overflow: hidden;
+        min-height: 320px;
+        border-radius: 22px;
+        background: #d9dfd0;
+      }
+
+      .portrait img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 320px;
+        object-fit: cover;
+      }
+
+      .portrait-fallback {
+        display: grid;
+        min-height: 320px;
+        place-items: center;
+        color: #66735d;
+        font-size: 3rem;
+        font-weight: 800;
+      }
+
+      .content {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .summary {
+        margin: 0;
+        color: #3d4739;
+        font-size: 1.08rem;
+        line-height: 1.8;
+      }
+
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #e7eddc;
+        color: #3c5738;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .note {
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(241, 233, 214, 0.75);
+      }
+
+      .note strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .note p {
+        margin: 0;
+        color: #586150;
+        line-height: 1.6;
+      }
+
+      .status {
+        margin-top: 16px;
+        color: #66735d;
+        font-size: 0.92rem;
+      }
+
+      .status--warn {
+        color: #8b5a28;
+      }
+
+      @media (max-width: 720px) {
+        main {
+          width: min(100% - 20px, 960px);
+          padding: 24px 0;
+        }
+
+        .consumer-card {
+          grid-template-columns: 1fr;
+          padding: 16px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <p class="eyebrow">Passport consumer sample</p>
+        <h1>育てたキャラを、別ゲームで読む</h1>
+      </section>
+
+      <section id="app" class="consumer-card" aria-live="polite">
+        <div class="portrait">
+          <div class="portrait-fallback">?</div>
+        </div>
+        <div class="content">
+          <p class="summary">Character Passport を読み込み中です。</p>
+        </div>
+      </section>
+
+      <p id="status" class="status">sample-passport.json を読み込んでいます。</p>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
