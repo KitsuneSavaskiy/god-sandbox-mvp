@@ -42,7 +42,12 @@ http://localhost:8080/samples/passport-consumer/
 
 `sample-passport.json` の次の値を変えると、画面の表示が変わります。
 
+GodSandbox の「このキャラを持ち出す」パネルでコピーしたJSONを `sample-passport.json` に貼り替えると、別のキャラ紹介カードとして試せます。
+
 - `name`: キャラクター名
+- `displayName`: 画面表示用のキャラクター名
+- `summary`: 一言紹介
+- `tags`: 性格や特徴の短いラベル
 - `characterId`: 画像や外部ゲーム側の扱いを選ぶためのID
 - `element`: 属性。別ゲーム側では自由に意味を変えてよいです。
 - `combatClass`: 職種。属性から自動で決まるものではありません。
