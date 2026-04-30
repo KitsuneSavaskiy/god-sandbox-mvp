@@ -532,6 +532,40 @@ button {
   border-left-color: #6be18d;
 }
 
+.passport-export-panel {
+  gap: 0.75rem;
+}
+
+.passport-export {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.passport-export__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.passport-export__preview {
+  width: 100%;
+  min-height: 260px;
+  max-height: 320px;
+  margin: 0;
+  overflow: auto;
+  border: 1px solid rgba(146, 175, 199, 0.14);
+  border-radius: 12px;
+  background: rgba(2, 7, 12, 0.42);
+  color: #d8e4f1;
+  padding: 0.85rem;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
