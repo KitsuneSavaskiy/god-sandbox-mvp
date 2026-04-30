@@ -12,6 +12,21 @@
 - 別ゲーム側では、仲間、敵、NPC、カード、村人などに自由に使い直してよいです。
 - GodSandbox の内部状態や domain model をそのまま再現する必要はありません。
 
+## GodSandboxから持ってくる流れ
+
+初めて触る人は、次の順番で見てください。
+
+1. GodSandboxでキャラクターを見る。
+2. キャラクターが育つ、または状態が変わる。
+3. 「キャラ情報をコピー」または同じ意味の操作で Character Passport JSON を取り出す。
+4. JSONの中身を見る。
+5. このサンプルの `sample-passport.json` と同じ形だと確認する。
+6. `sample-passport.json` の中身を、取り出したJSONに置き換える。
+7. ブラウザでこのサンプルを開き、名前、画像、紹介文、タグが出ることを確認する。
+8. 自分のゲームでは、仲間、敵、NPC、カードなどへ自由に使い直す。
+
+まだGodSandbox画面にコピー操作がない場合は、`sample-passport.json` を「コピー後の例」として読んでください。
+
 ## ファイル
 
 - `sample-passport.json`: 別ゲーム側が読むサンプルの Character Passport JSON
@@ -38,6 +53,19 @@ http://localhost:8080/samples/passport-consumer/
 
 この手順なら、`sample-passport.json` と `public/art/...` のRyo portrait画像を同じローカルサーバーから読めます。
 
+## 画面で確認するもの
+
+このサンプルは、Passport JSON を読んで次のように表示します。
+
+- `name` を大きな名前として表示する。
+- `characterId` を見て、対応する画像があれば顔画像を表示する。
+- `element`、`combatClass`、`faith.trustBand` から短い紹介文を作る。
+- 属性、使い方例、信頼、カオス経験をタグとして表示する。
+- `skills` と `abilities` の最初の1件を説明として表示する。
+
+表示に使っていない項目があっても問題ありません。
+別ゲーム側は、自分の画面に必要なものだけ読めば十分です。
+
 ## どの値を変えると表示が変わるか
 
 `sample-passport.json` の次の値を変えると、画面の表示が変わります。
@@ -47,6 +75,9 @@ http://localhost:8080/samples/passport-consumer/
 - `element`: 属性。別ゲーム側では自由に意味を変えてよいです。
 - `combatClass`: 職種。属性から自動で決まるものではありません。
 - `faith.trustBand`: 神への信頼の強さを、別ゲーム側の説明に使えます。
+
+`characterId` を変えると、サンプル内の画像対応が見つからず、画像の代わりに名前の頭文字が表示される場合があります。
+これは失敗ではありません。別ゲーム側が、どのキャラIDにどの画像を使うかを自由に決めてよいという例です。
 
 ## このサンプルが読んでいる項目
 
@@ -61,6 +92,21 @@ http://localhost:8080/samples/passport-consumer/
 - `faith.trustBand`
 
 `baseAttributes`、`growth`、`skills`、`abilities` は、今回は表示の補助として少しだけ使います。別ゲーム側で不要なら無視してかまいません。
+
+## 必須項目と任意項目の考え方
+
+Passport を作る側は、安定したJSONとして必要な項目をそろえます。
+
+ただし、別ゲーム側がすべてを使う必要はありません。
+このサンプルのような小さい画面では、まず次だけ読めれば十分です。
+
+- `schemaVersion`: 読める種類のPassportか確認するため。
+- `characterId`: キャラクターを見分けるため。
+- `name`: 画面に名前を出すため。
+
+そのほかの `element`、`combatClass`、`faith`、`growth`、`skills`、`abilities` は、必要なときだけ読んでください。
+不要な項目は無視してよいです。
+Passport は完全再現データではなく、別ゲームへ渡すキャラクター紹介状です。
 
 ## 外部ゲーム側での使い方例
 

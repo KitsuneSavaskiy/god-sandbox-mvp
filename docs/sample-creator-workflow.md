@@ -4,15 +4,24 @@
 
 対象読者は、AIキャラクターを作り、自作ゲーム、後続ゲーム、外部ツールへ持ち出したい開発者・Passport consumer開発者・技術寄りユーザーです。
 
+初めて触る人は、まず「キャラ情報のメモを別のサンプルに渡す」と考えてください。
+このメモが Character Passport JSON です。
+
 このサンプルは実装ではありません。実LLM接続、BYOK / BYOM、provider設定UI、API key保存、外部ゲーム本体、battle logic は扱いません。
 
 ## このサンプルで見る流れ
 
-1. サンプルキャラを確認する。
-2. mock / template 発話の入力と出力を見る。
-3. Faith / Growth / Skill / Ability の確認ポイントを見る。
-4. Character Passport v1 JSON を確認する。
-5. 後続ゲームやPassport consumerが読む前提のJSON境界を確認する。
+1. GodSandboxでキャラクターを見る。
+2. キャラクターが育つ、または状態が変わる。
+3. 「キャラ情報をコピー」または同等の操作で Character Passport JSON を取り出す。
+4. JSONの中身を見る。
+5. consumer sample に渡す。
+6. 別ゲーム側で名前、画像、紹介文、タグが表示されることを確認する。
+7. 名前やタグの元になる値を変えると、表示も変わることを試す。
+8. 自分のゲームでは、仲間、敵、NPC、カードなどに自由に使い直してよいことを確認する。
+
+現在のrepoでは、画面からコピーする操作が未実装の場合があります。
+その場合は、`samples/creator-workflow/character-passport.v1.json` や `samples/passport-consumer/sample-passport.json` を、取り出した後のJSON例として読んでください。
 
 ## 成果物
 
@@ -51,6 +60,9 @@ combatClass: knight
 - `growth`: 加護、試練、カオス接触による成長
 - `skills`: 能動的に使う行動
 - `abilities`: 受動、反応、aura 系の効果
+
+初心者向けには、まず `name`、`characterId`、`element`、`combatClass`、`faith.trustBand` だけ見れば十分です。
+それ以外は、別ゲーム側で必要になったときに読めばかまいません。
 
 ## 2. 発話を見る
 
@@ -136,6 +148,9 @@ god-sandbox-data/exports/character-passports/sample-ren.character-passport.json
 このPBIで追加する `samples/creator-workflow/character-passport.v1.json` は、後続ゲームやPassport consumerが読む形を理解するための静的サンプルです。
 実行時に生成される export ファイルそのものではありません。
 
+画面に「キャラ情報をコピー」のような操作がある場合は、その内容が Character Passport JSON です。
+まだ画面操作がない場合は、上のサンプルJSONをコピーしたものとして扱ってください。
+
 ## 5. 後続ゲームやPassport consumerが読むJSONを確認する
 
 後続ゲームやPassport consumerは、GodSandbox の内部状態を直接読むのではなく、Character Passport v1 JSON を読みます。
@@ -154,6 +169,55 @@ god-sandbox-data/exports/character-passports/sample-ren.character-passport.json
 この境界により、GodSandbox は完成品ゲームとして閉じるのではなく、AIキャラクターを外へ渡す sandbox として扱えます。
 
 後続ゲーム開発者は、育成ゲーム側のパラメータや育成イベントを追加しません。Character Passport の有限パラメータを読み、不要なものをスキップし、必要に応じて自分のゲーム内の名前や意味へ再解釈します。
+
+## 6. consumer sample で別ゲーム側の表示を見る
+
+別ゲーム側の一番小さい例は `samples/passport-consumer/` にあります。
+
+ここでは、Character Passport JSON を読んで、次の情報を画面に出します。
+
+- 名前
+- 顔画像または代わりの表示
+- 短い紹介文
+- 属性、使い方例、信頼などのタグ
+- Skill / Ability の説明例
+
+確認手順は次の通りです。
+
+1. `samples/passport-consumer/sample-passport.json` を開く。
+2. 中身が Character Passport JSON であることを確認する。
+3. repo root で `python -m http.server 8080` を実行する。
+4. ブラウザで `http://localhost:8080/samples/passport-consumer/` を開く。
+5. 名前、画像、紹介文、タグが表示されることを見る。
+6. `sample-passport.json` の `name` や `element`、`combatClass`、`faith.trustBand` を少し変える。
+7. ブラウザを再読み込みして、表示が変わることを見る。
+
+`characterId` を変えると、サンプル内の画像対応が見つからず、画像の代わりに文字だけの表示になる場合があります。
+これは失敗ではありません。別ゲーム側が「このキャラIDならこの画像を使う」と決めているだけです。
+
+## 必須項目と任意項目の考え方
+
+Character Passport を作る側は、安定したJSONとして必要な項目をそろえます。
+一方で、別ゲーム側がすべての項目を使う必要はありません。
+
+最初に読むと分かりやすい項目:
+
+- `schemaVersion`: Passport の種類と版
+- `characterId`: キャラクターを見分けるID
+- `name`: 表示名
+
+必要なら読む項目:
+
+- `element`: 属性。別ゲーム側で名前や意味を変えてよい
+- `combatClass`: 役割。属性から自動で決まるものではない
+- `faith`: 神の声への向き合い方
+- `growth`: 育った理由や変化
+- `skills`: 行動として使えるもの
+- `abilities`: 条件で出る特徴や反応
+
+使わない項目は、無視してかまいません。
+Character Passport は完全再現データではなく、別ゲームへ渡すキャラクター紹介状です。
+別ゲーム側では、仲間、敵、NPC、カード、村人、図鑑データなどに自由に使い直してよいです。
 
 ## 今回やらないこと
 
