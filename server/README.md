@@ -249,6 +249,19 @@ v1 では次の 5 種のみ許可します。
 `characterId` は export ファイル名に使われます。
 安全のため、空文字、`/`、`\`、`..` を含む値は拒否します。
 
+## export strictness
+
+server export は、育成ゲームが公開する正規の Character Passport を作る側です。
+そのため、安定JSONインターフェースで許可していない unknown field は reject します。
+
+MVPでは strip ではなく reject を優先します。
+unknown field を黙って削ると、入力側の設計ミスや未定義拡張に気づきにくいためです。
+
+特に `growth` の unknown key、`skills` の unknown field、`abilities` の unknown field は `npm run passport:smoke` で拒否を確認します。
+
+これは後続ゲーム側が不要な既知パラメータをスキップできる方針とは矛盾しません。
+server export は正規Passportを作る側であり、後続ゲームはPassportを読む側です。
+
 ## 出力先
 
 ```text
@@ -274,6 +287,7 @@ npm run passport:smoke
 4. `element` と `combatClass` が独立した値として保存される
 5. `characterId` の path traversal / slash を拒否できる
 6. Domain canonical 定義と server export contract が drift していない
+7. `growth` / `skills` / `abilities` の unknown field を拒否できる
 
 ## 今回まだ含まないもの
 
