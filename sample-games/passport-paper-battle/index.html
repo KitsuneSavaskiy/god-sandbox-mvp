@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Passport Paper Battle</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Character Passport sample game</p>
+        <h1>Passport Paper Battle</h1>
+        <p>
+          GodSandbox から持ち出したキャラを、別の小さなゲームで動かすサンプルです。
+          左が自陣、右が敵陣です。
+        </p>
+      </section>
+
+      <section class="game-card" aria-label="1対1の平面キャラ対戦サンプル">
+        <aside class="passport-panel">
+          <p class="eyebrow">loaded passport</p>
+          <div class="portrait-frame">
+            <img id="portrait" alt="Character portrait" />
+            <span id="portraitFallback" class="portrait-fallback" hidden>?</span>
+          </div>
+          <h2 id="passportName">読み込み中</h2>
+          <p id="passportSummary" class="summary">sample-passport.json を読み込んでいます。</p>
+          <div id="passportTags" class="tags"></div>
+        </aside>
+
+        <section class="battle-panel">
+          <div class="hud">
+            <div>
+              <span class="label">味方HP</span>
+              <strong id="playerHp">-</strong>
+            </div>
+            <div>
+              <span class="label">敵HP</span>
+              <strong id="enemyHp">-</strong>
+            </div>
+            <div>
+              <span class="label">ターン</span>
+              <strong id="turnCount">-</strong>
+            </div>
+            <div>
+              <span class="label">状態</span>
+              <strong id="phaseText">-</strong>
+            </div>
+          </div>
+
+          <p id="instruction" class="instruction">キャラを選んでください。</p>
+
+          <div id="board" class="board" aria-label="横10マス、縦5マスの盤面"></div>
+
+          <div class="controls" aria-label="操作">
+            <button id="selectPlayer" type="button">キャラを選ぶ</button>
+            <button id="reset" type="button" class="button-secondary">リセット</button>
+          </div>
+
+          <section class="log-panel" aria-label="バトルログ">
+            <h2>ログ</h2>
+            <ol id="battleLog"></ol>
+          </section>
+        </section>
+      </section>
+
+      <section class="note-card">
+        <h2>このサンプルの考え方</h2>
+        <p>
+          Character Passport は、キャラクターを別のゲームへ連れて行くための紹介カードです。
+          このサンプルでは、名前、画像、紹介文、タグだけを読み、HPや攻撃力はこのゲーム側で仮に決めています。
+        </p>
+      </section>
+    </main>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
