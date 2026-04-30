@@ -1,19 +1,29 @@
 # 五行タクティクス用語辞書
 
-この資料は、Character Passport v1 と将来の五行ベースのタクティクス戦闘ゲームに向けて、用語の意味を固定するための辞書です。
+## 現在の位置づけ
+
+この資料は、現行の Character Passport core contract ではありません。
+ここにある五行と職種、ステータス、状態異常、バフ、デバフの対応は、legacy / historical concept を含む GodSandbox world preset です。
+
+Character Passport の安定JSONインターフェースでは、属性（`element`）と職種（`combatClass`）、基本ステータス、状態異常、バフ、デバフ、Skill、Ability は独立したパラメータとして扱います。
+後続ゲームはこの五行presetを採用してもよいですが、採用しなくても構いません。
+後続ゲームは、受け取った属性や職種の名前・意味を自分のゲーム内で自由に再解釈できます。
+
+この資料は、GodSandbox が過去に検討した五行ベースのタクティクス戦闘案を保存し、必要な場合に world preset として参照できるようにするための辞書です。
 
 これは設計辞書であり、実装ではありません。実行時挙動、戦闘式、API、永続化ルールはここでは定義しません。
 
 ## この資料の目的
 
-- 五行タクティクス用語の解釈を開発者間で揃える。
-- 戦闘コードが存在する前に、Character Passport v1 の各項目を読める状態にする。
-- 用語の決定と、将来の実装詳細を分離する。
+- GodSandbox world preset としての五行タクティクス用語の解釈を保存する。
+- 旧設計が現行 Passport core contract と誤読されないように境界を明示する。
+- 用語の保存と、現行 Character Passport 安定JSONインターフェースを分離する。
 
 ## 五行と職種
 
-この資料では、木（wood）、火（fire）、土（earth）、金（metal）、水（water）を五行（element）として扱います。
-MVP では、職種（combatClass）と五行は 1:1 で対応します。
+この GodSandbox world preset では、木（wood）、火（fire）、土（earth）、金（metal）、水（water）を五行（element）として扱います。
+この preset 内では、職種（combatClass）と五行を 1:1 で対応させます。
+ただし、この対応は Character Passport 全体の契約ではありません。
 
 ```text
 wood  = ranger
@@ -23,11 +33,11 @@ metal = knight
 water = healer
 ```
 
-MVP でのルール:
+legacy / world preset 内でのルール:
 
 ```text
-MVPでは element と combatClass は 1:1 固定。
-将来は分離可能だが、v1では分離しない。
+この GodSandbox world preset では element と combatClass を 1:1 対応として扱う。
+現行 Character Passport core では element と combatClass は独立した値として扱う。
 ```
 
 ## 五行の代表機能
@@ -70,6 +80,9 @@ Healer:
 
 ## 基本ステータス
 
+以下は GodSandbox world preset 内での五行イメージです。
+Character Passport core では、属性が基本ステータスを支配する仕様ではありません。
+
 ```text
 Vision:
 木。視野、索敵、罠発見、反応範囲。
@@ -110,6 +123,9 @@ Entangled:
 
 ## 状態異常
 
+以下は GodSandbox world preset 内の対応です。
+Character Passport core では、属性が状態異常を支配する仕様ではありません。
+
 ```text
 wood  = Rooted
 fire  = Burning
@@ -123,6 +139,9 @@ water = Chilled
 
 ## バフ
 
+以下は GodSandbox world preset 内の対応です。
+Character Passport core では、属性がバフを支配する仕様ではありません。
+
 ```text
 wood  = Growth
 fire  = Ignite
@@ -132,6 +151,9 @@ water = Flowing
 ```
 
 ## デバフ
+
+以下は GodSandbox world preset 内の対応です。
+Character Passport core では、属性がデバフを支配する仕様ではありません。
 
 ```text
 wood  = Entangled
@@ -222,7 +244,8 @@ chaosExposure:
 ## 相生 / 相剋
 
 数値倍率はまだ決めません。
-MVP では効果カテゴリだけを定義します。
+この GodSandbox world preset では効果カテゴリだけを定義します。
+後続ゲームはこの相生 / 相剋を採用してもよいですが、採用しなくても構いません。
 
 相生:
 
@@ -274,6 +297,9 @@ Knight が Ranger の拘束・罠・蔦を切断する
 
 五行ごとの範囲傾向:
 
+以下は GodSandbox world preset の攻撃範囲傾向です。
+Character Passport core の必須仕様ではありません。
+
 ```text
 wood:
 枝分かれ、斜め、罠、視野範囲
@@ -292,6 +318,9 @@ water:
 ```
 
 ## canonical key 一覧
+
+以下の canonical key は、この legacy / GodSandbox world preset を読むためのキー一覧です。
+現行 Character Passport core contract における属性独立方針を上書きするものではありません。
 
 ```text
 elements:
