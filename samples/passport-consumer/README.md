@@ -24,7 +24,7 @@
 
 ブラウザの制限で `sample-passport.json` を直接読めない場合があります。その場合でも、画面には同じ内容の予備データが表示されます。
 
-実際にJSON読み込みを確認したい場合は、このディレクトリで簡単なローカルサーバーを起動してください。
+実際にJSON読み込みと顔画像の表示を確認したい場合は、repo root で簡単なローカルサーバーを起動してください。
 
 ```bash
 python -m http.server 8080
@@ -33,8 +33,10 @@ python -m http.server 8080
 その後、ブラウザで次を開きます。
 
 ```text
-http://localhost:8080/
+http://localhost:8080/samples/passport-consumer/
 ```
+
+この手順なら、`sample-passport.json` と `public/art/...` のRyo portrait画像を同じローカルサーバーから読めます。
 
 ## どの値を変えると表示が変わるか
 
