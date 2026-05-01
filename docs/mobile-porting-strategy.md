@@ -10,6 +10,17 @@ GodSandbox MVP および Passport Paper Battle サンプルゲームを、将来
 
 このドキュメントは実装を伴わない。設計判断の根拠を明文化し、各フェーズ着手前に参照できるようにすることが目的。
 
+### MVP方針
+
+このドキュメントでの最初のMVPは、App Store / Google Play 配布ではなく、Web公開URLを iOS Safari / Android Chrome から開いて遊べる状態を指す。
+
+- iOS MVP: Apple の App Store 審査を前提にせず、Safari で公開URLを開いて操作できることを優先する。
+- Android MVP: Google Play 配布を前提にせず、Chrome で公開URLを開いて操作できることを優先する。
+- ホーム画面追加は便利な任意導線として扱う。最初の必須条件にはしない。
+- App Store / TestFlight / Capacitor / native project は、ストア配布やネイティブ機能が必要になった後続フェーズで扱う。
+
+この方針により、まず Web/shared の実装価値を最大化し、ネイティブ配布の審査・証明書・ストア運用コストは後から判断する。
+
 ---
 
 ## 現行構成の整理
@@ -55,9 +66,9 @@ sample-games/       ← 静的HTMLゲーム（Viteのbuildに含まれない）
 
 | フェーズ | 名称 | 主目的 | native app化 |
 |---|---|---|---|
-| Phase 0 | Mobile Web readiness | スマホブラウザで表示・操作できる | なし |
-| Phase 1 | PWA readiness | スマホのホーム画面から起動できる | なし |
-| Phase 2 | Capacitor native wrapper | iOS / Android ストア配布可能にする | あり |
+| Phase 0 | Mobile Web readiness + 公開URL確認 | 公開URLを iOS Safari / Android Chrome で開いて表示・操作できる | なし |
+| Phase 1 | PWA readiness | 任意でスマホのホーム画面から起動できる | なし |
+| Phase 2 | Capacitor native wrapper | App Store / Google Play 配布やネイティブ機能追加を可能にする | あり |
 | Phase 3 | Native device features | ネイティブ機能を追加する | あり |
 
 フェーズ間の依存:
@@ -70,11 +81,17 @@ Phase 0 なしで Phase 2 へ移行した場合、スマホ表示の問題がネ
 
 ---
 
-## Phase 0: Mobile Web readiness
+## Phase 0: Mobile Web readiness + 公開URL確認
 
 ### 目的
 
 ブラウザ上でスマホ表示・タッチ操作・画面幅・縦長表示に耐えられるようにする。native app 化はしない。
+
+Phase 0 の完了条件は、ローカル開発環境だけではなく、GitHub Pages / Cloudflare Pages / Vercel / Netlify などのWeb公開URLから iOS Safari / Android Chrome で起動・操作できることを確認すること。
+
+この段階では Apple の App Store 審査は不要。iPhone利用者には Safari で公開URLを開く導線を案内する。Android利用者には Chrome で公開URLを開く導線を案内する。
+
+ホーム画面追加は「アプリのように開きたい人向け」の任意導線とし、MVPの必須条件にはしない。
 
 ### 対象
 
@@ -197,6 +214,8 @@ HTTP サーバーが必要。以下の環境では失敗する:
 
 スマホのホーム画面に追加し、アプリのように起動できるようにする。
 
+Phase 1 は Web公開URLで遊べる Phase 0 が成立した後の改善フェーズ。ホーム画面追加は便利だが、App Store / Google Play 配布や native app 化とは別物として扱う。
+
 ### 主な検討対象
 
 | 項目 | 内容 | MVP優先度 |
@@ -238,9 +257,11 @@ Vite に統合されており、manifest と Service Worker のひな型を自�
 | 学習コスト | Webスキルのまま扱える | React Native 独自APIを学ぶ必要がある |
 | 採用推奨タイミング | Web→Native化の最初のステップとして適切 | Web成果物がない新規アプリから始める場合 |
 
-**結論: React Native へ今すぐ移行しない。Capacitor を採用する。**
+**結論: React Native へ今すぐ移行しない。ストア配布やネイティブ機能が必要になった時点で Capacitor を採用する。**
 
-PWA だけでは App Store / Play Store への配布ができないため、ストア配布が必要になった時点で Capacitor を導入する。
+Phase 0 のMVPは Web公開URLで提供するため、App Store 審査や Google Play 審査を必要としない。App Store / TestFlight / Google Play で配布する段階に進む場合は、審査・署名・証明書・ストア運用を含めて Phase 2 で扱う。
+
+PWA だけでは App Store / Google Play へのネイティブアプリ配布ができないため、ストア配布が必要になった時点で Capacitor を導入する。
 
 ### 主な導入対象
 
@@ -261,11 +282,11 @@ Capacitor v8 の最小対応: iOS 15.0、Android 7.0（API 24）。
 
 | 対象 | 方針 | 理由 |
 |---|---|---|
-| `android/` / `ios/` | 原則 `.gitignore` で除外 | 自動生成物。`npx cap sync` で再生成可能 |
+| `android/` / `ios/` | 現時点では未決。Capacitor scaffold PBI で判断する | 自動生成部分と手動変更部分が混在し得るため、先に「原則ignore」と固定しない |
 | `capacitor.config.ts` | 管理対象に含める | appId・webDir などチームで共有が必要な設定値 |
 | Xcode / Android Studio 固有の変更 | 手動で管理 | 自動生成外の変更は再生成で失われる可能性がある |
 
-CI/CD でネイティブビルドを自動化する場合は `android/` / `ios/` の管理方針を再検討する。
+`android/` / `ios/` を commit 管理するか、`.gitignore` で除外して再生成前提にするかは、`PBI-MOBILE-CAPACITOR-SCAFFOLD-001` で再判断する。CI/CD でネイティブビルドを自動化する場合も、その時点で管理方針を決める。
 
 ### サンプルゲームの扱い（Phase 2 の前提課題）
 
@@ -394,6 +415,10 @@ PBI-MOBILE-WEB-READINESS-001
   スマホ幅・タッチ操作・viewport・縦長表示を育成ゲーム本体で整える
   PR #101 マージ後に対応
 
+PBI-WEB-DEPLOY-BROWSER-MVP-001
+  Web公開URLで iOS Safari / Android Chrome からMVPを開ける導線を作る
+  Phase 0 の中核。App Store / Google Play 配布は対象外
+
 PBI-MOBILE-SAMPLE-BATTLE-RESPONSIVE-001
   Passport Paper Battle の 10×5 盤面をスマホで扱いやすくする
   PR #101 マージ後に対応
@@ -424,6 +449,7 @@ PBI-MOBILE-PASSPORT-FILE-FLOW-001
 | PBI | 着手条件 |
 |---|---|
 | WEB-READINESS | PR #101 マージ後 |
+| WEB-DEPLOY-BROWSER-MVP | WEB-READINESS の最低限確認後。公開URLでスマホ実機確認する |
 | SAMPLE-BATTLE-RESPONSIVE | PR #101 マージ後 |
 | PWA-MANIFEST | manual-review-required; Phase 0 完了後 |
 | CAPACITOR-SCAFFOLD | manual-review-required; Phase 0・1 完了後 |
@@ -440,6 +466,7 @@ PBI-MOBILE-PASSPORT-FILE-FLOW-001
 - `package.json` / `package-lock.json` の変更
 - `@capacitor/*` のインストール
 - `android/` / `ios/` ネイティブプロジェクトの生成
+- `android/` / `ios/` の commit 管理方針確定
 - ネイティブビルドの実行
 - Android Studio / Xcode の操作
 - `sample-games/passport-paper-battle/**` の変更（PR #101 と競合するため）
@@ -459,6 +486,7 @@ PBI-MOBILE-PASSPORT-FILE-FLOW-001
 |---|---|
 | Three.js スマホパフォーマンス | Phase 0 で DevTools モバイルエミュレーションまたは実機で早期確認 |
 | 10×5 盤面の横スクロール UX | Phase 0 で盤面の縦長レイアウト対応を検討 |
+| Web公開URLなしでモバイル確認がローカル依存になる | Phase 0 で公開URL確認PBIを用意し、Safari / Chrome から実機確認する |
 | `/art/` 画像パスの Capacitor 非互換 | Phase 2 着手前にサンプルゲームを `dist/` パイプラインに統合 |
 | `fetch()` が `file://` で失敗する | フォールバック実装済みだが、Phase 2 着手前に HTTP ベースに統一 |
 | iOS ビルドに macOS が必要 | Phase 2 着手前に macOS 利用可能な環境を確保する |
