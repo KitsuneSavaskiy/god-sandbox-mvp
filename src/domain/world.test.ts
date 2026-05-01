@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   advanceWorld,
   createInitialWorldState,
+  NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES,
   previewJudgement,
   resolveActiveEvent,
+  triggerTutorialBlessEvent,
 } from "./world";
 
 function getCharacter(state: ReturnType<typeof createInitialWorldState>, id: string) {
@@ -126,5 +128,53 @@ describe("world intervention characterization", () => {
     expect(nextState.timeControl).toBe("stopped");
     expect(nextState.activeEvent).toBeNull();
     expect(nextState.characters.every((character) => !character.alive)).toBe(true);
+  });
+
+  it("creates a deterministic tutorial Bless event that improves the target", () => {
+    const initial = createInitialWorldState();
+    const akiBefore = getCharacter(initial, "aki");
+    const tutorialEvent = triggerTutorialBlessEvent(initial, "aki");
+
+    expect(tutorialEvent.phase).toBe("event");
+    expect(tutorialEvent.activeEvent?.tutorialKind).toBe("firstBless");
+    expect(tutorialEvent.activeEvent?.presetIntervention).toBe("bless");
+    expect(tutorialEvent.activeEvent?.targetCharacterId).toBe("aki");
+
+    const precomputedFumble = previewJudgement(akiBefore, "bless", tutorialEvent.tick, "manual", tutorialEvent.momentum, 1);
+    const resolvedState = resolveActiveEvent(tutorialEvent, "bless", precomputedFumble);
+    const akiAfter = getCharacter(resolvedState, "aki");
+
+    expect(resolvedState.phase).toBe("observing");
+    expect(resolvedState.activeEvent).toBeNull();
+    expect(akiAfter.lifespanRemaining).toBeGreaterThan(akiBefore.lifespanRemaining);
+    expect(akiAfter.blessings).toBeGreaterThanOrEqual(akiBefore.blessings);
+    expect(resolvedState.latestJudgement?.rank).toBe("success");
+  });
+
+  it("keeps Watch and Test safe on the tutorial event", () => {
+    const watchEvent = triggerTutorialBlessEvent(createInitialWorldState(), "aki");
+    const watchResolved = resolveActiveEvent(watchEvent, "watch");
+    const akiAfterWatch = getCharacter(watchResolved, "aki");
+
+    expect(watchResolved.phase).toBe("observing");
+    expect(watchResolved.activeEvent).toBeNull();
+    expect(akiAfterWatch.notable).toContain("Aki に最初の加護を届けます を見届けた");
+
+    const testEvent = triggerTutorialBlessEvent(createInitialWorldState(), "aki");
+    const akiAtTestEvent = getCharacter(testEvent, "aki");
+    const testJudgement = previewJudgement(akiAtTestEvent, "test", testEvent.tick, "manual", testEvent.momentum, 11);
+    const testResolved = resolveActiveEvent(testEvent, "test", testJudgement);
+
+    expect(testResolved.phase).toBe("observing");
+    expect(testResolved.activeEvent).toBeNull();
+    expect(testResolved.latestJudgement?.action).toBe("test");
+  });
+
+  it("documents non-lifespan trigger candidates for future events", () => {
+    expect(NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES.length).toBeGreaterThanOrEqual(2);
+    expect(NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES.map((candidate) => candidate.id)).toEqual(
+      expect.arrayContaining(["curiosity", "encounter", "discoveryHint"]),
+    );
+    expect(NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES.every((candidate) => candidate.recommendedIntervention)).toBe(true);
   });
 });
