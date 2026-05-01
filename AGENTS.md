@@ -1,4 +1,4 @@
-﻿# AGENTS.md
+# AGENTS.md
 
 ## Project purpose
 
@@ -17,7 +17,7 @@ Prioritize a working loop over visual polish.
 Work only inside this repository.
 
 Allowed root:
-C:\Users\fukui\OneDrive\Desktop\Codex\god_sandbox_mvp
+the repository root for the current checkout
 
 Do not read, edit, create, move, or delete files outside this repository unless the user explicitly approves it.
 
@@ -25,7 +25,7 @@ If any task requires writing outside the workspace, stop and ask for approval fi
 
 If any task requires network access, package installation, external downloads, live web access, git push to another repository, or any external service connection, stop and ask for approval first.
 
-Do not touch sibling folders, parent folders, OneDrive content outside this repo, or any existing project such as KB_AMH_BCP.
+Do not touch sibling folders, parent folders, or unrelated local projects.
 
 ---
 
@@ -63,6 +63,12 @@ When possible, prefer:
 Never push directly to main.
 Always work on a branch and open a pull request.
 
+Work in PBI-sized units.
+Each PBI should have its own GitHub Issue, branch, commit set, PR, label, and declared scope.
+PR bodies must include `Closes #<issue-number>` when the PR implements an Issue.
+Do not mix multiple PBIs in one PR.
+Do not include untracked local helper files unless they are explicitly part of the PBI.
+
 There are only two PR routes:
 
 1. agent-routine
@@ -70,7 +76,7 @@ There are only two PR routes:
 - no repo-policy changes
 - no destructive changes
 - no sensitive path changes
-- may be auto-approved and auto-merged by the guardian workflow
+- may be eligible for routine automation when repository policy explicitly allows it
 
 2. manual-review-required
 - any destructive, irreversible, policy-changing, security-sensitive, or broad-impact change
@@ -86,6 +92,23 @@ The agent must add one of these labels to every PR:
 
 Never attempt to bypass these rules.
 
+Merge authority:
+- Implementation agents do not merge their own PRs.
+- A reviewer agent may approve or merge only when the Product Owner has explicitly authorized that reviewer role for the PR or lane.
+- The exception applies only when there are no blockers, CI is successful, changed files are within scope, the PR body is complete, and required labels are present.
+- If any of those conditions are unclear, leave the PR unmerged and report the blocker.
+
+Before opening or updating a PR, record:
+- changed files
+- scope check result
+- `git diff --check`
+- required verification commands
+- any command that could not be run and why
+
+Detailed operating rules and reusable templates live in:
+- `docs/agent-operating-rules.md`
+- `docs/agent-pr-checklists.md`
+
 ---
 
 ## Protected paths
@@ -95,6 +118,7 @@ Changes to any of the following must be treated as manual-review-required:
 - .github/**
 - .codex/**
 - AGENTS.md
+- CLAUDE.md
 - package.json
 - package-lock.json
 - pnpm-lock.yaml
