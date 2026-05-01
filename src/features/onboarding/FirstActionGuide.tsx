@@ -17,41 +17,36 @@ export function FirstActionGuide({
 }: FirstActionGuideProps) {
   const isEventOpen = phase === "event";
   const canStep = hasLivingCharacters && !isEventOpen;
-  const guideStatus = getGuideStatus({ hasLivingCharacters, isEventOpen, tick, timeControl });
+  const guide = getGuideState({ hasLivingCharacters, isEventOpen, tick, timeControl });
 
   return (
     <section className="first-action-guide" aria-labelledby="first-action-guide-title">
       <div className="first-action-guide__copy">
-        <p className="first-action-guide__eyebrow">はじめての神様へ</p>
-        <h2 id="first-action-guide-title">箱庭を見守り、重要イベントで運命に介入するゲームです</h2>
+        <p className="first-action-guide__eyebrow">まずはここから</p>
+        <h2 id="first-action-guide-title">AIキャラを見守り、変化が起きたらどう関わるか選ぶゲームです</h2>
         <p>
-          まずは時間を1 tick進めて、キャラクターたちの変化を観察します。
-          大きな出来事が起きたら、神として加護や試練を選び、物語の流れを変えます。
+          最初はむずかしい設定を覚えなくて大丈夫です。下の大きなボタンから、箱庭の時間を少しだけ進めましょう。
         </p>
       </div>
 
       <div className="first-action-guide__action-card" aria-label="次にすること">
-        <span className="first-action-guide__status">{guideStatus}</span>
+        <span className="first-action-guide__status">{guide.status}</span>
         {isEventOpen ? (
           <div className="first-action-guide__cta first-action-guide__cta--notice">
-            イベントで介入を選ぶ
+            {guide.ctaLabel}
           </div>
         ) : (
           <button className="first-action-guide__cta" type="button" disabled={!canStep} onClick={onStepTick}>
-            まず1 tick進める
+            {guide.ctaLabel}
           </button>
         )}
-        <p className="first-action-guide__hint">
-          {isEventOpen
-            ? "時間は止まっています。表示中のイベントで、キャラにどう関わるかを選びましょう。"
-            : "慣れてきたら、上の「通常」で自動観察に切り替えられます。"}
-        </p>
+        <p className="first-action-guide__hint">{guide.hint}</p>
       </div>
     </section>
   );
 }
 
-function getGuideStatus({
+function getGuideState({
   hasLivingCharacters,
   isEventOpen,
   tick,
@@ -63,20 +58,40 @@ function getGuideStatus({
   timeControl: "stopped" | "slow" | "normal";
 }) {
   if (!hasLivingCharacters) {
-    return "現在地: 生存者がいません";
+    return {
+      status: "現在地: キャラを準備中",
+      ctaLabel: "キャラを準備中",
+      hint: "キャラクターが現れたら、ここから観察を始められます。",
+    };
   }
 
   if (isEventOpen) {
-    return "現在地: 重要イベント発生中";
+    return {
+      status: "現在地: 出来事が発生中",
+      ctaLabel: "起きた出来事を見る",
+      hint: "表示中の出来事カードで、キャラにどう関わるかを選びましょう。",
+    };
   }
 
   if (tick === 0) {
-    return "現在地: 観察開始前";
+    return {
+      status: "現在地: 観察開始前",
+      ctaLabel: "少し時間を進める",
+      hint: "まずは一度だけ進めて、キャラの変化を見てみましょう。",
+    };
   }
 
   if (timeControl === "stopped") {
-    return `現在地: tick ${tick} / 停止中`;
+    return {
+      status: "現在地: 観察を一時停止中",
+      ctaLabel: "少し時間を進める",
+      hint: "もう一度だけ進めると、次の変化を確認できます。",
+    };
   }
 
-  return `現在地: tick ${tick} / 観察中`;
+  return {
+    status: "現在地: 観察中",
+    ctaLabel: "変化を追う",
+    hint: "自動で進んでいます。気になる変化が出たら、画面の案内に沿って選びます。",
+  };
 }
