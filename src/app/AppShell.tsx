@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ApostlePanel } from "../features/apostle/ApostlePanel";
 import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
+import { FirstActionGuide } from "../features/onboarding/FirstActionGuide";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
 import { createMockProvider } from "../infrastructure/llm/mockProvider";
 import { createTemplateProvider } from "../infrastructure/llm/templateProvider";
@@ -153,6 +154,14 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
           </button>
         </div>
       </header>
+
+      <FirstActionGuide
+        hasLivingCharacters={hasLivingCharacters}
+        phase={state.phase}
+        tick={state.tick}
+        timeControl={state.timeControl}
+        onStepTick={() => dispatch({ type: "stepTick" })}
+      />
 
       <main className="main-layout">
         <section className="viewport-panel">
