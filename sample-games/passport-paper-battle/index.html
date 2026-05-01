@@ -33,6 +33,7 @@
         <p class="apostle-tip">
           まずは攻撃力を1上げて、「この法則で世界を作り直す」を押してみましょう。
         </p>
+        <a class="jump-link" href="#battleBoardArea">バトル盤面へ進む</a>
       </section>
 
       <section class="game-card" aria-label="1対1の平面キャラ対戦サンプル">
@@ -117,6 +118,7 @@
               <p class="eyebrow">現在の世界法則まとめ</p>
               <ul id="appliedWorldRules" class="world-summary"></ul>
             </div>
+            <a class="jump-link jump-link--compact" href="#battleBoardArea">この設定で盤面を見る</a>
           </section>
 
           <div class="hud">
@@ -138,9 +140,15 @@
             </div>
           </div>
 
-          <p id="instruction" class="instruction">キャラを選んでください。</p>
-
-          <div id="board" class="board" aria-label="横10マス、縦5マスの盤面"></div>
+          <section id="battleBoardArea" class="board-area" aria-label="バトル盤面" tabindex="-1">
+            <p id="instruction" class="instruction">キャラを選んでください。</p>
+            <p class="board-scroll-note">
+              スマホでは盤面を横に動かして、左の自陣から右の敵陣まで見られます。
+            </p>
+            <div class="board-scroll-frame" role="region" aria-label="横にスクロールできる10×5の盤面" tabindex="0">
+              <div id="board" class="board" aria-label="横10マス、縦5マスの盤面"></div>
+            </div>
+          </section>
 
           <div class="controls" aria-label="操作">
             <button id="selectPlayer" type="button">キャラを選ぶ</button>
