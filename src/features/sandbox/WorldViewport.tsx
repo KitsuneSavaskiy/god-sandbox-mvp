@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import * as THREE from "three";
 import type { Character, DayPhase, Season } from "../../domain/types";
+import "./WorldViewportGuide.css";
 
 interface WorldViewportProps {
   characters: Character[];
@@ -93,6 +94,16 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
 
   const focusTarget = getFocusTarget(characters, focusCharacterId);
   const omen = chaosOmen(tick, paused);
+  const totalCharacters = characters.length;
+  const livingCount = characters.filter((character) => character.alive).length;
+  const noteworthyCount = characters.filter(
+    (character) => character.warningIssued || character.notable.length > 0,
+  ).length;
+  const focusLabel = focusTarget?.name ?? "対象なし";
+  const guideSummary = paused
+    ? "ここが箱庭です。いまは大事な出来事で時間が止まり、次の判断を待っています。"
+    : "ここが箱庭です。キャラが自動で暮らし、季節や出来事で少しずつ変化します。";
+  const nextAction = paused ? "次: 起きた出来事を読み、介入するか考える" : "次: 箱庭をドラッグして見回す";
   const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
@@ -354,7 +365,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
 
   return (
     <div
-      className="viewport-root"
+      className="viewport-root world-viewport world-viewport--guided"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
@@ -376,12 +387,33 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span>金</span>
           <span>水</span>
         </div>
-        <div
-          className="viewport-overlay__chip"
-          style={{ position: "absolute", bottom: "1rem", left: "50%", transform: "translateX(-50%)", fontSize: "0.72rem", opacity: 0.8 }}
-        >
-          {omen}
-        </div>
+        <section className="world-viewport-guide" aria-label="箱庭ガイド">
+          <div className="world-viewport-guide__eyebrow">Sandbox Guide</div>
+          <h2 className="world-viewport-guide__title">ここが箱庭です</h2>
+          <p className="world-viewport-guide__text">{guideSummary}</p>
+          <div className="world-viewport-guide__stats" aria-label="箱庭の現在地">
+            <div className="world-viewport-guide__stat">
+              <span className="world-viewport-guide__stat-label">キャラ</span>
+              <strong className="world-viewport-guide__stat-value">{totalCharacters}</strong>
+            </div>
+            <div className="world-viewport-guide__stat">
+              <span className="world-viewport-guide__stat-label">生存中</span>
+              <strong className="world-viewport-guide__stat-value">{livingCount}</strong>
+            </div>
+            <div className="world-viewport-guide__stat">
+              <span className="world-viewport-guide__stat-label">気になる変化</span>
+              <strong className="world-viewport-guide__stat-value">{noteworthyCount}</strong>
+            </div>
+          </div>
+          <p className="world-viewport-guide__focus">いま見る: {focusLabel}</p>
+          <div className="world-viewport-guide__steps" aria-label="箱庭の見方">
+            <span className="world-viewport-guide__step">ドラッグで見回す</span>
+            <span className="world-viewport-guide__step">光るリングの人物を追う</span>
+            <span className="world-viewport-guide__step">変化が起きたら観察する</span>
+          </div>
+          <div className="world-viewport-guide__cta">{nextAction}</div>
+          <p className="world-viewport-guide__state">今の気配: {omen}</p>
+        </section>
         <div className="viewport-overlay__controls">
           <div className="viewport-overlay__chip viewport-overlay__chip--controls">
             視点 {cameraMode === "follow" ? `自動追従 / ${focusTarget?.name ?? "対象なし"}` : "自由視点"}
