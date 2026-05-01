@@ -16,6 +16,7 @@ const attackRange = 3;
 
 const state = {
   passport: fallbackPassport,
+  passportSource: "sample",
   selected: false,
   phase: "select",
   turn: 1,
@@ -41,6 +42,8 @@ const nodes = {
   battleLog: document.querySelector("#battleLog"),
   selectPlayer: document.querySelector("#selectPlayer"),
   reset: document.querySelector("#reset"),
+  passportFile: document.querySelector("#passportFile"),
+  fileStatus: document.querySelector("#fileStatus"),
 };
 
 function resolveSampleImagePath(src) {
@@ -63,6 +66,67 @@ async function loadPassport() {
   } catch (error) {
     addLog("JSONを直接読めなかったため、同じ内容の予備データで起動しました。");
     return fallbackPassport;
+  }
+}
+
+function normalizePassport(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("not-object");
+  }
+
+  const displayName =
+    typeof value.displayName === "string" && value.displayName.trim() !== ""
+      ? value.displayName.trim()
+      : typeof value.name === "string" && value.name.trim() !== ""
+        ? value.name.trim()
+        : "";
+
+  if (!displayName) {
+    throw new Error("missing-displayName");
+  }
+
+  return {
+    schemaVersion: typeof value.schemaVersion === "string" ? value.schemaVersion : "1.0",
+    characterId:
+      typeof value.characterId === "string" && value.characterId.trim() !== ""
+        ? value.characterId
+        : "loaded-passport-character",
+    displayName,
+    summary:
+      typeof value.summary === "string" && value.summary.trim() !== ""
+        ? value.summary.trim()
+        : "紹介文はまだありません。",
+    portraitImage:
+      typeof value.portraitImage === "string" && value.portraitImage.trim() !== ""
+        ? value.portraitImage.trim()
+        : undefined,
+    tags: Array.isArray(value.tags)
+      ? value.tags.filter((tag) => typeof tag === "string" && tag.trim() !== "").map((tag) => tag.trim())
+      : [],
+  };
+}
+
+async function loadPassportFromFile(file) {
+  if (!file) {
+    return;
+  }
+
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    state.passport = normalizePassport(parsed);
+    state.passportSource = "file";
+    state.fileStatusKind = "success";
+    state.fileStatus = `${state.passport.displayName}を読み込みました。`;
+    resetBattle();
+  } catch (error) {
+    state.fileStatusKind = "error";
+    state.fileStatus =
+      "このファイルは読み込めませんでした。GodSandboxから保存したキャラ情報JSONを選んでください。";
+    addLog("キャラ情報JSONを確認してください。今のキャラのまま遊べます。");
+    render();
+  } finally {
+    nodes.passportFile.value = "";
   }
 }
 
@@ -323,7 +387,19 @@ function renderPassport() {
       return element;
     }),
   );
+  renderFileStatus();
   renderPortrait();
+}
+
+function renderFileStatus() {
+  const defaultText =
+    state.passportSource === "file"
+      ? `${state.passport.displayName ?? "キャラ"}を読み込んでいます。別のJSONも選べます。`
+      : "GodSandboxから保存したキャラ情報を選べます。選ばなくても、このサンプルのRyoで遊べます。";
+
+  nodes.fileStatus.textContent = state.fileStatus ?? defaultText;
+  nodes.fileStatus.classList.toggle("file-load__status--error", state.fileStatusKind === "error");
+  nodes.fileStatus.classList.toggle("file-load__status--success", state.fileStatusKind === "success");
 }
 
 function renderPortrait() {
@@ -453,6 +529,13 @@ function render() {
 
 nodes.selectPlayer.addEventListener("click", selectPlayer);
 nodes.reset.addEventListener("click", resetBattle);
+nodes.passportFile.addEventListener("change", (event) => loadPassportFromFile(event.target.files?.[0]));
 
-state.passport = await loadPassport();
+try {
+  state.passport = normalizePassport(await loadPassport());
+} catch (error) {
+  state.passport = fallbackPassport;
+  state.fileStatusKind = "error";
+  state.fileStatus = "最初のサンプルJSONを読めなかったため、予備のRyoで起動しました。";
+}
 resetBattle();

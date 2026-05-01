@@ -27,6 +27,13 @@
           <h2 id="passportName">読み込み中</h2>
           <p id="passportSummary" class="summary">sample-passport.json を読み込んでいます。</p>
           <div id="passportTags" class="tags"></div>
+          <div class="file-load">
+            <label class="file-load__button" for="passportFile">キャラ情報JSONを選ぶ</label>
+            <input id="passportFile" type="file" accept="application/json,.json" />
+            <p id="fileStatus" class="file-load__status" aria-live="polite">
+              GodSandboxから保存したキャラ情報を選べます。選ばなくても、このサンプルのRyoで遊べます。
+            </p>
+          </div>
         </aside>
 
         <section class="battle-panel">
