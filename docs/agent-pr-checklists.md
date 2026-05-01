@@ -100,6 +100,10 @@ PR本文に必ず書く。
 ## PR audit checklist
 
 監査役は自己申告ではなく、Issueと実diffから確認する。
+監査では GitHub上の PR diff / changed files を正本にする。
+ローカル working tree の汚れや未追跡ファイルを監査対象に混ぜない。
+ローカルで再現確認する場合は、対象PR branchを clean worktree に取得して確認する。
+`git diff --name-only origin/main...HEAD` は、実装者preflightまたは clean PR branch 上の補助確認として扱う。
 
 ### 1. 紐づけ
 
@@ -110,6 +114,13 @@ PR本文に必ず書く。
 - label が正しいか
 
 ### 2. changed files
+
+正本:
+
+- GitHub PR の Files changed
+- GitHub API / `gh pr diff --name-only`
+
+補助確認:
 
 ```bash
 git diff --name-only origin/main...HEAD
