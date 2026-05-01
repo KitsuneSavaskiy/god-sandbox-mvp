@@ -1,3 +1,16 @@
+.world-viewport--guided,
+.world-viewport--guided .viewport-root__canvas,
+.world-viewport--guided canvas {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.world-viewport--guided .viewport-overlay__controls,
+.world-viewport-guide {
+  touch-action: manipulation;
+}
+
 .world-viewport-guide {
   position: absolute;
   right: 1rem;
