@@ -329,6 +329,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     if ((event.target as HTMLElement).closest(".viewport-overlay__controls, .world-viewport-guide")) {
       return;
     }
+    event.preventDefault();
     dragStateRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -339,6 +340,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       return;
     }
 
+    event.preventDefault();
     const deltaX = event.clientX - dragState.x;
     const deltaY = event.clientY - dragState.y;
     dragStateRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
