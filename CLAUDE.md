@@ -2,41 +2,19 @@
 
 GodSandbox の Claude 系 agent 向け共通運用メモです。
 
-このファイルには、全agentで共有できる運用ルールだけを書きます。
-個人PCのパス、ローカル環境名、個別アカウント設定、secret、API key、token は書かないでください。
+## 最重要ルール
 
----
-
-## 基本方針
-
-- PBI単位で作業する。
-- Issue / branch / PR / label / scope を紐づける。
-- PR本文には `Closes #<issue-number>` を入れる。
-- 原則として `manual-review-required` label を付ける。
-- scope外ファイルを変更しない。
-- 実装役は自分でmergeしない。
-- Product Owner が明示許可した監査役だけが、blockerなし・CI成功・scope確認済みの場合に限り approve / merge してよい。
-
----
-
-## 書いてはいけない情報
-
-- 個人PCの絶対パス
-- ユーザー名やローカル環境名
-- secret
-- API key
-- token
-- private credential
-- ローカル起動設定
-- agent個別の一時メモ
-
-個人用メモが必要な場合は、Git管理外のローカルファイルを使ってください。
-
----
+- Claude は同じ PR で実装役と監査役を兼任しない。
+- PBI が要求する場合は `Issue -> branch -> PR` の順で進める。
+- agent は原則として自分の判断で approve / merge しない。
+- PR 作成者は自分の PR を approve しない。
+- PO が明示許可した監査役だけが、blocker なし・CI 成功・scope 確認済みのときに限り approve / merge してよい。
+- 迷ったら `manual-review-required` を選ぶ。
+- `AGENTS.md`、`CLAUDE.md`、commit する docs に、個人パス、secret、API key、token、ローカル環境名、個別アカウント設定を書かない。
 
 ## 参照ドキュメント
 
 - `docs/agent-operating-rules.md`
 - `docs/agent-pr-checklists.md`
 
-PBI指示を作るときは、固定ルールを長文で再掲せず、上記ドキュメントを前提にして今回差分だけを書くことを推奨します。
+固定ルールはこのファイルに長文で再掲せず、各 PBI では今回差分だけを書く。
