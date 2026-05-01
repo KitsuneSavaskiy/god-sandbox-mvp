@@ -12,7 +12,43 @@ const boardHeight = 5;
 const playerSideMaxX = 4;
 const enemySideMinX = 5;
 const moveDistance = 1;
-const attackRange = 3;
+
+const defaultWorldSettings = {
+  playerHp: 10,
+  enemyHp: 10,
+  playerAttack: 3,
+  enemyAttack: 3,
+  attackRange: 3,
+  playerDamageReduction: 0,
+  activeLawIds: [],
+};
+
+const worldLawCatalog = [
+  {
+    id: "gentle-world",
+    label: "やさしい世界",
+    description: "この世界では主人公が少し倒れにくくなります。",
+    effects: { playerHpBonus: 2 },
+  },
+  {
+    id: "strict-world",
+    label: "厳しい世界",
+    description: "この世界では敵の一撃が少し重くなります。",
+    effects: { enemyAttackBonus: 1 },
+  },
+  {
+    id: "far-reaching-voice",
+    label: "遠くまで届く声",
+    description: "この世界では少し遠くの相手にも攻撃が届きます。",
+    effects: { attackRangeBonus: 1 },
+  },
+  {
+    id: "protective-blessing",
+    label: "守りの加護",
+    description: "この世界では主人公が受けるダメージを少し減らします。",
+    effects: { playerDamageReductionBonus: 1 },
+  },
+];
 
 const state = {
   passport: fallbackPassport,
@@ -25,6 +61,8 @@ const state = {
   player: null,
   enemy: null,
   finished: false,
+  worldSettings: { ...defaultWorldSettings },
+  battleSettings: { ...defaultWorldSettings },
 };
 
 const nodes = {
@@ -44,7 +82,76 @@ const nodes = {
   reset: document.querySelector("#reset"),
   passportFile: document.querySelector("#passportFile"),
   fileStatus: document.querySelector("#fileStatus"),
+  passportInfoList: document.querySelector("#passportInfoList"),
+  worldRuleList: document.querySelector("#worldRuleList"),
+  worldPlayerHp: document.querySelector("#worldPlayerHp"),
+  worldEnemyHp: document.querySelector("#worldEnemyHp"),
+  worldPlayerAttack: document.querySelector("#worldPlayerAttack"),
+  worldEnemyAttack: document.querySelector("#worldEnemyAttack"),
+  worldAttackRange: document.querySelector("#worldAttackRange"),
+  rebuildWorld: document.querySelector("#rebuildWorld"),
+  lawCardSelect: document.querySelector("#lawCardSelect"),
+  addLawCard: document.querySelector("#addLawCard"),
+  activeLawCards: document.querySelector("#activeLawCards"),
+  appliedWorldRules: document.querySelector("#appliedWorldRules"),
 };
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, Math.round(number)));
+}
+
+function getLawById(id) {
+  return worldLawCatalog.find((law) => law.id === id);
+}
+
+function getAppliedWorldSettings() {
+  const applied = {
+    playerHp: clampNumber(state.worldSettings.playerHp, 1, 30, defaultWorldSettings.playerHp),
+    enemyHp: clampNumber(state.worldSettings.enemyHp, 1, 30, defaultWorldSettings.enemyHp),
+    playerAttack: clampNumber(state.worldSettings.playerAttack, 1, 12, defaultWorldSettings.playerAttack),
+    enemyAttack: clampNumber(state.worldSettings.enemyAttack, 1, 12, defaultWorldSettings.enemyAttack),
+    attackRange: clampNumber(state.worldSettings.attackRange, 1, 8, defaultWorldSettings.attackRange),
+    playerDamageReduction: clampNumber(
+      state.worldSettings.playerDamageReduction,
+      0,
+      6,
+      defaultWorldSettings.playerDamageReduction,
+    ),
+  };
+
+  for (const lawId of state.worldSettings.activeLawIds) {
+    const law = getLawById(lawId);
+    if (!law) {
+      continue;
+    }
+
+    applied.playerHp += law.effects.playerHpBonus ?? 0;
+    applied.enemyHp += law.effects.enemyHpBonus ?? 0;
+    applied.playerAttack += law.effects.playerAttackBonus ?? 0;
+    applied.enemyAttack += law.effects.enemyAttackBonus ?? 0;
+    applied.attackRange += law.effects.attackRangeBonus ?? 0;
+    applied.playerDamageReduction += law.effects.playerDamageReductionBonus ?? 0;
+  }
+
+  return {
+    playerHp: clampNumber(applied.playerHp, 1, 40, defaultWorldSettings.playerHp),
+    enemyHp: clampNumber(applied.enemyHp, 1, 40, defaultWorldSettings.enemyHp),
+    playerAttack: clampNumber(applied.playerAttack, 1, 16, defaultWorldSettings.playerAttack),
+    enemyAttack: clampNumber(applied.enemyAttack, 1, 16, defaultWorldSettings.enemyAttack),
+    attackRange: clampNumber(applied.attackRange, 1, 10, defaultWorldSettings.attackRange),
+    playerDamageReduction: clampNumber(applied.playerDamageReduction, 0, 8, defaultWorldSettings.playerDamageReduction),
+  };
+}
+
+function formatRuleValue(label, value) {
+  return `${label}: ${value}`;
+}
 
 function resolveSampleImagePath(src) {
   if (src?.startsWith("/art/")) {
@@ -130,14 +237,14 @@ async function loadPassportFromFile(file) {
   }
 }
 
-function makePlayer(passport) {
+function makePlayer(passport, settings) {
   return {
     id: passport.characterId ?? "passport-character",
     name: passport.displayName ?? "Passport Character",
     image: resolveSampleImagePath(passport.portraitImage),
-    hp: 10,
-    maxHp: 10,
-    attack: 3,
+    hp: settings.playerHp,
+    maxHp: settings.playerHp,
+    attack: settings.playerAttack,
     x: 2,
     y: 2,
     side: "player",
@@ -145,13 +252,13 @@ function makePlayer(passport) {
   };
 }
 
-function makeEnemy() {
+function makeEnemy(settings) {
   return {
     id: "paper-warden",
     name: "Paper Warden",
-    hp: 10,
-    maxHp: 10,
-    attack: 3,
+    hp: settings.enemyHp,
+    maxHp: settings.enemyHp,
+    attack: settings.enemyAttack,
     x: 7,
     y: 2,
     side: "enemy",
@@ -195,12 +302,12 @@ function canPlayerAttackEnemy() {
     state.selected &&
     !state.finished &&
     state.player.y === state.enemy.y &&
-    Math.abs(state.enemy.x - state.player.x) <= attackRange
+    Math.abs(state.enemy.x - state.player.x) <= state.battleSettings.attackRange
   );
 }
 
 function canEnemyAttack() {
-  return state.enemy.y === state.player.y && Math.abs(state.enemy.x - state.player.x) <= attackRange;
+  return state.enemy.y === state.player.y && Math.abs(state.enemy.x - state.player.x) <= state.battleSettings.attackRange;
 }
 
 function selectPlayer() {
@@ -268,8 +375,9 @@ function enemyAction() {
   if (canEnemyAttack()) {
     state.enemy.pose = "attack";
     state.player.pose = "damage";
-    state.player.hp = Math.max(0, state.player.hp - state.enemy.attack);
-    addLog(`${state.enemy.name} が反撃した。${state.player.name} は ${state.enemy.attack} ダメージを受けた。`);
+    const damage = Math.max(0, state.enemy.attack - state.battleSettings.playerDamageReduction);
+    state.player.hp = Math.max(0, state.player.hp - damage);
+    addLog(`${state.enemy.name} が反撃した。${state.player.name} は ${damage} ダメージを受けた。`);
 
     if (state.player.hp <= 0) {
       state.finished = true;
@@ -342,7 +450,7 @@ function onCellClick(x, y) {
     if (canPlayerAttackEnemy()) {
       attackEnemy();
     } else {
-      state.message = "同じ行で3マス以内なら攻撃できます。";
+      state.message = `同じ行で${state.battleSettings.attackRange}マス以内なら攻撃できます。`;
       addLog("まだ攻撃が届きません。");
       render();
     }
@@ -361,9 +469,10 @@ function onCellClick(x, y) {
   }
 }
 
-function resetBattle() {
-  state.player = makePlayer(state.passport);
-  state.enemy = makeEnemy();
+function resetBattle(reason = "reset") {
+  state.battleSettings = getAppliedWorldSettings();
+  state.player = makePlayer(state.passport, state.battleSettings);
+  state.enemy = makeEnemy(state.battleSettings);
   state.selected = false;
   state.phase = "select";
   state.turn = 1;
@@ -371,8 +480,13 @@ function resetBattle() {
   state.message = "キャラを選んでください。";
   state.logs = [
     `${state.player.name} を Character Passport から読み込みました。`,
-    "HPや攻撃力は、このサンプルゲーム側で仮に決めています。",
+    "HPや攻撃力は、このサンプルゲーム側の世界の法律で決めています。",
   ];
+
+  if (reason === "world-law") {
+    state.logs.unshift("世界の法律を作り直しました。キャラクター紹介状はそのままです。");
+  }
+
   render();
 }
 
@@ -422,6 +536,117 @@ function renderPortrait() {
     nodes.portraitFallback.hidden = false;
     nodes.portraitFallback.textContent = fallbackLetter;
   };
+}
+
+function createListItem(text) {
+  const item = document.createElement("li");
+  item.textContent = text;
+  return item;
+}
+
+function renderPassportWorldBridge() {
+  const passportItems = [
+    `名前: ${state.passport.displayName ?? "Unknown"}`,
+    `紹介文: ${state.passport.summary ?? "紹介文はまだありません。"}`,
+    `タグ: ${(state.passport.tags ?? []).join(" / ") || "タグなし"}`,
+    `画像: ${state.passport.portraitImage ? "Passportから読みます" : "画像なしなら頭文字を表示します"}`,
+  ];
+
+  const battleItems = [
+    formatRuleValue("自キャラHP", state.battleSettings.playerHp),
+    formatRuleValue("敵HP", state.battleSettings.enemyHp),
+    formatRuleValue("自キャラ攻撃力", state.battleSettings.playerAttack),
+    formatRuleValue("敵攻撃力", state.battleSettings.enemyAttack),
+    formatRuleValue("攻撃射程", `${state.battleSettings.attackRange}マス`),
+  ];
+
+  if (state.battleSettings.playerDamageReduction > 0) {
+    battleItems.push(formatRuleValue("受けるダメージ軽減", state.battleSettings.playerDamageReduction));
+  }
+
+  nodes.passportInfoList.replaceChildren(...passportItems.map(createListItem));
+  nodes.worldRuleList.replaceChildren(...battleItems.map(createListItem));
+}
+
+function renderWorldSettingInputs() {
+  nodes.worldPlayerHp.value = String(state.worldSettings.playerHp);
+  nodes.worldEnemyHp.value = String(state.worldSettings.enemyHp);
+  nodes.worldPlayerAttack.value = String(state.worldSettings.playerAttack);
+  nodes.worldEnemyAttack.value = String(state.worldSettings.enemyAttack);
+  nodes.worldAttackRange.value = String(state.worldSettings.attackRange);
+}
+
+function renderLawCardSelect() {
+  const options = worldLawCatalog.map((law) => {
+    const option = document.createElement("option");
+    option.value = law.id;
+    option.textContent = `${law.label}: ${law.description}`;
+    option.disabled = state.worldSettings.activeLawIds.includes(law.id);
+    return option;
+  });
+
+  nodes.lawCardSelect.replaceChildren(...options);
+}
+
+function renderActiveLawCards() {
+  const activeLaws = state.worldSettings.activeLawIds.map(getLawById).filter(Boolean);
+
+  if (activeLaws.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-note";
+    empty.textContent = "まだ法則カードは追加されていません。";
+    nodes.activeLawCards.replaceChildren(empty);
+    return;
+  }
+
+  nodes.activeLawCards.replaceChildren(
+    ...activeLaws.map((law) => {
+      const card = document.createElement("article");
+      card.className = "law-card";
+
+      const title = document.createElement("strong");
+      title.textContent = law.label;
+
+      const description = document.createElement("p");
+      description.textContent = law.description;
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "text-button";
+      removeButton.textContent = "この法則を外す";
+      removeButton.addEventListener("click", () => {
+        state.worldSettings.activeLawIds = state.worldSettings.activeLawIds.filter((id) => id !== law.id);
+        render();
+      });
+
+      card.append(title, description, removeButton);
+      return card;
+    }),
+  );
+}
+
+function renderAppliedWorldRules() {
+  const nextSettings = getAppliedWorldSettings();
+  const items = [
+    `次に作る世界の自キャラHP: ${nextSettings.playerHp}`,
+    `次に作る世界の敵HP: ${nextSettings.enemyHp}`,
+    `次に作る世界の自キャラ攻撃力: ${nextSettings.playerAttack}`,
+    `次に作る世界の敵攻撃力: ${nextSettings.enemyAttack}`,
+    `次に作る世界の攻撃射程: ${nextSettings.attackRange}マス`,
+  ];
+
+  if (nextSettings.playerDamageReduction > 0) {
+    items.push(`主人公が受けるダメージ軽減: ${nextSettings.playerDamageReduction}`);
+  }
+
+  nodes.appliedWorldRules.replaceChildren(...items.map(createListItem));
+}
+
+function renderWorldLawPanel() {
+  renderWorldSettingInputs();
+  renderLawCardSelect();
+  renderActiveLawCards();
+  renderAppliedWorldRules();
 }
 
 function createStandee(unit) {
@@ -521,15 +746,44 @@ function renderLog() {
 
 function render() {
   renderPassport();
+  renderPassportWorldBridge();
+  renderWorldLawPanel();
   renderHud();
   renderBoard();
   renderLog();
   nodes.selectPlayer.disabled = state.finished;
 }
 
+function updateWorldSetting(key, value, min, max) {
+  state.worldSettings[key] = clampNumber(value, min, max, defaultWorldSettings[key]);
+  render();
+}
+
+function addSelectedLawCard() {
+  const lawId = nodes.lawCardSelect.value;
+
+  if (!lawId || state.worldSettings.activeLawIds.includes(lawId)) {
+    return;
+  }
+
+  state.worldSettings.activeLawIds = [...state.worldSettings.activeLawIds, lawId];
+  render();
+}
+
 nodes.selectPlayer.addEventListener("click", selectPlayer);
-nodes.reset.addEventListener("click", resetBattle);
+nodes.reset.addEventListener("click", () => resetBattle());
 nodes.passportFile.addEventListener("change", (event) => loadPassportFromFile(event.target.files?.[0]));
+nodes.worldPlayerHp.addEventListener("change", (event) => updateWorldSetting("playerHp", event.target.value, 1, 30));
+nodes.worldEnemyHp.addEventListener("change", (event) => updateWorldSetting("enemyHp", event.target.value, 1, 30));
+nodes.worldPlayerAttack.addEventListener("change", (event) =>
+  updateWorldSetting("playerAttack", event.target.value, 1, 12),
+);
+nodes.worldEnemyAttack.addEventListener("change", (event) =>
+  updateWorldSetting("enemyAttack", event.target.value, 1, 12),
+);
+nodes.worldAttackRange.addEventListener("change", (event) => updateWorldSetting("attackRange", event.target.value, 1, 8));
+nodes.rebuildWorld.addEventListener("click", () => resetBattle("world-law"));
+nodes.addLawCard.addEventListener("click", addSelectedLawCard);
 
 try {
   state.passport = normalizePassport(await loadPassport());

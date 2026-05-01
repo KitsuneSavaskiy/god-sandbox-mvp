@@ -39,6 +39,18 @@ body {
   opacity: 0.5;
 }
 
+.world-law-panel button,
+.text-button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.68rem 0.92rem;
+  background: #2f5f43;
+  color: #fffaf0;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .button-secondary {
   background: #76533c;
 }
@@ -91,7 +103,8 @@ h1 {
 
 .passport-panel,
 .battle-panel,
-.note-card {
+.note-card,
+.tutorial-card {
   border: 1px solid rgba(59, 73, 51, 0.18);
   border-radius: 30px;
   background: rgba(255, 252, 242, 0.84);
@@ -101,6 +114,37 @@ h1 {
 .passport-panel,
 .battle-panel {
   padding: 22px;
+}
+
+.tutorial-card {
+  margin-bottom: 20px;
+  padding: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 252, 242, 0.92), rgba(235, 224, 196, 0.86)),
+    radial-gradient(circle at 10% 10%, rgba(94, 140, 88, 0.18), transparent 18rem);
+}
+
+.tutorial-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tutorial-grid p,
+.apostle-tip,
+.world-law-note,
+.empty-note {
+  line-height: 1.7;
+}
+
+.apostle-tip {
+  margin: 10px 0 0;
+  border-left: 4px solid #2f5f43;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(228, 234, 216, 0.8);
+  color: #34593a;
+  font-weight: 800;
 }
 
 .portrait-frame {
@@ -196,6 +240,121 @@ h1 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 14px;
+}
+
+.bridge-panel,
+.world-law-panel {
+  margin-bottom: 16px;
+  border-radius: 24px;
+  padding: 16px;
+  background: rgba(240, 234, 216, 0.72);
+}
+
+.bridge-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.bridge-panel > div {
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 252, 242, 0.78);
+}
+
+.plain-list,
+.world-summary {
+  display: grid;
+  margin: 0;
+  padding-left: 1.1rem;
+  gap: 6px;
+  color: #47523f;
+  line-height: 1.6;
+}
+
+.section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.world-law-note {
+  margin-bottom: 14px;
+  color: #47523f;
+  font-weight: 700;
+}
+
+.world-settings {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.world-settings label,
+.law-card-picker label {
+  display: grid;
+  gap: 6px;
+  color: #47523f;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.world-settings input,
+.law-card-picker select {
+  width: 100%;
+  border: 1px solid rgba(59, 73, 51, 0.22);
+  border-radius: 14px;
+  padding: 0.62rem 0.7rem;
+  background: #fffdf4;
+  color: #26322b;
+  font: inherit;
+  font-weight: 800;
+}
+
+.law-card-picker {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.law-card-picker > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.law-card-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.law-card {
+  border: 1px solid rgba(59, 73, 51, 0.14);
+  border-radius: 18px;
+  padding: 12px;
+  background: rgba(255, 252, 242, 0.82);
+}
+
+.law-card p {
+  margin: 6px 0 10px;
+  color: #5a664f;
+  line-height: 1.55;
+}
+
+.text-button {
+  padding: 0;
+  background: transparent;
+  color: #8b4c31;
+  text-decoration: underline;
+}
+
+.empty-note {
+  margin: 0 0 14px;
+  color: #6b765f;
 }
 
 .hud div {
@@ -433,7 +592,12 @@ h1 {
   }
 
   .game-card,
-  .hud {
+  .hud,
+  .tutorial-grid,
+  .bridge-panel,
+  .world-settings,
+  .law-card-list,
+  .law-card-picker > div {
     grid-template-columns: 1fr;
   }
 
