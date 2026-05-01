@@ -40,7 +40,8 @@ body {
 }
 
 .world-law-panel button,
-.text-button {
+.text-button,
+.jump-link {
   border: 0;
   border-radius: 999px;
   padding: 0.68rem 0.92rem;
@@ -49,6 +50,8 @@ body {
   font: inherit;
   font-weight: 800;
   cursor: pointer;
+  text-align: center;
+  text-decoration: none;
 }
 
 .button-secondary {
@@ -145,6 +148,18 @@ h1 {
   background: rgba(228, 234, 216, 0.8);
   color: #34593a;
   font-weight: 800;
+}
+
+.jump-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 14px;
+}
+
+.jump-link--compact {
+  margin-top: 12px;
 }
 
 .portrait-frame {
@@ -274,9 +289,19 @@ h1 {
 
 .section-heading {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+}
+
+.section-heading > div {
+  min-width: min(100%, 220px);
+}
+
+.section-heading button {
+  max-width: 100%;
+  white-space: normal;
 }
 
 .world-law-note {
@@ -303,7 +328,9 @@ h1 {
 
 .world-settings input,
 .law-card-picker select {
+  min-height: 44px;
   width: 100%;
+  min-width: 0;
   border: 1px solid rgba(59, 73, 51, 0.22);
   border-radius: 14px;
   padding: 0.62rem 0.7rem;
@@ -374,6 +401,23 @@ h1 {
   margin-bottom: 12px;
   color: #47523f;
   font-weight: 700;
+}
+
+.board-area {
+  scroll-margin-top: 18px;
+}
+
+.board-scroll-note {
+  display: none;
+  margin: 0 0 10px;
+  color: #5a664f;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.board-scroll-frame {
+  border-radius: 26px;
 }
 
 .board {
@@ -602,13 +646,133 @@ h1 {
   }
 
   .board {
-    gap: 4px;
-    padding: 10px;
+    min-width: 560px;
+    gap: 5px;
+    padding: 12px;
+  }
+
+  .board-scroll-note {
+    display: block;
+  }
+
+  .board-scroll-frame {
     overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-color: #76533c rgba(240, 234, 216, 0.88);
+    scrollbar-width: thin;
+  }
+
+  .cell {
+    min-width: 50px;
+    min-height: 74px;
+  }
+}
+
+@media (max-width: 520px) {
+  .shell {
+    width: min(100% - 14px, 1180px);
+    padding: 16px 0;
+  }
+
+  .passport-panel,
+  .battle-panel,
+  .tutorial-card,
+  .note-card {
+    border-radius: 20px;
+    padding: 14px;
+  }
+
+  .hero {
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-size: clamp(2.05rem, 15vw, 3.2rem);
+  }
+
+  h2 {
+    font-size: 1.22rem;
+  }
+
+  .section-heading {
+    gap: 10px;
+  }
+
+  .section-heading button,
+  .world-law-panel button,
+  .file-load__button,
+  .controls button,
+  .jump-link {
+    width: 100%;
+    min-height: 46px;
+  }
+
+  .world-settings {
+    gap: 8px;
+  }
+
+  .world-settings label,
+  .law-card-picker label {
+    font-size: 0.86rem;
+  }
+
+  .law-card-picker > div {
+    gap: 8px;
+  }
+
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .portrait-frame,
+  .portrait-frame img {
+    min-height: 220px;
+  }
+
+  .board {
+    min-width: 540px;
+  }
+}
+
+@media (max-width: 390px) {
+  .shell {
+    width: min(100% - 10px, 1180px);
+  }
+
+  .passport-panel,
+  .battle-panel,
+  .tutorial-card,
+  .note-card {
+    padding: 12px;
+  }
+
+  .bridge-panel,
+  .world-law-panel,
+  .log-panel {
+    border-radius: 18px;
+    padding: 12px;
+  }
+
+  .hud {
+    gap: 8px;
+  }
+
+  .hud div {
+    padding: 10px;
+  }
+
+  .board {
+    min-width: 520px;
+    padding: 10px;
   }
 
   .cell {
     min-width: 48px;
-    min-height: 74px;
+    min-height: 72px;
+  }
+
+  .standee {
+    width: 56px;
+    height: 70px;
   }
 }
