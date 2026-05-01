@@ -10,6 +10,22 @@ export type EventTrigger = "routine" | "manual" | "milestone" | "warning" | "agi
 
 export type EventLayer = "flow" | "notable" | "intervention";
 
+export type TutorialEventKind = "firstBless";
+
+export type EventTriggerCandidateKind =
+  | "curiosity"
+  | "encounter"
+  | "discoveryHint"
+  | "relationShift"
+  | "environmentShift";
+
+export interface EventTriggerCandidate {
+  id: EventTriggerCandidateKind;
+  label: string;
+  description: string;
+  recommendedIntervention: InterventionKind;
+}
+
 export type AppPhase = "observing" | "event";
 
 export type TimeControl = "stopped" | "slow" | "normal";
@@ -51,6 +67,7 @@ export interface WorldEvent {
   triggerSummary: string;
   causeSummary: string;
   presetIntervention?: InterventionKind;
+  tutorialKind?: TutorialEventKind;
   trigger: EventTrigger;
   layer: EventLayer;
   targetCharacterId: string;
