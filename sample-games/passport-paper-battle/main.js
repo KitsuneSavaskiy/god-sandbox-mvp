@@ -81,6 +81,8 @@ const nodes = {
   selectPlayer: document.querySelector("#selectPlayer"),
   reset: document.querySelector("#reset"),
   passportFile: document.querySelector("#passportFile"),
+  passportPaste: document.querySelector("#passportPaste"),
+  loadPassportPaste: document.querySelector("#loadPassportPaste"),
   fileStatus: document.querySelector("#fileStatus"),
   passportInfoList: document.querySelector("#passportInfoList"),
   worldRuleList: document.querySelector("#worldRuleList"),
@@ -213,27 +215,86 @@ function normalizePassport(value) {
   };
 }
 
+function getPassportSourceLabel(source) {
+  if (source === "paste") {
+    return "貼り付けたJSON";
+  }
+
+  if (source === "file") {
+    return "選んだJSON";
+  }
+
+  return "このサンプルのRyo";
+}
+
+function parsePassportText(text) {
+  if (typeof text !== "string" || text.trim() === "") {
+    throw new Error("empty-json");
+  }
+
+  return normalizePassport(JSON.parse(text));
+}
+
+function describePassportLoadError(source, error) {
+  if (error instanceof SyntaxError) {
+    if (source === "paste") {
+      return "JSONの形が途中で崩れているようです。GodSandboxの「キャラ情報をコピー」を押して、最初の { から最後の } までそのまま貼り付けてください。今のキャラはそのままです。";
+    }
+
+    return "このJSONファイルは途中で壊れているようです。GodSandboxから出したキャラ情報JSONを選び直してください。今のキャラはそのままです。";
+  }
+
+  switch (error?.message) {
+    case "empty-json":
+      return "まだJSONが入っていません。GodSandboxの「キャラ情報をコピー」を押して、この欄へ貼り付けてください。今のキャラはそのままです。";
+    case "not-object":
+      return "このJSONはキャラ情報の形ではなさそうです。GodSandboxのキャラ情報JSONをそのまま使ってください。今のキャラはそのままです。";
+    case "missing-displayName":
+      return "このJSONにはキャラ名が見つかりませんでした。`displayName` が入ったキャラ情報JSONを使ってください。今のキャラはそのままです。";
+    default:
+      return "キャラ情報JSONを読み込めませんでした。GodSandboxからコピーした内容か、保存したJSONファイルをもう一度確認してください。今のキャラはそのままです。";
+  }
+}
+
+function showPassportLoadError(source, error) {
+  state.fileStatusKind = "error";
+  state.fileStatus = describePassportLoadError(source, error);
+  addLog(`${getPassportSourceLabel(source)}を読み込めませんでした。今のキャラのまま遊べます。`);
+  render();
+}
+
+function applyLoadedPassport(passport, source) {
+  state.passport = passport;
+  state.passportSource = source;
+  state.fileStatusKind = "success";
+  state.fileStatus =
+    source === "paste"
+      ? `${state.passport.displayName}を貼り付けたJSONから読み込みました。`
+      : `${state.passport.displayName}を選んだJSONから読み込みました。`;
+  resetBattle();
+}
+
 async function loadPassportFromFile(file) {
   if (!file) {
     return;
   }
 
   try {
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    state.passport = normalizePassport(parsed);
-    state.passportSource = "file";
-    state.fileStatusKind = "success";
-    state.fileStatus = `${state.passport.displayName}を読み込みました。`;
-    resetBattle();
+    const passport = parsePassportText(await file.text());
+    applyLoadedPassport(passport, "file");
   } catch (error) {
-    state.fileStatusKind = "error";
-    state.fileStatus =
-      "このファイルは読み込めませんでした。GodSandboxから保存したキャラ情報JSONを選んでください。";
-    addLog("キャラ情報JSONを確認してください。今のキャラのまま遊べます。");
-    render();
+    showPassportLoadError("file", error);
   } finally {
     nodes.passportFile.value = "";
+  }
+}
+
+function loadPassportFromPaste() {
+  try {
+    const passport = parsePassportText(nodes.passportPaste.value);
+    applyLoadedPassport(passport, "paste");
+  } catch (error) {
+    showPassportLoadError("paste", error);
   }
 }
 
@@ -506,10 +567,17 @@ function renderPassport() {
 }
 
 function renderFileStatus() {
-  const defaultText =
-    state.passportSource === "file"
-      ? `${state.passport.displayName ?? "キャラ"}を読み込んでいます。別のJSONも選べます。`
-      : "GodSandboxから保存したキャラ情報を選べます。選ばなくても、このサンプルのRyoで遊べます。";
+  const defaultText = (() => {
+    if (state.passportSource === "paste") {
+      return `${state.passport.displayName ?? "キャラ"}を貼り付けから読み込んでいます。貼り付け内容を変えると、別のキャラにも切り替えられます。`;
+    }
+
+    if (state.passportSource === "file") {
+      return `${state.passport.displayName ?? "キャラ"}をJSONファイルから読み込んでいます。別のJSONも選べます。`;
+    }
+
+    return "GodSandboxからコピーして貼り付けるか、保存したキャラ情報JSONを選べます。何も読み込まなくても、このサンプルのRyoで遊べます。";
+  })();
 
   nodes.fileStatus.textContent = state.fileStatus ?? defaultText;
   nodes.fileStatus.classList.toggle("file-load__status--error", state.fileStatusKind === "error");
@@ -773,6 +841,7 @@ function addSelectedLawCard() {
 nodes.selectPlayer.addEventListener("click", selectPlayer);
 nodes.reset.addEventListener("click", () => resetBattle());
 nodes.passportFile.addEventListener("change", (event) => loadPassportFromFile(event.target.files?.[0]));
+nodes.loadPassportPaste.addEventListener("click", loadPassportFromPaste);
 nodes.worldPlayerHp.addEventListener("change", (event) => updateWorldSetting("playerHp", event.target.value, 1, 30));
 nodes.worldEnemyHp.addEventListener("change", (event) => updateWorldSetting("enemyHp", event.target.value, 1, 30));
 nodes.worldPlayerAttack.addEventListener("change", (event) =>

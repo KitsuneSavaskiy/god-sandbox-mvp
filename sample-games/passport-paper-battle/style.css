@@ -210,6 +210,28 @@ h1 {
   margin-top: 18px;
 }
 
+.file-load__lead,
+.file-load__divider {
+  margin: 0;
+  color: #47523f;
+  line-height: 1.65;
+}
+
+.file-load__lead {
+  font-weight: 700;
+}
+
+.file-load__divider {
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.file-load__label {
+  color: #47523f;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .file-load input {
   position: absolute;
   width: 1px;
@@ -218,21 +240,52 @@ h1 {
   pointer-events: none;
 }
 
+.file-load__textarea {
+  width: 100%;
+  min-height: 180px;
+  min-width: 0;
+  resize: vertical;
+  border: 1px solid rgba(59, 73, 51, 0.22);
+  border-radius: 18px;
+  padding: 0.85rem 0.95rem;
+  background: #fffdf4;
+  color: #26322b;
+  font:
+    0.92rem/1.6 Consolas,
+    "SFMono-Regular",
+    "Courier New",
+    monospace;
+}
+
 .file-load__button {
   display: inline-flex;
+  align-items: center;
   justify-content: center;
+  width: 100%;
+  border: 0;
   border-radius: 999px;
   padding: 0.72rem 1rem;
   background: #2f5f43;
   color: #fffaf0;
+  font: inherit;
   font-weight: 800;
   cursor: pointer;
+  text-align: center;
+  text-decoration: none;
   transition: transform 120ms ease, background 120ms ease;
 }
 
 .file-load__button:hover {
   transform: translateY(-1px);
   background: #244d35;
+}
+
+.file-load__button--secondary {
+  background: #76533c;
+}
+
+.file-load__button--secondary:hover {
+  background: #5f402d;
 }
 
 .file-load__status {
