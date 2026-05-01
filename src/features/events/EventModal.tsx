@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { RYO_ILLUSTRATIONS, RYO_PORTRAITS } from "../../assets/artPaths";
 import { getInterventionModifier, getJudgementRankLabel, previewJudgement } from "../../domain/world";
 import type { Character, InterventionKind, JudgementResult, WorldEvent } from "../../domain/types";
+import "./EventModalDecisionGuide.css";
 
 interface EventModalProps {
   event: WorldEvent | null;
@@ -32,6 +33,13 @@ interface RollingState {
   intervention: "bless" | "test";
   judgement: JudgementResult;
   revealed: boolean;
+}
+
+interface DecisionGuideOption {
+  intervention: InterventionKind;
+  summary: string;
+  detail: string;
+  context: string;
 }
 
 function buildRollingState(
@@ -146,6 +154,10 @@ function getModalPortraitSrc(params: {
   return RYO_PORTRAITS.normal;
 }
 
+function formatModifier(modifier: number) {
+  return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
   const [rollingState, setRollingState] = useState<RollingState | null>(null);
   const [rollingValue, setRollingValue] = useState(1);
@@ -245,7 +257,33 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     judgementPreview,
     revealed: rollingState?.revealed ?? false,
   });
+  const blessPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "bless", momentum) : 0;
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
+  const recommendedIntervention: InterventionKind = event.trigger === "warning" ? "bless" : "watch";
+  const recommendedReason =
+    recommendedIntervention === "bless"
+      ? "命運警告が出ているので、最初は Bless で助けに行くと意図がいちばん分かりやすいです。"
+      : "まずは Watch で状況を見守ると、流れをつかみながら次の Test の準備も進められます。";
+  const decisionGuideOptions: DecisionGuideOption[] = [
+    {
+      intervention: "watch",
+      summary: "見守って記録を増やす",
+      detail: `notable を 1 件増やし、状況の記録を残します。いまは ${targetCharacter?.notable.length ?? 0} 件です。`,
+      context: "迷ったときや、まず流れを見たいときに向いています。",
+    },
+    {
+      intervention: "bless",
+      summary: "助けて良い結果を狙う",
+      detail: `加護や残寿命を守る方向の介入です。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`,
+      context: "危なそうな場面で、まず助けたいときに向いています。",
+    },
+    {
+      intervention: "test",
+      summary: "試練を与えて成長を狙う",
+      detail: `試練や Momentum の伸びを狙います。今回の裁定補正は ${formatModifier(testPreviewModifier)} です。`,
+      context: "多少の危険より、成長や次の展開を重視したいときに向いています。",
+    },
+  ];
 
   const handleResolve = (intervention: InterventionKind) => {
     if (intervention === "watch") {
@@ -293,7 +331,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
 
   return (
     <div className="modal-backdrop" role="presentation">
-      <section className="modal-card" role="dialog" aria-modal="true" aria-labelledby="event-title">
+      <section className="modal-card event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title">
         <div className="modal-card__media">
           <div className="art-slot art-slot--portrait art-slot--with-image">
             <img
@@ -343,7 +381,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
           </div>
         </div>
 
-        <div className="modal-card__body">
+        <div className="modal-card__body event-modal__body">
           <p className="eyebrow">important moment / {triggerLabels[event.trigger]}</p>
           <h2 id="event-title">{event.title}</h2>
           <p>{event.description}</p>
@@ -362,7 +400,11 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             </div>
           ) : null}
           <div className="subpanel event-cause">
-            <strong>なぜ今、介入が必要か</strong>
+            <p className="event-cause__eyebrow">これは介入イベントです</p>
+            <strong>なぜ今、ここで止まったのか</strong>
+            <p className="event-cause__lead">
+              世界の進行をいったん止めて、あなたが次の介入を選ぶ場面です。下の 3 つから、いま何をしたいかを選べます。
+            </p>
             <span>{event.triggerSummary}</span>
             <span>{event.causeSummary}</span>
           </div>
@@ -424,16 +466,64 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             </div>
           ) : (
             <>
-              <p className="summary-note">
-                Watch は兆しを見届けて notable を増やします。notable が 2 件以上ある個体は、次の Test に +1 補正が入ります。
-              </p>
-              <p className="summary-note">
-                この場の Test は notable 補正込みで {testPreviewModifier >= 0 ? `+${testPreviewModifier}` : testPreviewModifier} から始まります。
-              </p>
-              <div className="event-actions">
+              <section className="event-decision-guide" aria-labelledby="event-decision-guide-title">
+                <div className="event-decision-guide__header">
+                  <p className="eyebrow event-decision-guide__eyebrow">decision guide</p>
+                  <h3 id="event-decision-guide-title" className="event-decision-guide__title">
+                    Watch / Bless / Test の違い
+                  </h3>
+                  <p className="event-decision-guide__intro">
+                    迷ったら 1 つずつ役割を読むだけで大丈夫です。最初は「何を増やしたいか」で選ぶと判断しやすくなります。
+                  </p>
+                </div>
+                <div className="event-decision-guide__cards">
+                  {decisionGuideOptions.map((option) => (
+                    <article
+                      key={option.intervention}
+                      className={[
+                        "event-decision-guide__card",
+                        option.intervention === recommendedIntervention ? "event-decision-guide__card--recommended" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      {option.intervention === recommendedIntervention ? (
+                        <span className="event-decision-guide__pill">初回おすすめ</span>
+                      ) : null}
+                      <h4>{labels[option.intervention]}</h4>
+                      <p className="event-decision-guide__summary">{option.summary}</p>
+                      <p className="event-decision-guide__detail">{option.detail}</p>
+                      <p className="event-decision-guide__context">{option.context}</p>
+                    </article>
+                  ))}
+                </div>
+                <div className="event-decision-guide__recommendation">
+                  <strong>
+                    初回おすすめ: {labels[recommendedIntervention]}
+                  </strong>
+                  <p>{recommendedReason}</p>
+                </div>
+              </section>
+              <div className="event-actions event-actions--decision">
                 {interventions.map((intervention) => (
-                  <button key={intervention} className="button" onClick={() => handleResolve(intervention)}>
-                    {labels[intervention]}
+                  <button
+                    key={intervention}
+                    className={[
+                      "button",
+                      "event-actions__button",
+                      intervention === recommendedIntervention ? "event-actions__button--recommended" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => handleResolve(intervention)}
+                  >
+                    {intervention === recommendedIntervention ? (
+                      <span className="event-actions__badge">初回おすすめ</span>
+                    ) : null}
+                    <span className="event-actions__label">{labels[intervention]}</span>
+                    <span className="event-actions__hint">
+                      {decisionGuideOptions.find((option) => option.intervention === intervention)?.summary}
+                    </span>
                   </button>
                 ))}
               </div>
