@@ -8,16 +8,23 @@ Codex と一緒に開発している、神視点箱庭プロトタイプの非�
 
 ## 起動方法
 
+このリポジトリの起動スクリプトは、スクリプト自身の場所からリポジトリのルートを見つけます。
+個人PCの絶対パスやユーザー名は使わないため、clone または download した場所が違っても同じ手順で起動できます。
+
 ### 事前確認
 
-ゲームを起動するには **Node.js 22.x 推奨** が必要です。
+育成ゲーム本体を起動するには **Node.js 22.x 推奨** が必要です。
 
 - [Node.js 公式サイト](https://nodejs.org/) からダウンロードできます。
 - インストールされていない場合、起動スクリプトがダウンロードページを案内します。
 
 ---
 
-### Windows の場合
+### 育成ゲーム本体を起動する
+
+起動後、ブラウザで `http://localhost:5173` を開くとゲームを確認できます。
+
+#### Windows の場合
 
 `start.bat` をダブルクリックするか、コマンドプロンプトで以下を実行してください。
 
@@ -25,9 +32,15 @@ Codex と一緒に開発している、神視点箱庭プロトタイプの非�
 start.bat
 ```
 
+PowerShell から起動する場合は、以下を実行してください。
+
+```powershell
+.\start.ps1
+```
+
 ---
 
-### macOS の場合
+#### macOS / Linux の場合
 
 ターミナルを開き、このリポジトリのフォルダに移動してから以下を実行してください。
 
@@ -44,13 +57,57 @@ chmod +x start.sh
 
 ---
 
-### 共通の手順
+#### 育成ゲーム本体の共通手順
 
 1. スクリプトが Node.js / npm のインストールを確認します。
 2. 未インストールの場合、ダウンロードページへの案内が表示されます。
 3. 依存パッケージが自動でインストールされます（初回のみ時間がかかります）。
 4. 開発サーバーが起動し、ブラウザで `http://localhost:5173` を開くとゲームが遊べます。
 5. 終了するには `Ctrl+C` を押してください。
+
+---
+
+### サンプル対戦ゲームを起動する
+
+`sample-games/passport-paper-battle/` は、Character Passport のキャラを別ゲーム側で表示して動かす小さなサンプルです。
+画像や JSON を正しく読むため、`file://` で HTML を直接開かず、ローカルHTTPサーバーから開いてください。
+
+起動後、ブラウザで `http://localhost:8080/sample-games/passport-paper-battle/` を開きます。
+
+#### Windows の場合
+
+`start-sample-battle.bat` をダブルクリックするか、コマンドプロンプトで以下を実行してください。
+
+```bat
+start-sample-battle.bat
+```
+
+PowerShell から起動する場合は、以下を実行してください。
+
+```powershell
+.\start-sample-battle.ps1
+```
+
+#### macOS / Linux の場合
+
+ターミナルを開き、このリポジトリのフォルダに移動してから以下を実行してください。
+
+```bash
+./start-sample-battle.sh
+```
+
+初回実行時は実行権限を付与する必要がある場合があります。
+
+```bash
+chmod +x start-sample-battle.sh
+./start-sample-battle.sh
+```
+
+#### Python がない場合
+
+サンプル対戦ゲームの起動には、ローカルHTTPサーバー用に Python が必要です。
+Python が見つからない場合は、[Python 公式サイト](https://www.python.org/) からインストールしてください。
+Windows では `python` または `py -3`、macOS / Linux では `python3` または `python` を使います。
 
 ---
 

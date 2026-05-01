@@ -6,3 +6,8 @@ coverage/
 .env.*
 !.env.example
 god-sandbox-data/
+
+# 個人環境だけで使う起動補助ファイルは Git 管理しない
+*.local.bat
+*.local.ps1
+*.local.sh
