@@ -571,19 +571,30 @@ button {
   inset: 0;
   display: grid;
   place-items: center;
+  overflow-y: auto;
   background: rgba(2, 7, 12, 0.78);
   padding: 1rem;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-card {
   display: grid;
   width: min(980px, 100%);
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
   gap: 1.25rem;
   border: 1px solid rgba(146, 175, 199, 0.18);
   border-radius: 20px;
   background: #0c1826;
   padding: 1rem;
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100dvh) {
+  .modal-card {
+    max-height: calc(100dvh - 2rem);
+  }
 }
 
 .modal-card__media {
@@ -774,6 +785,65 @@ button {
   .viewport-root,
   .viewport-root__canvas {
     min-height: 360px;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop {
+    align-items: start;
+    padding: 0.5rem;
+  }
+
+  .modal-card {
+    max-height: calc(100vh - 1rem);
+    gap: 0.85rem;
+    border-radius: 16px;
+    padding: 0.75rem;
+  }
+
+  .modal-card__media {
+    gap: 0.65rem;
+  }
+
+  .modal-card__body {
+    gap: 0.85rem;
+  }
+
+  .modal-card__media .art-slot--portrait .art-slot__image {
+    max-height: min(42vh, 260px);
+    object-fit: contain;
+  }
+
+  .modal-card__media .art-slot__image--illustration {
+    max-height: min(24vh, 150px);
+  }
+
+  .modal-card__media .art-slot__meta {
+    padding: 0.7rem;
+  }
+
+  .event-actions {
+    flex-direction: column;
+  }
+
+  .event-actions .button {
+    width: 100%;
+  }
+}
+
+@supports (height: 100dvh) {
+  @media (max-width: 640px) {
+    .modal-card {
+      max-height: calc(100dvh - 1rem);
+    }
+
+    .modal-card__media .art-slot--portrait .art-slot__image {
+      max-height: min(42dvh, 260px);
+    }
+
+    .modal-card__media .art-slot__image--illustration {
+      max-height: min(24dvh, 150px);
+    }
   }
 }
 
