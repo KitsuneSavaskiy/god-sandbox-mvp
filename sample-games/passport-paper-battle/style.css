@@ -143,6 +143,54 @@ h1 {
   font-weight: 800;
 }
 
+.file-load {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.file-load input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.file-load__button {
+  display: inline-flex;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.72rem 1rem;
+  background: #2f5f43;
+  color: #fffaf0;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.file-load__button:hover {
+  transform: translateY(-1px);
+  background: #244d35;
+}
+
+.file-load__status {
+  margin: 0;
+  color: #5a664f;
+  font-size: 0.9rem;
+  line-height: 1.65;
+}
+
+.file-load__status--error {
+  color: #8b3f2f;
+  font-weight: 700;
+}
+
+.file-load__status--success {
+  color: #2f5f43;
+  font-weight: 700;
+}
+
 .hud {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));

@@ -41,6 +41,35 @@ http://localhost:8080/sample-games/passport-paper-battle/
 4. 自キャラの行動後、敵が簡単な行動をする。
 5. 敵HPを0にすると勝利。自キャラHPが0になると敗北。
 
+## キャラ情報JSONを選ぶ
+
+画面左の「キャラ情報JSONを選ぶ」から、GodSandboxで保存したJSONファイルを選べます。
+
+読み込みに成功すると、次の表示が選んだキャラに変わります。
+
+- 名前
+- 画像
+- 紹介文
+- タグ
+
+JSONを選ばなくても、今まで通り固定サンプルのRyoで遊べます。
+
+このサンプルでは、Passportの全部の項目を使う必要はありません。
+まず使うのは、`displayName`、`portraitImage`、`summary`、`tags` だけです。
+
+JSONが読めない場合は、画面にやさしいエラー文が出ます。
+その場合でも画面は壊れず、今のキャラのまま遊べます。
+
+確認すること:
+
+- `.json` ファイルを選んでいるか
+- `displayName` が入っているか
+- `portraitImage` が画像の場所を指しているか
+- `tags` が文字の配列になっているか
+
+`portraitImage` が空の場合は、画像の代わりに名前の頭文字を表示します。
+古いサンプルのように `displayName` ではなく `name` だけが入っているJSONでも、名前として読める場合があります。
+
 ## Character Passport のうち使っているもの
 
 このサンプルの `sample-passport.json` は、次のような紹介カードです。
