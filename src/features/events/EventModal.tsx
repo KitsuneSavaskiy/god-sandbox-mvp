@@ -48,8 +48,6 @@ interface BlessResultCallout {
   detail: string;
 }
 
-const FIRST_BLESS_TUTORIAL_MAX_TICK = 12;
-
 function buildRollingState(
   targetCharacter: Character,
   event: WorldEvent,
@@ -166,10 +164,8 @@ function formatModifier(modifier: number) {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
-function isTutorialBlessEvent(event: WorldEvent, tick: number) {
-  // The first post-protection warning is the narrowest tutorial-like signal available
-  // without changing the current domain event model.
-  return event.trigger === "warning" && tick <= FIRST_BLESS_TUTORIAL_MAX_TICK;
+function isTutorialBlessEvent(event: WorldEvent | null | undefined) {
+  return event?.tutorialKind === "firstBless";
 }
 
 function getPauseReason(trigger: WorldEvent["trigger"], tutorialBlessEvent: boolean) {
@@ -230,6 +226,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     event?.presetIntervention === "bless" || event?.presetIntervention === "test"
       ? event.presetIntervention
       : null;
+  const tutorialBlessEvent = isTutorialBlessEvent(event);
   const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
   const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
 
@@ -249,7 +246,9 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
       return;
     }
 
-    const finalRoll = Math.floor(Math.random() * 20) + 1;
+    const finalRoll = tutorialBlessEvent && event.presetIntervention === "bless"
+      ? 12
+      : Math.floor(Math.random() * 20) + 1;
     setRollingValue(Math.floor(Math.random() * 20) + 1);
     setRollingState(
       buildRollingState(
@@ -261,7 +260,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
         finalRoll,
       ),
     );
-  }, [event?.id, event?.presetIntervention, momentum, targetCharacter, tick]);
+  }, [event?.id, event?.presetIntervention, momentum, targetCharacter, tick, tutorialBlessEvent]);
 
   useEffect(() => {
     if (!rollingState || rollingState.revealed) {
@@ -322,7 +321,6 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   });
   const blessPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "bless", momentum) : 0;
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
-  const tutorialBlessEvent = isTutorialBlessEvent(event, tick);
   const pauseReason = getPauseReason(event.trigger, tutorialBlessEvent);
   const recommendedIntervention: InterventionKind =
     tutorialBlessEvent || event.trigger === "warning" ? "bless" : "watch";
@@ -375,7 +373,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
       return;
     }
 
-    const finalRoll = Math.floor(Math.random() * 20) + 1;
+    const finalRoll = tutorialBlessEvent && intervention === "bless" ? 12 : Math.floor(Math.random() * 20) + 1;
     setRollingValue(Math.floor(Math.random() * 20) + 1);
     setRollingState(buildRollingState(targetCharacter, event, tick, momentum, intervention, finalRoll));
   };
