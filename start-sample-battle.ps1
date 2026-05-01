@@ -5,7 +5,7 @@ Set-Location -LiteralPath $RepoRoot
 
 Write-Host ""
 Write-Host "========================================="
-Write-Host "  Passport Paper Battle 起動スクリプト"
+Write-Host "  Passport Paper Battle startup"
 Write-Host "========================================="
 Write-Host "repo root: $RepoRoot"
 Write-Host ""
@@ -21,14 +21,14 @@ if (Get-Command python -ErrorAction SilentlyContinue) {
 }
 
 if (-not $PythonCommand) {
-  Write-Host "[エラー] Python が見つかりませんでした。"
-  Write-Host "サンプル対戦ゲームは file:// ではなくローカルHTTPサーバーで開いてください。"
-  Write-Host "Python を入れる場合は https://www.python.org/ を確認してください。"
+  Write-Host "[ERROR] Python was not found."
+  Write-Host "Open the sample battle through a local HTTP server, not file://."
+  Write-Host "Install Python from https://www.python.org/ and try again."
   exit 1
 }
 
-Write-Host "サンプル対戦ゲームを起動しています。"
-Write-Host "ブラウザで http://localhost:8080/sample-games/passport-paper-battle/ を開いてください。"
-Write-Host "終了するには Ctrl+C を押してください。"
+Write-Host "Starting Passport Paper Battle local server."
+Write-Host "Open http://localhost:8080/sample-games/passport-paper-battle/ in your browser."
+Write-Host "Press Ctrl+C to stop."
 Write-Host ""
 & $PythonCommand @PythonArgs -m http.server 8080
