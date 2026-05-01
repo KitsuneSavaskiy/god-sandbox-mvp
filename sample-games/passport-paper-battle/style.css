@@ -2,6 +2,7 @@
   color: #26322b;
   background: #f2ead8;
   font-family: "Yu Gothic", "Hiragino Sans", Meiryo, sans-serif;
+  scroll-behavior: smooth;
 }
 
 * {
