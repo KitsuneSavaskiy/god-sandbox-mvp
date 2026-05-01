@@ -326,7 +326,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   }, [characters, focusCharacterId, paused]);
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest(".viewport-overlay__controls")) {
+    if ((event.target as HTMLElement).closest(".viewport-overlay__controls, .world-viewport-guide")) {
       return;
     }
     dragStateRef.current = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
@@ -387,33 +387,27 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span>金</span>
           <span>水</span>
         </div>
-        <section className="world-viewport-guide" aria-label="箱庭ガイド">
-          <div className="world-viewport-guide__eyebrow">Sandbox Guide</div>
-          <h2 className="world-viewport-guide__title">ここが箱庭です</h2>
-          <p className="world-viewport-guide__text">{guideSummary}</p>
-          <div className="world-viewport-guide__stats" aria-label="箱庭の現在地">
-            <div className="world-viewport-guide__stat">
-              <span className="world-viewport-guide__stat-label">キャラ</span>
-              <strong className="world-viewport-guide__stat-value">{totalCharacters}</strong>
+        <details className="world-viewport-guide" aria-label="箱庭ガイド">
+          <summary className="world-viewport-guide__bar">
+            <span className="world-viewport-guide__eyebrow">Sandbox Guide</span>
+            <span className="world-viewport-guide__chip">ここが箱庭</span>
+            <span className="world-viewport-guide__chip">ドラッグで見回す</span>
+            <span className="world-viewport-guide__chip">光る人物を追う</span>
+            <span className="world-viewport-guide__expand">詳しく見る</span>
+          </summary>
+          <div className="world-viewport-guide__panel">
+            <h2 className="world-viewport-guide__title">箱庭の見方</h2>
+            <p className="world-viewport-guide__text">{guideSummary}</p>
+            <div className="world-viewport-guide__mini-stats" aria-label="箱庭の現在地">
+              <span>全員 {totalCharacters}</span>
+              <span>生存 {livingCount}</span>
+              <span>変化 {noteworthyCount}</span>
             </div>
-            <div className="world-viewport-guide__stat">
-              <span className="world-viewport-guide__stat-label">生存中</span>
-              <strong className="world-viewport-guide__stat-value">{livingCount}</strong>
-            </div>
-            <div className="world-viewport-guide__stat">
-              <span className="world-viewport-guide__stat-label">気になる変化</span>
-              <strong className="world-viewport-guide__stat-value">{noteworthyCount}</strong>
-            </div>
+            <p className="world-viewport-guide__focus">いま見る: {focusLabel}</p>
+            <div className="world-viewport-guide__cta">{nextAction}</div>
+            <p className="world-viewport-guide__state">今の気配: {omen}</p>
           </div>
-          <p className="world-viewport-guide__focus">いま見る: {focusLabel}</p>
-          <div className="world-viewport-guide__steps" aria-label="箱庭の見方">
-            <span className="world-viewport-guide__step">ドラッグで見回す</span>
-            <span className="world-viewport-guide__step">光るリングの人物を追う</span>
-            <span className="world-viewport-guide__step">変化が起きたら観察する</span>
-          </div>
-          <div className="world-viewport-guide__cta">{nextAction}</div>
-          <p className="world-viewport-guide__state">今の気配: {omen}</p>
-        </section>
+        </details>
         <div className="viewport-overlay__controls">
           <div className="viewport-overlay__chip viewport-overlay__chip--controls">
             視点 {cameraMode === "follow" ? `自動追従 / ${focusTarget?.name ?? "対象なし"}` : "自由視点"}

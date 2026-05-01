@@ -1,19 +1,33 @@
 .world-viewport-guide {
   position: absolute;
-  left: 1rem;
+  right: 1rem;
   bottom: 1rem;
-  width: min(24rem, calc(100% - 2rem));
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
+  left: 1rem;
+  z-index: 2;
   border: 1px solid rgba(121, 176, 154, 0.3);
-  border-radius: 18px;
+  border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(8, 18, 23, 0.95), rgba(18, 35, 41, 0.86)),
-    rgba(8, 18, 23, 0.9);
-  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.26);
-  padding: 0.9rem 1rem;
+    linear-gradient(180deg, rgba(8, 18, 23, 0.9), rgba(18, 35, 41, 0.78)),
+    rgba(8, 18, 23, 0.82);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
   color: #edf5f0;
+}
+
+.world-viewport-guide[open] {
+  border-radius: 18px;
+}
+
+.world-viewport-guide__bar {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  gap: 0.45rem;
+  list-style: none;
+  padding: 0.45rem 0.7rem;
+}
+
+.world-viewport-guide__bar::-webkit-details-marker {
+  display: none;
 }
 
 .world-viewport-guide__eyebrow {
@@ -24,9 +38,45 @@
   text-transform: uppercase;
 }
 
+.world-viewport-guide__chip,
+.world-viewport-guide__expand {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.34rem 0.58rem;
+  color: #deebe6;
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.world-viewport-guide__expand {
+  margin-left: auto;
+  border: 1px solid rgba(111, 207, 151, 0.3);
+  background: rgba(111, 207, 151, 0.14);
+  color: #effaf3;
+  font-weight: 700;
+}
+
+.world-viewport-guide[open] .world-viewport-guide__expand {
+  color: transparent;
+  font-size: 0;
+}
+
+.world-viewport-guide[open] .world-viewport-guide__expand::after {
+  content: "閉じる";
+  color: #effaf3;
+  font-size: 0.74rem;
+}
+
+.world-viewport-guide__panel {
+  display: grid;
+  gap: 0.55rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0.2rem 0.9rem 0.9rem;
+}
+
 .world-viewport-guide__title {
   margin: 0;
-  font-size: 1.08rem;
+  font-size: 1rem;
   line-height: 1.2;
 }
 
@@ -35,7 +85,7 @@
 .world-viewport-guide__state {
   margin: 0;
   color: #d4e4de;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   line-height: 1.45;
 }
 
@@ -49,41 +99,13 @@
   font-size: 0.76rem;
 }
 
-.world-viewport-guide__stats {
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.world-viewport-guide__stat {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 0.22rem;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.55rem 0.6rem;
-}
-
-.world-viewport-guide__stat-label {
-  color: #9ec0b0;
-  font-size: 0.7rem;
-}
-
-.world-viewport-guide__stat-value {
-  color: #f4fbf7;
-  font-size: 1rem;
-  line-height: 1.15;
-}
-
-.world-viewport-guide__steps {
+.world-viewport-guide__mini-stats {
   display: flex;
   flex-wrap: wrap;
   gap: 0.38rem;
 }
 
-.world-viewport-guide__step {
+.world-viewport-guide__mini-stats span {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.08);
   padding: 0.35rem 0.6rem;
@@ -118,7 +140,6 @@
     right: 0.75rem;
     bottom: 0.75rem;
     width: auto;
-    padding: 0.8rem 0.85rem;
   }
 }
 
@@ -128,6 +149,10 @@
   }
 
   .world-viewport--guided .viewport-overlay__legend {
+    display: none;
+  }
+
+  .world-viewport--guided .viewport-overlay__chip--center {
     display: none;
   }
 
@@ -144,26 +169,37 @@
     min-width: 0;
   }
 
+  .world-viewport-guide {
+    bottom: 0.55rem;
+  }
+
+  .world-viewport-guide__bar {
+    gap: 0.32rem;
+    overflow-x: auto;
+    padding: 0.4rem 0.55rem;
+    scrollbar-width: none;
+  }
+
+  .world-viewport-guide__bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .world-viewport-guide__eyebrow {
+    display: none;
+  }
+
+  .world-viewport-guide__chip,
+  .world-viewport-guide__expand {
+    font-size: 0.7rem;
+  }
+
   .world-viewport-guide__title {
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
 
   .world-viewport-guide__text,
   .world-viewport-guide__focus {
     font-size: 0.8rem;
-  }
-
-  .world-viewport-guide__stats {
-    gap: 0.35rem;
-  }
-
-  .world-viewport-guide__stat {
-    padding: 0.5rem 0.55rem;
-  }
-
-  .world-viewport-guide__step {
-    width: 100%;
-    text-align: center;
   }
 
   .world-viewport-guide__cta {
