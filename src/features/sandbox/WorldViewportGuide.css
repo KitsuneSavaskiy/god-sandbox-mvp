@@ -4,6 +4,7 @@
   bottom: 1rem;
   left: 1rem;
   z-index: 2;
+  pointer-events: auto;
   border: 1px solid rgba(121, 176, 154, 0.3);
   border-radius: 999px;
   background:
