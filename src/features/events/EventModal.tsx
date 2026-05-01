@@ -40,6 +40,7 @@ interface DecisionGuideOption {
   summary: string;
   detail: string;
   context: string;
+  nextStep: string;
 }
 
 function buildRollingState(
@@ -158,6 +159,21 @@ function formatModifier(modifier: number) {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
+function getPauseReason(trigger: WorldEvent["trigger"]) {
+  switch (trigger) {
+    case "warning":
+      return "危ない兆しが出たので、見守るか助けるかを決めるために時間が止まっています。";
+    case "milestone":
+      return "大きな節目に入ったので、この先をどう導くか決めるために時間が止まっています。";
+    case "death":
+      return "取り返しのつかない変化が起きたので、記録の前にあなたの判断を待っています。";
+    case "manual":
+      return "あなたが注目した出来事なので、ここで方針を選ぶために時間が止まっています。";
+    default:
+      return "大事な出来事が起きたので、次の行動を選ぶために時間が止まっています。";
+  }
+}
+
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
   const [rollingState, setRollingState] = useState<RollingState | null>(null);
   const [rollingValue, setRollingValue] = useState(1);
@@ -259,6 +275,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   });
   const blessPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "bless", momentum) : 0;
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
+  const pauseReason = getPauseReason(event.trigger);
   const recommendedIntervention: InterventionKind = event.trigger === "warning" ? "bless" : "watch";
   const recommendedReason =
     recommendedIntervention === "bless"
@@ -270,18 +287,21 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
       summary: "見守って記録を増やす",
       detail: `notable を 1 件増やし、状況の記録を残します。いまは ${targetCharacter?.notable.length ?? 0} 件です。`,
       context: "迷ったときや、まず流れを見たいときに向いています。",
+      nextStep: "次の変化を見るための材料を集める",
     },
     {
       intervention: "bless",
       summary: "助けて良い結果を狙う",
       detail: `加護や残寿命を守る方向の介入です。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`,
       context: "危なそうな場面で、まず助けたいときに向いています。",
+      nextStep: "この場で助ける方向へ背中を押す",
     },
     {
       intervention: "test",
       summary: "試練を与えて成長を狙う",
       detail: `試練や Momentum の伸びを狙います。今回の裁定補正は ${formatModifier(testPreviewModifier)} です。`,
       context: "多少の危険より、成長や次の展開を重視したいときに向いています。",
+      nextStep: "厳しい経験から伸び方を選ぶ",
     },
   ];
 
@@ -385,6 +405,20 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
           <p className="eyebrow">important moment / {triggerLabels[event.trigger]}</p>
           <h2 id="event-title">{event.title}</h2>
           <p>{event.description}</p>
+          <section className="event-pause-explainer" aria-label="時間停止の理由">
+            <p className="event-pause-explainer__eyebrow">time paused</p>
+            <strong className="event-pause-explainer__title">大事な出来事が起きたので、時間が止まっています</strong>
+            <p className="event-pause-explainer__text">{pauseReason}</p>
+            <p className="event-pause-explainer__text">
+              ここは正解探しではなく、育てたい方向を選ぶ場面です。選ぶと箱庭の時間が再開します。
+            </p>
+            <div className="event-pause-explainer__steps" aria-label="イベントの流れ">
+              <span className="event-pause-explainer__step">1. 観察</span>
+              <span className="event-pause-explainer__step event-pause-explainer__step--active">2. 重要イベント</span>
+              <span className="event-pause-explainer__step event-pause-explainer__step--active">3. 判断</span>
+              <span className="event-pause-explainer__step">4. 再開</span>
+            </div>
+          </section>
 
           {targetCharacter ? (
             <div className="event-target">
@@ -403,7 +437,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             <p className="event-cause__eyebrow">これは介入イベントです</p>
             <strong>なぜ今、ここで止まったのか</strong>
             <p className="event-cause__lead">
-              世界の進行をいったん止めて、あなたが次の介入を選ぶ場面です。下の 3 つから、いま何をしたいかを選べます。
+              世界の進行をいったん止めて、あなたが次の介入を選ぶ場面です。下の 3 つから、いま育てたい方向に近いものを選べます。
             </p>
             <span>{event.triggerSummary}</span>
             <span>{event.causeSummary}</span>
@@ -451,8 +485,8 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                       ))}
                     </div>
                   </div>
-                  <div className="event-actions">
-                    <button className="button" onClick={handleConfirm}>
+                  <div className="event-actions event-actions--confirm">
+                    <button className="button" type="button" onClick={handleConfirm}>
                       確認
                     </button>
                   </div>
@@ -476,6 +510,10 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                     迷ったら 1 つずつ役割を読むだけで大丈夫です。最初は「何を増やしたいか」で選ぶと判断しやすくなります。
                   </p>
                 </div>
+                <div className="event-decision-guide__mindset">
+                  <strong>どれを選んでも不正解ではありません。</strong>
+                  <p>Watch は様子を見る、Bless は助ける、Test は成長を試す選択です。</p>
+                </div>
                 <div className="event-decision-guide__cards">
                   {decisionGuideOptions.map((option) => (
                     <article
@@ -494,6 +532,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                       <p className="event-decision-guide__summary">{option.summary}</p>
                       <p className="event-decision-guide__detail">{option.detail}</p>
                       <p className="event-decision-guide__context">{option.context}</p>
+                      <p className="event-decision-guide__next-step">次に起こしたいこと: {option.nextStep}</p>
                     </article>
                   ))}
                 </div>
@@ -505,9 +544,12 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                 </div>
               </section>
               <div className="event-actions event-actions--decision">
-                {interventions.map((intervention) => (
+                {interventions.map((intervention) => {
+                  const option = decisionGuideOptions.find((entry) => entry.intervention === intervention);
+                  return (
                   <button
                     key={intervention}
+                    type="button"
                     className={[
                       "button",
                       "event-actions__button",
@@ -522,10 +564,12 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                     ) : null}
                     <span className="event-actions__label">{labels[intervention]}</span>
                     <span className="event-actions__hint">
-                      {decisionGuideOptions.find((option) => option.intervention === intervention)?.summary}
+                      {option?.summary}
                     </span>
+                    <span className="event-actions__next">{option?.nextStep}</span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </>
           )}
