@@ -17,6 +17,24 @@
         </p>
       </section>
 
+      <section class="tutorial-card" aria-label="使徒の案内">
+        <p class="eyebrow">使徒の案内</p>
+        <h2>ようこそ、新米神様</h2>
+        <div class="tutorial-grid">
+          <p>
+            神様、この小さな世界では GitHub にあるソースが「法律の本」です。
+            <code>main.js</code> はHPや攻撃の届く距離を決め、<code>style.css</code> は見た目を決めています。
+          </p>
+          <p>
+            Character Passport JSON は、GodSandboxから別世界へ渡すキャラクター紹介状です。
+            この世界は紹介状から名前や姿を読み、戦い方はこの世界の法律で決めます。
+          </p>
+        </div>
+        <p class="apostle-tip">
+          まずは攻撃力を1上げて、「この法則で世界を作り直す」を押してみましょう。
+        </p>
+      </section>
+
       <section class="game-card" aria-label="1対1の平面キャラ対戦サンプル">
         <aside class="passport-panel">
           <p class="eyebrow">loaded passport</p>
@@ -37,6 +55,70 @@
         </aside>
 
         <section class="battle-panel">
+          <section class="bridge-panel" aria-label="Passport情報と世界ルールの違い">
+            <div>
+              <p class="eyebrow">Passportから来た情報</p>
+              <h2>キャラクター紹介状</h2>
+              <ul id="passportInfoList" class="plain-list"></ul>
+            </div>
+            <div>
+              <p class="eyebrow">この世界が決めたルール</p>
+              <h2>戦闘用の法律</h2>
+              <ul id="worldRuleList" class="plain-list"></ul>
+            </div>
+          </section>
+
+          <section class="world-law-panel" aria-label="世界の法則を調整する">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">world law</p>
+                <h2>世界の法則を調整する</h2>
+              </div>
+              <button id="rebuildWorld" type="button">この法則で世界を作り直す</button>
+            </div>
+            <p class="world-law-note">
+              キャラ紹介状はそのまま、HPや攻撃力など、このサンプル世界のルールだけを反映します。
+              JSONを直接編集しなくても試せます。
+            </p>
+            <div class="world-settings">
+              <label>
+                自キャラHP
+                <input id="worldPlayerHp" type="number" min="1" max="30" />
+              </label>
+              <label>
+                敵HP
+                <input id="worldEnemyHp" type="number" min="1" max="30" />
+              </label>
+              <label>
+                自キャラ攻撃力
+                <input id="worldPlayerAttack" type="number" min="1" max="12" />
+              </label>
+              <label>
+                敵攻撃力
+                <input id="worldEnemyAttack" type="number" min="1" max="12" />
+              </label>
+              <label>
+                攻撃射程
+                <input id="worldAttackRange" type="number" min="1" max="8" />
+              </label>
+            </div>
+            <div class="law-card-picker">
+              <label for="lawCardSelect">定義済みの法則カード</label>
+              <div>
+                <select id="lawCardSelect"></select>
+                <button id="addLawCard" type="button" class="button-secondary">法則カードを追加</button>
+              </div>
+            </div>
+            <div>
+              <p class="eyebrow">いま追加されている法則</p>
+              <div id="activeLawCards" class="law-card-list"></div>
+            </div>
+            <div>
+              <p class="eyebrow">現在の世界法則まとめ</p>
+              <ul id="appliedWorldRules" class="world-summary"></ul>
+            </div>
+          </section>
+
           <div class="hud">
             <div>
               <span class="label">味方HP</span>
