@@ -43,6 +43,13 @@ interface DecisionGuideOption {
   nextStep: string;
 }
 
+interface BlessResultCallout {
+  title: string;
+  detail: string;
+}
+
+const FIRST_BLESS_TUTORIAL_MAX_TICK = 12;
+
 function buildRollingState(
   targetCharacter: Character,
   event: WorldEvent,
@@ -159,7 +166,17 @@ function formatModifier(modifier: number) {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
-function getPauseReason(trigger: WorldEvent["trigger"]) {
+function isTutorialBlessEvent(event: WorldEvent, tick: number) {
+  // The first post-protection warning is the narrowest tutorial-like signal available
+  // without changing the current domain event model.
+  return event.trigger === "warning" && tick <= FIRST_BLESS_TUTORIAL_MAX_TICK;
+}
+
+function getPauseReason(trigger: WorldEvent["trigger"], tutorialBlessEvent: boolean) {
+  if (tutorialBlessEvent) {
+    return "この命が弱り始めたので、最初の Bless でどう助けるかを選ぶために時間が止まっています。";
+  }
+
   switch (trigger) {
     case "warning":
       return "危ない兆しが出たので、見守るか助けるかを決めるために時間が止まっています。";
@@ -172,6 +189,36 @@ function getPauseReason(trigger: WorldEvent["trigger"]) {
     default:
       return "大事な出来事が起きたので、次の行動を選ぶために時間が止まっています。";
   }
+}
+
+function getBlessResultCallout(judgement: JudgementResult | null): BlessResultCallout | null {
+  if (!judgement || judgement.action !== "bless") {
+    return null;
+  }
+
+  const improved = judgement.changes.filter(
+    (change) =>
+      (change.label === "残寿命" || change.label === "加護") &&
+      change.after > change.before,
+  );
+
+  if (improved.length === 0) {
+    return null;
+  }
+
+  const lifespanImproved = improved.some((change) => change.label === "残寿命");
+  const blessingImproved = improved.some((change) => change.label === "加護");
+  const detail = improved.map((change) => `${change.label} ${change.before} → ${change.after}`).join(" / ");
+
+  return {
+    title:
+      lifespanImproved && blessingImproved
+        ? "この Bless で寿命も加護も良い方向へ伸びました"
+        : lifespanImproved
+          ? "この Bless で寿命が良い方向へ伸びました"
+          : "この Bless で加護が良い方向へ伸びました",
+    detail: `変化: ${detail}`,
+  };
 }
 
 export function EventModal({ event, tick, momentum, targetCharacter, onResolve }: EventModalProps) {
@@ -275,12 +322,18 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   });
   const blessPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "bless", momentum) : 0;
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
-  const pauseReason = getPauseReason(event.trigger);
-  const recommendedIntervention: InterventionKind = event.trigger === "warning" ? "bless" : "watch";
+  const tutorialBlessEvent = isTutorialBlessEvent(event, tick);
+  const pauseReason = getPauseReason(event.trigger, tutorialBlessEvent);
+  const recommendedIntervention: InterventionKind =
+    tutorialBlessEvent || event.trigger === "warning" ? "bless" : "watch";
+  const recommendedBadgeLabel = tutorialBlessEvent ? "初回 Bless" : "おすすめ";
   const recommendedReason =
-    recommendedIntervention === "bless"
+    tutorialBlessEvent
+      ? "今回は Bless を押すと、この命を支える介入が始まります。成功すると残寿命や加護が良い方向へ伸びます。"
+      : recommendedIntervention === "bless"
       ? "命運警告が出ているので、最初は Bless で助けに行くと意図がいちばん分かりやすいです。"
       : "まずは Watch で状況を見守ると、流れをつかみながら次の Test の準備も進められます。";
+  const blessResultCallout = getBlessResultCallout(judgementPreview);
   const decisionGuideOptions: DecisionGuideOption[] = [
     {
       intervention: "watch",
@@ -291,10 +344,16 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     },
     {
       intervention: "bless",
-      summary: "助けて良い結果を狙う",
-      detail: `加護や残寿命を守る方向の介入です。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`,
-      context: "危なそうな場面で、まず助けたいときに向いています。",
-      nextStep: "この場で助ける方向へ背中を押す",
+      summary: tutorialBlessEvent ? "今回はこの命を支える体験です" : "助けて良い結果を狙う",
+      detail: tutorialBlessEvent
+        ? `成功すると残寿命や加護が良い方向へ伸びます。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`
+        : `加護や残寿命を守る方向の介入です。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`,
+      context: tutorialBlessEvent
+        ? "最初の Bless 体験として、助けたいときの流れをつかむのに向いています。"
+        : "危なそうな場面で、まず助けたいときに向いています。",
+      nextStep: tutorialBlessEvent
+        ? "この命を支え、寿命や加護の変化を見る"
+        : "この場で助ける方向へ背中を押す",
     },
     {
       intervention: "test",
@@ -410,7 +469,9 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             <strong className="event-pause-explainer__title">大事な出来事が起きたので、時間が止まっています</strong>
             <p className="event-pause-explainer__text">{pauseReason}</p>
             <p className="event-pause-explainer__text">
-              ここは正解探しではなく、育てたい方向を選ぶ場面です。選ぶと箱庭の時間が再開します。
+              {tutorialBlessEvent
+                ? "これは正解当てではなく、助けたい方向を選ぶ場面です。今回は Bless で命を支える感覚をつかめば大丈夫です。"
+                : "ここは正解探しではなく、育てたい方向を選ぶ場面です。選ぶと箱庭の時間が再開します。"}
             </p>
             <div className="event-pause-explainer__steps" aria-label="イベントの流れ">
               <span className="event-pause-explainer__step">1. 観察</span>
@@ -458,6 +519,12 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
               <div className={dieClassName}>{rollingValue}</div>
               {rollingState?.revealed && judgementPreview ? (
                 <>
+                  {blessResultCallout ? (
+                    <div className="event-result-callout">
+                      <strong>{blessResultCallout.title}</strong>
+                      <p>{blessResultCallout.detail}</p>
+                    </div>
+                  ) : null}
                   <div className="subpanel judgement-card">
                     <div className="summary-card__header">
                       <h3>裁定結果</h3>
@@ -510,6 +577,13 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                     迷ったら 1 つずつ役割を読むだけで大丈夫です。最初は「何を増やしたいか」で選ぶと判断しやすくなります。
                   </p>
                 </div>
+                {tutorialBlessEvent ? (
+                  <div className="event-decision-guide__tutorial-callout">
+                    <p className="event-decision-guide__tutorial-eyebrow">apostle guide</p>
+                    <strong>今回は Bless を押すと、この命を支える介入が始まります。</strong>
+                    <p>成功すると残寿命や加護が良い方向へ伸びます。まずは助ける選択の感覚をつかめば十分です。</p>
+                  </div>
+                ) : null}
                 <div className="event-decision-guide__mindset">
                   <strong>どれを選んでも不正解ではありません。</strong>
                   <p>Watch は様子を見る、Bless は助ける、Test は成長を試す選択です。</p>
@@ -526,7 +600,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                         .join(" ")}
                     >
                       {option.intervention === recommendedIntervention ? (
-                        <span className="event-decision-guide__pill">初回おすすめ</span>
+                        <span className="event-decision-guide__pill">{recommendedBadgeLabel}</span>
                       ) : null}
                       <h4>{labels[option.intervention]}</h4>
                       <p className="event-decision-guide__summary">{option.summary}</p>
@@ -538,7 +612,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                 </div>
                 <div className="event-decision-guide__recommendation">
                   <strong>
-                    初回おすすめ: {labels[recommendedIntervention]}
+                    {tutorialBlessEvent ? "初回 Bless 推奨" : "おすすめ"}: {labels[recommendedIntervention]}
                   </strong>
                   <p>{recommendedReason}</p>
                 </div>
@@ -547,27 +621,28 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                 {interventions.map((intervention) => {
                   const option = decisionGuideOptions.find((entry) => entry.intervention === intervention);
                   return (
-                  <button
-                    key={intervention}
-                    type="button"
-                    className={[
-                      "button",
-                      "event-actions__button",
-                      intervention === recommendedIntervention ? "event-actions__button--recommended" : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                    onClick={() => handleResolve(intervention)}
-                  >
-                    {intervention === recommendedIntervention ? (
-                      <span className="event-actions__badge">初回おすすめ</span>
-                    ) : null}
-                    <span className="event-actions__label">{labels[intervention]}</span>
-                    <span className="event-actions__hint">
-                      {option?.summary}
-                    </span>
-                    <span className="event-actions__next">{option?.nextStep}</span>
-                  </button>
+                    <button
+                      key={intervention}
+                      type="button"
+                      className={[
+                        "button",
+                        "event-actions__button",
+                        intervention === recommendedIntervention ? "event-actions__button--recommended" : "",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                      onClick={() => handleResolve(intervention)}
+                    >
+                      {intervention === recommendedIntervention ? (
+                        <span className="event-actions__badge">{recommendedBadgeLabel}</span>
+                      ) : null}
+                      <span className="event-actions__label">{labels[intervention]}</span>
+                      {tutorialBlessEvent && intervention === "bless" ? (
+                        <span className="event-actions__tutorial-note">今回はこの命を支える体験です</span>
+                      ) : null}
+                      <span className="event-actions__hint">{option?.summary}</span>
+                      <span className="event-actions__next">{option?.nextStep}</span>
+                    </button>
                   );
                 })}
               </div>
