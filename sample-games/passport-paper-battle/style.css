@@ -116,6 +116,7 @@ h1 {
 
 .passport-panel,
 .battle-panel {
+  min-width: 0;
   padding: 22px;
 }
 
@@ -404,6 +405,9 @@ h1 {
 }
 
 .board-area {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   scroll-margin-top: 18px;
 }
 
@@ -417,6 +421,9 @@ h1 {
 }
 
 .board-scroll-frame {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border-radius: 26px;
 }
 
