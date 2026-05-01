@@ -3,6 +3,7 @@ import type {
   Character,
   DayPhase,
   EventSummary,
+  EventTriggerCandidate,
   InterventionKind,
   JudgementResult,
   LogEntry,
@@ -22,6 +23,33 @@ const EXTINCTION_LOG = "生存者がいなくなりました。箱庭時間を�
 const RECOVERY_LOG = "イベント状態が失われたため、観察状態へ復帰しました。";
 const DAY_PHASES: DayPhase[] = ["morning", "noon", "evening"];
 const SEASONS: Season[] = ["spring", "summer", "autumn", "winter"];
+
+export const NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES: EventTriggerCandidate[] = [
+  {
+    id: "curiosity",
+    label: "好奇心",
+    description: "対象キャラが未知の場所や出来事へ意識を向ける兆し。",
+    recommendedIntervention: "watch",
+  },
+  {
+    id: "encounter",
+    label: "出会い",
+    description: "対象キャラが誰か、または何かと出会い、関係変化の入口に立つ兆し。",
+    recommendedIntervention: "bless",
+  },
+  {
+    id: "discoveryHint",
+    label: "発見の気配",
+    description: "まだ名前のない気配が観測され、新個体発見へつながり得る兆し。",
+    recommendedIntervention: "watch",
+  },
+  {
+    id: "environmentShift",
+    label: "環境変化",
+    description: "天候、季節、土地の変化がキャラの行動を変える兆し。",
+    recommendedIntervention: "test",
+  },
+];
 
 function buildCharacters(): Character[] {
   return [
@@ -247,6 +275,25 @@ function buildInterventionEvent(
     causeSummary: getInterventionCauseSummary(trigger, target),
     presetIntervention,
     trigger,
+    layer: "intervention",
+    targetCharacterId: target.id,
+    targetCharacterName: target.name,
+  };
+}
+
+function buildTutorialBlessEvent(target: Character, tick: number): WorldEvent {
+  return {
+    id: `event-${tick}-${target.id}-tutorial-first-bless`,
+    title: `${target.name} に最初の加護を届けます`,
+    description:
+      `${target.name} が迷いながらも、神の声に気づきかけています。` +
+      "ここでは Bless を選ぶと、初回チュートリアルとして確実に良い変化が起きます。",
+    triggerSummary: "発火条件: 初回チュートリアル導線から、Bless の成功体験を確認するために呼び出されました。",
+    causeSummary:
+      "寿命危機ではなく、神の介入を学ぶための導入イベントです。対象キャラは小さな迷いの中で導きを待っています。",
+    presetIntervention: "bless",
+    tutorialKind: "firstBless",
+    trigger: "manual",
     layer: "intervention",
     targetCharacterId: target.id,
     targetCharacterName: target.name,
@@ -522,6 +569,10 @@ function buildBlessJudgement(
     },
   ];
   return judgement;
+}
+
+function buildTutorialBlessJudgement(character: Character, tick: number): JudgementResult {
+  return buildBlessJudgement(character, "manual", tick, 12);
 }
 
 function buildTestJudgement(
@@ -1066,6 +1117,30 @@ export function triggerManualEvent(state: WorldState): WorldState {
   );
 }
 
+export function triggerTutorialBlessEvent(state: WorldState, targetCharacterId = state.focusCharacterId): WorldState {
+  if (state.phase === "event" && !state.activeEvent) {
+    return recoverStalledEventState(state);
+  }
+
+  if (state.phase === "event") {
+    return state;
+  }
+
+  const target = findAliveTarget(state.characters, targetCharacterId);
+  if (!target) {
+    return pushLog(state, "system", "チュートリアルイベントを起こせる生存者がいません。");
+  }
+
+  return beginEvent(
+    {
+      ...state,
+      focusCharacterId: target.id,
+    },
+    buildTutorialBlessEvent(target, state.tick + 1),
+    `使徒は ${target.name} に初めての加護を届ける場を整えました。まずは Bless を選ぶと、良い変化を確認できます。`,
+  );
+}
+
 export function resolveActiveEvent(
   state: WorldState,
   intervention: InterventionKind,
@@ -1082,9 +1157,11 @@ export function resolveActiveEvent(
 
   const judgementResult =
     intervention === "bless" || intervention === "test"
-      ? precomputedJudgement && precomputedJudgement.action === intervention
-        ? precomputedJudgement
-        : previewJudgement(target, intervention, state.tick, state.activeEvent.trigger, state.momentum)
+      ? state.activeEvent.tutorialKind === "firstBless" && intervention === "bless"
+        ? buildTutorialBlessJudgement(target, state.tick)
+        : precomputedJudgement && precomputedJudgement.action === intervention
+          ? precomputedJudgement
+          : previewJudgement(target, intervention, state.tick, state.activeEvent.trigger, state.momentum)
       : null;
 
   const resolvedTarget =
