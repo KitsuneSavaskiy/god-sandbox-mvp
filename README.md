@@ -1,6 +1,6 @@
-﻿# god-sandbox-mvp
+# god-sandbox-mvp
 
-Codex と一緒に開発している、神視点箱庭プロトタイプの非公開 MVP リポジトリです。
+Codex と一緒に開発している、神視点箱庭プロトタイプの公開 MVP リポジトリです。
 
 自動作業 PR の smoke test 記録: 4。
 
