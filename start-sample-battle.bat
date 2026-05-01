@@ -7,7 +7,7 @@ cd /d "%REPO_ROOT%"
 
 echo.
 echo =========================================
-echo   Passport Paper Battle 起動スクリプト
+echo   Passport Paper Battle start script
 echo =========================================
 echo repo root: %CD%
 echo.
@@ -24,15 +24,15 @@ if %errorlevel% equ 0 (
 )
 
 if "%PYTHON_CMD%"=="" (
-    echo [エラー] Python が見つかりませんでした。
-    echo サンプル対戦ゲームは file:// ではなくローカルHTTPサーバーで開いてください。
-    echo Python を入れる場合は https://www.python.org/ を確認してください。
+    echo [ERROR] Python was not found.
+    echo Open the sample battle through a local HTTP server, not file://.
+    echo Install Python from https://www.python.org/ and run this script again.
     pause
     exit /b 1
 )
 
-echo サンプル対戦ゲームを起動しています。
-echo ブラウザで http://localhost:8080/sample-games/passport-paper-battle/ を開いてください。
-echo 終了するには Ctrl+C を押してください。
+echo Starting the Passport Paper Battle sample.
+echo Open http://localhost:8080/sample-games/passport-paper-battle/ in your browser.
+echo Press Ctrl+C to stop.
 echo.
 %PYTHON_CMD% -m http.server 8080
