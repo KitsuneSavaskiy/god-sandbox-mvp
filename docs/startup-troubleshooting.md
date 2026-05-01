@@ -8,7 +8,7 @@ PBI-OPS-STARTUP-TROUBLESHOOTING-DOC-001 対応ドキュメント
 
 GodSandbox を Windows / PowerShell / WSL で起動するときに、初心者がつまずきやすい点を短く整理します。
 
-起動スクリプト本体の仕様を変える文書ではありません。  
+起動スクリプト本体の仕様を変える文書ではありません。
 困ったときに「どの起動方法を使えばよいか」「どこを確認すればよいか」を見るための補助資料です。
 
 ---
@@ -29,7 +29,7 @@ PowerShell で起動する場合は `start.ps1` を使います。
 .\start.ps1
 ```
 
-起動中は dev server が動き続けます。  
+起動中は dev server が動き続けます。
 終了するときは、起動したコマンドプロンプトまたは PowerShell の画面で `Ctrl+C` を押してください。
 
 ### サンプル対戦ゲームを起動する
@@ -46,7 +46,7 @@ PowerShell で起動する場合は `start-sample-battle.ps1` を使います。
 .\start-sample-battle.ps1
 ```
 
-サンプル対戦ゲームは、Python HTTP server で開く想定です。  
+サンプル対戦ゲームは、Python HTTP server で開く想定です。
 `file://` で直接 `index.html` を開くと、JSON や画像の読み込みで失敗することがあります。
 
 ---
@@ -72,10 +72,10 @@ WSL で `start.sh` や `start-sample-battle.sh` を実行したときに、次�
 /usr/bin/env: 'bash\r': No such file or directory
 ```
 
-原因は、`.sh` ファイルの改行コードが Windows 向けの CRLF になっていることです。  
+原因は、`.sh` ファイルの改行コードが Windows 向けの CRLF になっていることです。
 WSL / Linux では LF の改行が必要です。
 
-このリポジトリでは、Git 側で `.sh` を LF に固定する方針です。  
+このリポジトリでは、Git 側で `.sh` を LF に固定する方針です。
 もし同じエラーが出る場合は、最新の `main` を取得しているか、`.gitattributes` による LF 固定が反映されているかを確認してください。
 
 ---
@@ -120,7 +120,7 @@ http://localhost:8080/sample-games/passport-paper-battle/
 
 ### Explorer を Task Manager からむやみに終了しない
 
-Windows のフォルダウィンドウは、`explorer.exe` という仕組みで動いています。  
+Windows のフォルダウィンドウは、`explorer.exe` という仕組みで動いています。
 フォルダウィンドウを Task Manager から終了すると、デスクトップやスタートメニューまで一時的に消える場合があります。
 
 その場合は、サインアウトまたは再起動で復旧してください。
@@ -129,7 +129,7 @@ Windows のフォルダウィンドウは、`explorer.exe` という仕組みで
 
 初心者向けの通常手順では、検証ツールなどから hidden window で起動する方法は推奨しません。
 
-画面が見えない状態では、どのサーバーが動いているか、どこで止めればよいか分かりにくくなります。  
+画面が見えない状態では、どのサーバーが動いているか、どこで止めればよいか分かりにくくなります。
 通常は、見えるコマンドプロンプトまたは PowerShell の画面で起動し、終了時は `Ctrl+C` を押してください。
 
 ### 個人パス入りのローカルスクリプトを Git に入れない
@@ -142,7 +142,7 @@ Windows のフォルダウィンドウは、`explorer.exe` という仕組みで
 C:\Users\your-name\...
 ```
 
-このようなファイルは、ほかの人のPCでは動かないことがあります。  
+このようなファイルは、ほかの人のPCでは動かないことがあります。
 Git に入れる前に、個人パスが入っていないか確認してください。
 
 ---
