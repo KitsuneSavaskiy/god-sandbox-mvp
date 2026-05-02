@@ -11,12 +11,14 @@
 .event-cause__eyebrow,
 .event-cause__lead,
 .event-decision-guide__intro,
+.event-decision-guide__tutorial-callout p,
 .event-decision-guide__mindset p,
 .event-decision-guide__summary,
 .event-decision-guide__detail,
 .event-decision-guide__context,
 .event-decision-guide__next-step,
-.event-decision-guide__recommendation p {
+.event-decision-guide__recommendation p,
+.event-result-callout p {
   margin: 0;
 }
 
@@ -118,6 +120,33 @@
   display: block;
   margin-bottom: 0.28rem;
   color: #f4f7fb;
+}
+
+.event-decision-guide__tutorial-callout {
+  border: 1px solid rgba(246, 196, 83, 0.24);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(246, 196, 83, 0.12), rgba(255, 255, 255, 0.02)),
+    rgba(10, 18, 28, 0.84);
+  padding: 0.85rem;
+}
+
+.event-decision-guide__tutorial-callout strong {
+  display: block;
+  margin-bottom: 0.32rem;
+  color: #fff2c8;
+}
+
+.event-decision-guide__tutorial-callout p {
+  color: #d8e4f1;
+  line-height: 1.6;
+}
+
+.event-decision-guide__tutorial-eyebrow {
+  color: #f6d98c;
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .event-decision-guide__cards {
@@ -230,10 +259,37 @@
   line-height: 1.45;
 }
 
+.event-actions__tutorial-note {
+  color: #fff1bf;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 .event-actions__next {
   color: rgba(224, 240, 233, 0.9);
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.event-result-callout {
+  border: 1px solid rgba(112, 193, 140, 0.28);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(112, 193, 140, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(8, 24, 20, 0.88);
+  padding: 0.9rem;
+}
+
+.event-result-callout strong {
+  display: block;
+  margin-bottom: 0.28rem;
+  color: #e4ffe8;
+}
+
+.event-result-callout p {
+  color: #d2f2d9;
+  line-height: 1.55;
 }
 
 @media (max-width: 980px) {
