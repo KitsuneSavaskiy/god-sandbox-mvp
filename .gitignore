@@ -7,6 +7,15 @@ coverage/
 !.env.example
 god-sandbox-data/
 
+# Local agent/tool scratch files
+.claude/
+*.local.md
+*.log
+*.err.log
+*.out.log
+.local-backup-*/
+node_modules.*-backup/
+
 # 個人環境だけで使う起動補助ファイルは Git 管理しない
 *.local.bat
 *.local.ps1
