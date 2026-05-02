@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RYO_PORTRAITS } from "../../assets/artPaths";
 import { getJudgementRankLabel } from "../../domain/world";
 import type { BloodlineSummary, Character, EventSummary, JudgementResult } from "../../domain/types";
+import { TutorialRewardExplainer } from "../tutorial/TutorialRewardExplainer";
 
 interface ApostlePanelProps {
   apostleMessage: string;
@@ -65,10 +66,19 @@ export function ApostlePanel({
   onTriggerManualEvent,
 }: ApostlePanelProps) {
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [tutorialBlessJudgement, setTutorialBlessJudgement] = useState<JudgementResult | null>(null);
 
   useEffect(() => {
     setNotesExpanded(false);
   }, [focusedCharacter?.id]);
+
+  useEffect(() => {
+    if (latestJudgement?.action !== "bless") {
+      return;
+    }
+
+    setTutorialBlessJudgement(latestJudgement);
+  }, [latestJudgement]);
 
   const portraitGuide = getPortraitGuide(focusedCharacter?.name);
   const latestNotable = focusedCharacter
@@ -152,6 +162,10 @@ export function ApostlePanel({
             ))}
           </div>
         </div>
+      ) : null}
+
+      {tutorialBlessJudgement ? (
+        <TutorialRewardExplainer blessingJudgement={tutorialBlessJudgement} />
       ) : null}
 
       {!hasLivingCharacters ? (
