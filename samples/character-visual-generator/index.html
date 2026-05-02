@@ -25,7 +25,8 @@
       }
 
       button,
-      input {
+      input,
+      textarea {
         font: inherit;
       }
 
@@ -73,6 +74,17 @@
       h3,
       p {
         margin: 0;
+      }
+
+      h1,
+      h2,
+      h3,
+      p,
+      li,
+      code,
+      strong,
+      label {
+        overflow-wrap: anywhere;
       }
 
       h1 {
@@ -128,6 +140,7 @@
 
       .panel {
         padding: 22px;
+        min-width: 0;
       }
 
       .panel h2 {
@@ -150,13 +163,19 @@
       }
 
       input[type="text"],
-      input[type="file"] {
+      input[type="file"],
+      textarea {
         width: 100%;
         border: 1px solid rgba(40, 58, 72, 0.2);
         border-radius: 16px;
         background: rgba(255, 255, 255, 0.78);
         color: #172636;
         padding: 12px 14px;
+      }
+
+      textarea {
+        min-height: 108px;
+        resize: vertical;
       }
 
       .button-row {
@@ -200,6 +219,57 @@
         line-height: 1.65;
         margin-top: 16px;
         padding: 12px 14px;
+      }
+
+      .warning-note {
+        border-left-color: #c76f35;
+        background: rgba(255, 233, 214, 0.78);
+        color: #673817;
+      }
+
+      .workflow {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin-top: 18px;
+      }
+
+      .prompt-card {
+        display: grid;
+        gap: 14px;
+      }
+
+      .prompt-card p,
+      .path-list,
+      .motion-list {
+        color: #536674;
+        line-height: 1.7;
+      }
+
+      .prompt-output {
+        overflow: auto;
+        max-width: 100%;
+        min-height: 320px;
+        border-radius: 18px;
+        background: #172636;
+        color: #d9f4ec;
+        font-family: "Cascadia Mono", "Consolas", monospace;
+        font-size: 0.82rem;
+        line-height: 1.55;
+        white-space: pre;
+      }
+
+      .path-list,
+      .motion-list {
+        margin: 0;
+        padding-left: 1.2rem;
+      }
+
+      .manifest-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(240px, 0.7fr) minmax(0, 1.3fr);
+        margin-top: 18px;
       }
 
       .preview-area {
@@ -274,6 +344,7 @@
 
       .manifest-box {
         overflow: auto;
+        max-width: 100%;
         max-height: 420px;
         border-radius: 18px;
         background: #172636;
@@ -297,13 +368,37 @@
 
       @media (max-width: 860px) {
         .hero,
-        .workspace {
+        .workspace,
+        .workflow,
+        .manifest-grid {
           grid-template-columns: 1fr;
         }
 
         .page-shell {
           width: min(100% - 20px, 1180px);
           padding-top: 18px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .hero__copy,
+        .panel,
+        .status-card {
+          border-radius: 22px;
+          padding: 20px;
+        }
+
+        h1 {
+          font-size: clamp(1.65rem, 8vw, 2.2rem);
+          line-height: 1.08;
+        }
+
+        .lead {
+          font-size: 0.95rem;
+        }
+
+        .prompt-output {
+          min-height: 260px;
         }
       }
     </style>
@@ -313,10 +408,10 @@
       <section class="hero">
         <div class="hero__copy">
           <span class="eyebrow">Prototype</span>
-          <h1>1枚絵からキャラ差分の形を試す</h1>
+          <h1>立ち絵とスプライトを分けて作る</h1>
           <p class="lead">
-            キャラクターの基本イラストを読み込み、表情差分と箱庭用2Dスプライトのプレビュー枠、
-            そして外部化しやすいmanifest JSONを確認するための最小プロトタイプです。
+            キャラクターの基本イラストから、会話やPassport portrait向けの表情差分プロンプトと、
+            箱庭内を歩く8-bit / pixel art / chibiスプライトシート用プロンプトを別々に作る画面です。
           </p>
         </div>
         <aside class="status-card" aria-label="生成モード">
@@ -326,8 +421,8 @@
           <div>
             <strong>この画面は生成を偽装しません</strong>
             <p>
-              画像生成APIや外部AIには接続していません。アップロード画像をCanvasで切り出し、
-              色味と位置を少し変えた仮プレビューだけを作ります。
+              画像生成APIや外部AIには接続していません。ここではCodexへ渡すプロンプトを作り、
+              Canvas表示は元画像を使った仮プレビューとしてだけ扱います。
             </p>
           </div>
         </aside>
@@ -342,19 +437,28 @@
               <input id="character-id" type="text" value="prototype-character-001" autocomplete="off" />
             </label>
             <label>
+              キャラ説明
+              <textarea id="character-description" placeholder="髪型、服装、雰囲気、性格、重要な小物などを書きます。例: 森の村で暮らす、まじめで少し不器用な若者。緑の上着、茶色の髪、穏やかな表情。"></textarea>
+            </label>
+            <label>
               基本イラスト
               <input id="source-image" type="file" accept="image/png,image/jpeg,image/webp" />
             </label>
           </div>
           <div class="button-row">
-            <button id="generate-button" class="button" type="button" disabled>仮プレビューを作る</button>
+            <button id="generate-prompts-button" class="button" type="button">プロンプトを作る</button>
+            <button id="generate-button" class="button" type="button" disabled>元画像で仮プレビューを作る</button>
             <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
               manifestをダウンロード
             </button>
             <button id="save-directory-button" class="button button--warm" type="button" disabled>
-              public/art/generatedへ書き出す
+              仮プレビューを書き出す
             </button>
           </div>
+          <p class="note warning-note">
+            スプライトシートは、立ち絵を小さくして反転したものではありません。
+            参考画像の同一人物感を保ちつつ、箱庭で歩く小さなドット絵SDキャラとして再解釈します。
+          </p>
           <p class="note">
             ブラウザがフォルダ保存に対応している場合は、保存先に
             <strong>public/art/generated</strong> を選ぶと
@@ -366,14 +470,17 @@
         <div class="panel preview-area">
           <div class="preview-header">
             <div>
-              <h2>プレビュー</h2>
-              <p>表情差分と箱庭用スプライトの枠を確認します。</p>
+              <h2>仮プレビュー</h2>
+              <p>これは本物のスプライトシートではなく、元画像を使った確認用の枠です。</p>
             </div>
             <span id="output-status" class="status-pill">画像を選んでください</span>
           </div>
 
           <div id="empty-state" class="empty-state">
-            <p>1枚絵を選ぶと、ここに normal / tense / sadness / joy / divine と sprite preview が出ます。</p>
+            <p>
+              1枚絵を選ぶと、ここに normal / tense / sadness / joy / divine と
+              モーション枠の仮プレビューが出ます。本物の画像は下のプロンプトを別Codexへ貼って生成してください。
+            </p>
           </div>
 
           <section id="expressions-section" hidden>
@@ -382,7 +489,7 @@
           </section>
 
           <section id="sprites-section" hidden>
-            <h3>箱庭用2Dスプライト</h3>
+            <h3>箱庭用2Dスプライト枠</h3>
             <div id="sprites-grid" class="grid"></div>
           </section>
 
@@ -391,6 +498,74 @@
             <pre id="manifest-output" class="manifest-box"></pre>
           </section>
         </div>
+      </section>
+
+      <section class="workflow" aria-label="生成プロンプト">
+        <article class="panel prompt-card">
+          <div>
+            <h2>立ち絵表情差分プロンプト</h2>
+            <p>
+              顔、上半身、全身イラストをプロフィール、会話、イベント、Passport portraitで使うための差分です。
+              normal / tense / sadness / joy / divine を同じキャラクターとして作ります。
+            </p>
+          </div>
+          <textarea id="portrait-prompt-output" class="prompt-output" readonly></textarea>
+          <div class="button-row">
+            <button id="copy-portrait-prompt-button" class="button button--secondary" type="button">
+              立ち絵プロンプトをコピー
+            </button>
+          </div>
+        </article>
+
+        <article class="panel prompt-card">
+          <div>
+            <h2>ドット絵スプライトシートプロンプト</h2>
+            <p>
+              箱庭内を歩き回る小さい2Dキャラ用です。立ち絵を縮小するのではなく、
+              8-bit / pixel art / chibiとして再解釈し、透明背景、同一セルサイズ、行ごとのモーションで作ります。
+            </p>
+          </div>
+          <textarea id="sprite-prompt-output" class="prompt-output" readonly></textarea>
+          <div class="button-row">
+            <button id="copy-sprite-prompt-button" class="button button--secondary" type="button">
+              スプライトプロンプトをコピー
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section class="manifest-grid">
+        <article class="panel">
+          <h2>保存先とファイル名規則</h2>
+          <ul class="path-list">
+            <li><code>public/art/generated/&lt;characterId&gt;/portraits/normal.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/portraits/tense.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/portraits/sadness.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/portraits/joy.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/portraits/divine.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/sprites/spritesheet.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/sprites/contact-sheet.png</code></li>
+            <li><code>public/art/generated/&lt;characterId&gt;/visual-manifest.json</code></li>
+          </ul>
+
+          <h3>最小モーション</h3>
+          <ul class="motion-list">
+            <li><code>idle</code>: 4 frames</li>
+            <li><code>walk_down</code>: 4 frames</li>
+            <li><code>walk_up</code>: 4 frames</li>
+            <li><code>walk_right</code>: 6 frames</li>
+            <li><code>walk_left</code>: 6 frames。必要なら <code>walk_right</code> のmirrorでも可</li>
+            <li><code>waving</code>: 4 frames</li>
+            <li><code>jumping</code>: 4 frames</li>
+            <li><code>failed</code>: 4 frames</li>
+            <li><code>waiting</code>: 4 frames</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>visual-manifest.json 例</h2>
+          <pre id="manifest-example-output" class="manifest-box"></pre>
+        </article>
       </section>
     </main>
 
@@ -404,19 +579,30 @@
       ];
 
       const spriteDefinitions = [
-        { key: "idle", label: "待機", offsetX: 0, offsetY: 0, flip: false },
-        { key: "walk_down", label: "下へ歩く", offsetX: 0, offsetY: 10, flip: false },
-        { key: "walk_up", label: "上へ歩く", offsetX: 0, offsetY: -10, flip: false },
-        { key: "walk_left", label: "左へ歩く", offsetX: -10, offsetY: 0, flip: true },
-        { key: "walk_right", label: "右へ歩く", offsetX: 10, offsetY: 0, flip: false },
+        { key: "idle", label: "待機", frames: 4, offsetX: 0, offsetY: 0, flip: false },
+        { key: "walk_down", label: "下へ歩く", frames: 4, offsetX: 0, offsetY: 10, flip: false },
+        { key: "walk_up", label: "上へ歩く", frames: 4, offsetX: 0, offsetY: -10, flip: false },
+        { key: "walk_right", label: "右へ歩く", frames: 6, offsetX: 10, offsetY: 0, flip: false },
+        { key: "walk_left", label: "左へ歩く", frames: 6, offsetX: -10, offsetY: 0, flip: true },
+        { key: "waving", label: "手を振る", frames: 4, offsetX: 0, offsetY: -6, flip: false },
+        { key: "jumping", label: "ジャンプ", frames: 4, offsetX: 0, offsetY: -18, flip: false },
+        { key: "failed", label: "失敗", frames: 4, offsetX: -4, offsetY: 14, flip: false },
+        { key: "waiting", label: "待つ", frames: 4, offsetX: 0, offsetY: 4, flip: false },
       ];
 
       const sourceInput = document.getElementById("source-image");
       const characterIdInput = document.getElementById("character-id");
+      const characterDescriptionInput = document.getElementById("character-description");
+      const generatePromptsButton = document.getElementById("generate-prompts-button");
       const generateButton = document.getElementById("generate-button");
       const downloadManifestButton = document.getElementById("download-manifest-button");
       const saveDirectoryButton = document.getElementById("save-directory-button");
       const outputStatus = document.getElementById("output-status");
+      const portraitPromptOutput = document.getElementById("portrait-prompt-output");
+      const spritePromptOutput = document.getElementById("sprite-prompt-output");
+      const copyPortraitPromptButton = document.getElementById("copy-portrait-prompt-button");
+      const copySpritePromptButton = document.getElementById("copy-sprite-prompt-button");
+      const manifestExampleOutput = document.getElementById("manifest-example-output");
       const emptyState = document.getElementById("empty-state");
       const expressionsSection = document.getElementById("expressions-section");
       const spritesSection = document.getElementById("sprites-section");
@@ -431,6 +617,7 @@
       let manifest = null;
 
       saveDirectoryButton.hidden = !("showDirectoryPicker" in window);
+      updatePromptOutputs();
 
       sourceInput.addEventListener("change", async () => {
         const [file] = sourceInput.files;
@@ -442,6 +629,7 @@
         if (!sourceFile) {
           generateButton.disabled = true;
           outputStatus.textContent = "画像を選んでください";
+          updatePromptOutputs();
           return;
         }
 
@@ -449,12 +637,30 @@
           sourceImage = await loadImage(sourceFile);
           generateButton.disabled = false;
           outputStatus.textContent = "画像を読み込みました";
+          updatePromptOutputs();
         } catch {
           sourceImage = null;
           generateButton.disabled = true;
           outputStatus.textContent = "画像を読み込めませんでした";
+          updatePromptOutputs();
         }
       });
+
+      generatePromptsButton.addEventListener("click", () => {
+        updatePromptOutputs();
+        outputStatus.textContent = "プロンプトを更新しました";
+      });
+
+      characterIdInput.addEventListener("input", updatePromptOutputs);
+      characterDescriptionInput.addEventListener("input", updatePromptOutputs);
+
+      copyPortraitPromptButton.addEventListener("click", () =>
+        copyText(portraitPromptOutput.value, "立ち絵プロンプトをコピーしました"),
+      );
+
+      copySpritePromptButton.addEventListener("click", () =>
+        copyText(spritePromptOutput.value, "スプライトプロンプトをコピーしました"),
+      );
 
       generateButton.addEventListener("click", async () => {
         if (!sourceImage || !sourceFile) {
@@ -471,7 +677,7 @@
             createSpriteAsset(sourceImage, characterId, definition),
           ),
         ];
-        manifest = buildManifest(characterId, sourceFile, generatedAssets);
+        manifest = buildManifest(characterId, sourceFile);
         renderAssets();
         outputStatus.textContent = "仮プレビューを作成しました";
         downloadManifestButton.disabled = false;
@@ -497,11 +703,11 @@
         try {
           const root = await window.showDirectoryPicker({ mode: "readwrite" });
           const characterDir = await root.getDirectoryHandle(manifest.characterId, { create: true });
-          const expressionsDir = await characterDir.getDirectoryHandle("expressions", { create: true });
+          const expressionsDir = await characterDir.getDirectoryHandle("portraits", { create: true });
           const spritesDir = await characterDir.getDirectoryHandle("sprites", { create: true });
 
           for (const asset of generatedAssets) {
-            const targetDir = asset.group === "expressions" ? expressionsDir : spritesDir;
+            const targetDir = asset.group === "portraits" ? expressionsDir : spritesDir;
             await writeFile(targetDir, `${asset.key}.png`, asset.blob);
           }
 
@@ -526,6 +732,158 @@
         return normalized || "prototype-character-001";
       }
 
+      function getCharacterContext() {
+        return {
+          characterId: normalizeCharacterId(characterIdInput.value),
+          description:
+            characterDescriptionInput.value.trim() ||
+            "Describe the character's hairstyle, hair color, eye color, outfit, personality, and key accessories here.",
+        };
+      }
+
+      function updatePromptOutputs() {
+        const context = getCharacterContext();
+        const manifestExample = buildManifest(context.characterId, sourceFile);
+        portraitPromptOutput.value = buildPortraitPrompt(context);
+        spritePromptOutput.value = buildSpritePrompt(context);
+        manifestExampleOutput.textContent = JSON.stringify(manifestExample, null, 2);
+        manifest = manifestExample;
+        downloadManifestButton.disabled = false;
+      }
+
+      function buildPortraitPrompt({ characterId, description }) {
+        return `You are creating portrait expression variants for GodSandbox.
+
+Reference:
+Use the uploaded character illustration as identity reference.
+Create portrait / upper-body / full-body illustrations for profile, conversation, events, and Character Passport portrait use.
+Do not change the character's identity.
+
+Character ID:
+${characterId}
+
+Character description:
+${description}
+
+Expression variants:
+1. normal: neutral expression suitable for profile and Passport portrait
+2. tense: worried or alert expression
+3. sadness: sad expression
+4. joy: warm happy expression
+5. divine: blessed or sacred expression, still the same person
+
+Requirements:
+- Keep the same hairstyle, hair color, eye color, outfit colors, and key accessories.
+- Keep the character recognizable as the same person.
+- Do not make the character older, younger, or a different gender.
+- Do not add unrelated accessories.
+- Use transparent background when possible.
+- Keep a consistent camera angle and art style across all variants.
+
+Output files:
+- public/art/generated/${characterId}/portraits/normal.png
+- public/art/generated/${characterId}/portraits/tense.png
+- public/art/generated/${characterId}/portraits/sadness.png
+- public/art/generated/${characterId}/portraits/joy.png
+- public/art/generated/${characterId}/portraits/divine.png
+
+Important:
+This is a portrait expression sheet.
+This is not a pixel-art spritesheet.
+These images are for profile, conversation, events, and Character Passport portrait use.`;
+      }
+
+      function buildSpritePrompt({ characterId, description }) {
+        return `You are creating a pixel-art spritesheet for GodSandbox.
+
+Reference:
+Use the uploaded character illustration only as identity reference.
+Do not crop and paste the original portrait.
+Reinterpret the character as a cute full-body chibi 8-bit pixel art game sprite.
+
+Character ID:
+${characterId}
+
+Character description:
+${description}
+
+Character identity:
+- Keep the same hairstyle, hair color, eye color, outfit colors, and overall personality.
+- Keep the character recognizable as the same person.
+- Do not make the character older, younger, or a different gender.
+- Do not add unrelated accessories.
+
+Art style:
+- cute 8-bit pixel art
+- small chibi game character
+- full body visible
+- transparent background
+- clear silhouette
+- readable at 32x32 or 48x48
+- consistent scale across all frames
+- no text labels inside cells
+- no background scenery
+- no shadows outside the sprite cell
+
+Spritesheet layout:
+- Create a contact sheet / spritesheet.
+- Each row is one animation.
+- Each column is one frame.
+- Use equal cell size for every frame.
+- Keep the character centered in each cell.
+- Use transparent background.
+- Fixed cell size is recommended. Use 48x48 px per cell unless another size is clearly better.
+
+Animations:
+1. idle: 4 frames
+2. walk_down: 4 frames
+3. walk_up: 4 frames
+4. walk_right: 6 frames
+5. walk_left: 6 frames, mirrored from walk_right if needed
+6. waving: 4 frames
+7. jumping: 4 frames
+8. failed: 4 frames
+9. waiting: 4 frames
+
+Output:
+- public/art/generated/${characterId}/sprites/spritesheet.png
+- public/art/generated/${characterId}/sprites/contact-sheet.png
+- transparent background
+- no labels burned into the image
+- same character design in all frames
+
+Important:
+This is not a portrait expression sheet.
+This is not a resized version of the portrait.
+This must be a real pixel-art character spritesheet suitable for walking around a small 3D sandbox world.`;
+      }
+
+      async function copyText(text, successMessage) {
+        try {
+          await navigator.clipboard.writeText(text);
+          outputStatus.textContent = successMessage;
+        } catch {
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.opacity = "0";
+          document.body.append(helper);
+          helper.select();
+
+          try {
+            const copied = document.execCommand("copy");
+            outputStatus.textContent = copied
+              ? successMessage
+              : "コピーできませんでした。テキストを選んでコピーしてください";
+          } catch {
+            outputStatus.textContent = "コピーできませんでした。テキストを選んでコピーしてください";
+          } finally {
+            helper.remove();
+          }
+        }
+      }
+
       function loadImage(file) {
         return new Promise((resolve, reject) => {
           const url = URL.createObjectURL(file);
@@ -547,15 +905,14 @@
           drawContainImage(context, image, size, size, 0, 0, false);
           context.fillStyle = definition.tint;
           context.fillRect(0, 0, size, size);
-          drawSoftLabel(context, definition.key, size);
         });
 
         return {
-          group: "expressions",
+          group: "portraits",
           key: definition.key,
           label: definition.label,
           note: definition.note,
-          path: `/art/generated/${characterId}/expressions/${definition.key}.png`,
+          path: `/art/generated/${characterId}/portraits/${definition.key}.png`,
           blob,
           url: URL.createObjectURL(blob),
         };
@@ -575,15 +932,14 @@
           context.strokeStyle = "rgba(36,72,92,0.28)";
           context.lineWidth = 6;
           context.strokeRect(8, 8, size - 16, size - 16);
-          drawSoftLabel(context, definition.key, size);
         });
 
         return {
-          group: "sprites",
-          key: definition.key,
+          group: "sprite-previews",
+          key: `preview-${definition.key}`,
           label: definition.label,
-          note: "同じ画像を位置や向きで仮表現",
-          path: `/art/generated/${characterId}/sprites/${definition.key}.png`,
+          note: `これは本物の${definition.key}スプライトではなく、元画像を使った仮プレビューです`,
+          path: `/art/generated/${characterId}/sprites/preview-${definition.key}.png`,
           blob,
           url: URL.createObjectURL(blob),
         };
@@ -622,14 +978,6 @@
         context.restore();
       }
 
-      function drawSoftLabel(context, label, size) {
-        context.fillStyle = "rgba(23,38,54,0.72)";
-        context.fillRect(0, size - 44, size, 44);
-        context.fillStyle = "#fff8e8";
-        context.font = "bold 20px Segoe UI, sans-serif";
-        context.fillText(label, 18, size - 16);
-      }
-
       function dataUrlToBlob(dataUrl) {
         const [meta, content] = dataUrl.split(",");
         const mime = meta.match(/:(.*?);/)?.[1] ?? "image/png";
@@ -643,32 +991,45 @@
         return new Blob([bytes], { type: mime });
       }
 
-      function buildManifest(characterId, file, assets) {
-        const expressions = {};
-        const sprites = {};
-
-        for (const asset of assets) {
-          if (asset.group === "expressions") {
-            expressions[asset.key] = asset.path;
-          } else {
-            sprites[asset.key] = asset.path;
-          }
-        }
-
+      function buildManifest(characterId, file) {
         return {
           schemaVersion: "character-visual-prototype.v1",
           characterId,
-          mode: "local-placeholder",
+          mode: "prompt-workflow",
           codexPetUsed: false,
-          note: "Codex pet / external image generation was not used. Images are provisional previews derived from the uploaded source image.",
+          note: "This page does not call Codex pet or an external image API. Use the copied prompts in a separate Codex/browser workflow to create real portraits and a pixel-art spritesheet.",
           source: {
-            fileName: file.name,
-            mimeType: file.type,
-            sizeBytes: file.size,
+            fileName: file?.name ?? "upload-reference-image-in-codex",
+            mimeType: file?.type ?? "image/*",
+            sizeBytes: file?.size ?? null,
           },
           outputRoot: `/art/generated/${characterId}/`,
-          expressions,
-          sprites,
+          portraits: {
+            normal: `/art/generated/${characterId}/portraits/normal.png`,
+            tense: `/art/generated/${characterId}/portraits/tense.png`,
+            sadness: `/art/generated/${characterId}/portraits/sadness.png`,
+            joy: `/art/generated/${characterId}/portraits/joy.png`,
+            divine: `/art/generated/${characterId}/portraits/divine.png`,
+          },
+          sprites: {
+            spritesheet: `/art/generated/${characterId}/sprites/spritesheet.png`,
+            contactSheet: `/art/generated/${characterId}/sprites/contact-sheet.png`,
+            cell: {
+              width: 48,
+              height: 48,
+            },
+            layout: {
+              rowsAre: "animations",
+              columnsAre: "frames",
+              transparentBackground: true,
+              labelsBurnedIntoImage: false,
+            },
+            animations: spriteDefinitions.map((definition, index) => ({
+              row: index + 1,
+              name: definition.key,
+              frames: definition.frames,
+            })),
+          },
           createdAt: new Date().toISOString(),
         };
       }
@@ -683,7 +1044,7 @@
 
         for (const asset of generatedAssets) {
           const card = createAssetCard(asset);
-          if (asset.group === "expressions") {
+          if (asset.group === "portraits") {
             expressionsGrid.append(card);
           } else {
             spritesGrid.append(card);
