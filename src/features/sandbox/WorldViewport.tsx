@@ -75,8 +75,14 @@ function getFocusTarget(characters: Character[], focusCharacterId: string) {
   );
 }
 
-function getWorldBackgroundPhase(tick: number): WorldBackgroundPhase {
-  return WORLD_BACKGROUND_PHASES[Math.floor(tick / 2) % WORLD_BACKGROUND_PHASES.length];
+function getWorldBackgroundPhase(dayPhase: DayPhase, tick: number): WorldBackgroundPhase {
+  // Domain does not have a night phase yet. Keep the visible background aligned
+  // with the domain phase, and only use night as a late-evening presentation variant.
+  if (dayPhase === "evening" && tick % 6 >= 5) {
+    return "night";
+  }
+
+  return dayPhase;
 }
 
 function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z: number }, zoom: number) {
@@ -99,7 +105,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const [cameraMode, setCameraMode] = useState<"follow" | "free">("follow");
   const [cameraCenter, setCameraCenter] = useState({ x: 0, z: 0 });
   const [cameraZoom, setCameraZoom] = useState(1);
-  const backgroundPhase = getWorldBackgroundPhase(tick);
+  const backgroundPhase = getWorldBackgroundPhase(dayPhase, tick);
   const backgroundPath = WORLD_BACKGROUNDS[season][backgroundPhase];
   const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
 
