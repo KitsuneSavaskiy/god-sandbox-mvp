@@ -36,7 +36,7 @@ gitleaks git . --redact=100 --report-format json --exit-code 0
 結果:
 
 ```text
-219 commits scanned
+221 commits scanned
 findings: 0
 ```
 
