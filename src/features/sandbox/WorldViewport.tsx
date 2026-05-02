@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import * as THREE from "three";
+import { WORLD_BACKGROUNDS } from "../../assets/artPaths";
 import type { Character, DayPhase, Season } from "../../domain/types";
 import "./WorldViewportGuide.css";
 
@@ -40,6 +41,9 @@ const CAMERA_DISTANCE = 8;
 const MIN_ZOOM = 0.45;
 const MAX_ZOOM = 1.8;
 const FALLBACK_VIEWPORT_SIZE = 1;
+const WORLD_BACKGROUND_PHASES = ["morning", "noon", "evening", "night"] as const;
+
+type WorldBackgroundPhase = (typeof WORLD_BACKGROUND_PHASES)[number];
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
@@ -71,6 +75,16 @@ function getFocusTarget(characters: Character[], focusCharacterId: string) {
   );
 }
 
+function getWorldBackgroundPhase(dayPhase: DayPhase, tick: number): WorldBackgroundPhase {
+  // Domain does not have a night phase yet. Keep the visible background aligned
+  // with the domain phase, and only use night as a late-evening presentation variant.
+  if (dayPhase === "evening" && tick % 6 >= 5) {
+    return "night";
+  }
+
+  return dayPhase;
+}
+
 function applyCameraPose(camera: THREE.PerspectiveCamera, center: { x: number; z: number }, zoom: number) {
   camera.position.set(center.x, CAMERA_HEIGHT, center.z + CAMERA_DISTANCE);
   camera.zoom = zoom;
@@ -91,6 +105,9 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   const [cameraMode, setCameraMode] = useState<"follow" | "free">("follow");
   const [cameraCenter, setCameraCenter] = useState({ x: 0, z: 0 });
   const [cameraZoom, setCameraZoom] = useState(1);
+  const backgroundPhase = getWorldBackgroundPhase(dayPhase, tick);
+  const backgroundPath = WORLD_BACKGROUNDS[season][backgroundPhase];
+  const [backgroundLoadFailed, setBackgroundLoadFailed] = useState(false);
 
   const focusTarget = getFocusTarget(characters, focusCharacterId);
   const omen = chaosOmen(tick, paused);
@@ -104,9 +121,20 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     ? "ここが箱庭です。いまは大事な出来事で時間が止まり、次の判断を待っています。"
     : "ここが箱庭です。キャラが自動で暮らし、季節や出来事で少しずつ変化します。";
   const nextAction = paused ? "次: 起きた出来事を読み、介入するか考える" : "次: 箱庭をドラッグして見回す";
-  const dayPhaseLabel = dayPhase === "morning" ? "朝" : dayPhase === "noon" ? "昼" : "晩";
+  const dayPhaseLabel =
+    backgroundPhase === "morning"
+      ? "朝"
+      : backgroundPhase === "noon"
+        ? "昼"
+        : backgroundPhase === "evening"
+          ? "夕"
+          : "夜";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
+
+  useEffect(() => {
+    setBackgroundLoadFailed(false);
+  }, [backgroundPath]);
 
   useEffect(() => {
     if (!containerRef.current) {
@@ -116,7 +144,6 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     const initialViewport = getViewportSize(containerRef.current);
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x101826);
 
     const camera = new THREE.PerspectiveCamera(
       45,
@@ -126,8 +153,9 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
     );
     applyCameraPose(camera, cameraCenter, cameraZoom);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0);
     renderer.setSize(initialViewport.width, initialViewport.height);
     containerRef.current.appendChild(renderer.domElement);
 
@@ -224,12 +252,6 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       return;
     }
 
-    const backgroundByPhase: Record<DayPhase, number> = {
-      morning: 0x16263a,
-      noon: 0x1d3552,
-      evening: 0x281f31,
-    };
-
     const ambientIntensityByPhase: Record<DayPhase, number> = {
       morning: 1.15,
       noon: 1.45,
@@ -249,7 +271,6 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       winter: 0x274a56,
     };
 
-    scene.background = new THREE.Color(backgroundByPhase[dayPhase]);
     ambient.intensity = ambientIntensityByPhase[dayPhase];
     directional.intensity = dayPhase === "noon" ? 1.55 : 1.3;
     directional.color = new THREE.Color(directionalColorByPhase[dayPhase]);
@@ -373,6 +394,16 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
       onPointerUp={handlePointerUp}
       onPointerLeave={handlePointerUp}
     >
+      {!backgroundLoadFailed && (
+        <img
+          aria-hidden="true"
+          className="world-viewport__background"
+          src={backgroundPath}
+          alt=""
+          loading="eager"
+          onError={() => setBackgroundLoadFailed(true)}
+        />
+      )}
       <div className="viewport-root__canvas" ref={containerRef} />
       <div className="viewport-overlay">
         <div className="viewport-overlay__chip">
