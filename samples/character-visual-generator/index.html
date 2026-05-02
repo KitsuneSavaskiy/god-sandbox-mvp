@@ -163,6 +163,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        align-items: stretch;
         margin-top: 16px;
       }
 
@@ -172,6 +173,7 @@
         background: #24485c;
         color: #fff8e8;
         cursor: pointer;
+        justify-content: center;
         font-weight: 800;
         min-height: 44px;
         padding: 11px 16px;
@@ -260,6 +262,7 @@
       .asset-card__body {
         display: grid;
         gap: 8px;
+        min-width: 0;
         padding: 12px;
       }
 
@@ -270,6 +273,7 @@
       .asset-card__body span {
         color: #5f6f7c;
         font-size: 0.86rem;
+        overflow-wrap: anywhere;
       }
 
       .manifest-box {
@@ -281,7 +285,8 @@
         font-size: 0.86rem;
         line-height: 1.6;
         padding: 16px;
-        white-space: pre;
+        white-space: pre-wrap;
+        word-break: break-word;
       }
 
       .empty-state {
@@ -304,6 +309,40 @@
         .page-shell {
           width: min(100% - 20px, 1180px);
           padding-top: 18px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page-shell {
+          width: min(100% - 16px, 1180px);
+          padding-bottom: 28px;
+        }
+
+        .panel,
+        .hero__copy,
+        .status-card {
+          padding-inline: 16px;
+        }
+
+        .button-row {
+          flex-direction: column;
+        }
+
+        .button {
+          width: 100%;
+        }
+
+        .preview-header {
+          align-items: flex-start;
+        }
+
+        .status-pill {
+          max-width: 100%;
+        }
+
+        .manifest-box {
+          font-size: 0.8rem;
+          padding: 14px;
         }
       }
     </style>
@@ -348,6 +387,9 @@
           </div>
           <div class="button-row">
             <button id="generate-button" class="button" type="button" disabled>仮プレビューを作る</button>
+            <button id="load-demo-button" class="button button--secondary" type="button">
+              サンプル画像で試す
+            </button>
             <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
               manifestをダウンロード
             </button>
@@ -355,11 +397,8 @@
               public/art/generatedへ書き出す
             </button>
           </div>
-          <p class="note">
-            ブラウザがフォルダ保存に対応している場合は、保存先に
-            <strong>public/art/generated</strong> を選ぶと
-            <strong>&lt;characterId&gt;</strong> フォルダへPNGとmanifestを書き出せます。
-            非対応ブラウザではmanifestのダウンロードだけ使えます。
+          <p id="storage-support-note" class="note">
+            フォルダ保存の対応状況を確認しています。
           </p>
         </div>
 
@@ -403,6 +442,14 @@
         { key: "divine", label: "神性", tint: "rgba(213,240,255,0.42)", note: "淡い光を重ねる" },
       ];
 
+      const demoDefinitions = {
+        ryo: {
+          suggestedId: "demo-ryo",
+          fileName: "ryo_normal.jpeg",
+          path: "/art/portraits/ryo/ryo_normal.jpeg",
+        },
+      };
+
       const spriteDefinitions = [
         { key: "idle", label: "待機", offsetX: 0, offsetY: 0, flip: false },
         { key: "walk_down", label: "下へ歩く", offsetX: 0, offsetY: 10, flip: false },
@@ -414,8 +461,10 @@
       const sourceInput = document.getElementById("source-image");
       const characterIdInput = document.getElementById("character-id");
       const generateButton = document.getElementById("generate-button");
+      const loadDemoButton = document.getElementById("load-demo-button");
       const downloadManifestButton = document.getElementById("download-manifest-button");
       const saveDirectoryButton = document.getElementById("save-directory-button");
+      const storageSupportNote = document.getElementById("storage-support-note");
       const outputStatus = document.getElementById("output-status");
       const emptyState = document.getElementById("empty-state");
       const expressionsSection = document.getElementById("expressions-section");
@@ -429,53 +478,23 @@
       let sourceImage = null;
       let generatedAssets = [];
       let manifest = null;
+      const searchParams = new URLSearchParams(window.location.search);
+      const requestedDemo = searchParams.get("demo");
+      const shouldAutogenerate = searchParams.get("autogenerate") === "1";
 
-      saveDirectoryButton.hidden = !("showDirectoryPicker" in window);
+      updateFileSystemAccessSupport();
 
       sourceInput.addEventListener("change", async () => {
         const [file] = sourceInput.files;
-        sourceFile = file ?? null;
-        generatedAssets = [];
-        manifest = null;
-        renderEmptyState();
-
-        if (!sourceFile) {
-          generateButton.disabled = true;
-          outputStatus.textContent = "画像を選んでください";
-          return;
-        }
-
-        try {
-          sourceImage = await loadImage(sourceFile);
-          generateButton.disabled = false;
-          outputStatus.textContent = "画像を読み込みました";
-        } catch {
-          sourceImage = null;
-          generateButton.disabled = true;
-          outputStatus.textContent = "画像を読み込めませんでした";
-        }
+        await applySource(file ?? null);
       });
 
       generateButton.addEventListener("click", async () => {
-        if (!sourceImage || !sourceFile) {
-          return;
-        }
+        generatePreviewFromCurrentSource();
+      });
 
-        const characterId = normalizeCharacterId(characterIdInput.value);
-        characterIdInput.value = characterId;
-        generatedAssets = [
-          ...expressionDefinitions.map((definition) =>
-            createExpressionAsset(sourceImage, characterId, definition),
-          ),
-          ...spriteDefinitions.map((definition) =>
-            createSpriteAsset(sourceImage, characterId, definition),
-          ),
-        ];
-        manifest = buildManifest(characterId, sourceFile, generatedAssets);
-        renderAssets();
-        outputStatus.textContent = "仮プレビューを作成しました";
-        downloadManifestButton.disabled = false;
-        saveDirectoryButton.disabled = saveDirectoryButton.hidden;
+      loadDemoButton.addEventListener("click", async () => {
+        await loadDemoSource("ryo");
       });
 
       downloadManifestButton.addEventListener("click", () => {
@@ -490,7 +509,7 @@
       });
 
       saveDirectoryButton.addEventListener("click", async () => {
-        if (!manifest || generatedAssets.length === 0 || !("showDirectoryPicker" in window)) {
+        if (!manifest || generatedAssets.length === 0 || !updateFileSystemAccessSupport()) {
           return;
         }
 
@@ -515,6 +534,114 @@
           outputStatus.textContent = "書き出しを中止しました";
         }
       });
+
+      bootstrapDemoFromQuery();
+
+      async function applySource(file, options = {}) {
+        const { autoGenerate = false, sourceLabel = null } = options;
+        sourceFile = file;
+        generatedAssets = [];
+        manifest = null;
+        renderEmptyState();
+
+        if (!sourceFile) {
+          sourceImage = null;
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を選んでください";
+          return false;
+        }
+
+        try {
+          sourceImage = await loadImage(sourceFile);
+          generateButton.disabled = false;
+          outputStatus.textContent = sourceLabel ?? "画像を読み込みました";
+
+          if (autoGenerate) {
+            generatePreviewFromCurrentSource();
+          }
+          return true;
+        } catch {
+          sourceImage = null;
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を読み込めませんでした";
+          return false;
+        }
+      }
+
+      function generatePreviewFromCurrentSource() {
+        if (!sourceImage || !sourceFile) {
+          return false;
+        }
+
+        const characterId = normalizeCharacterId(characterIdInput.value);
+        characterIdInput.value = characterId;
+        generatedAssets = [
+          ...expressionDefinitions.map((definition) =>
+            createExpressionAsset(sourceImage, characterId, definition),
+          ),
+          ...spriteDefinitions.map((definition) =>
+            createSpriteAsset(sourceImage, characterId, definition),
+          ),
+        ];
+        manifest = buildManifest(characterId, sourceFile, generatedAssets);
+        renderAssets();
+        outputStatus.textContent = "仮プレビューを作成しました";
+        downloadManifestButton.disabled = false;
+        saveDirectoryButton.disabled = saveDirectoryButton.hidden;
+        return true;
+      }
+
+      async function loadDemoSource(demoKey, options = {}) {
+        const demoDefinition = demoDefinitions[demoKey];
+        if (!demoDefinition) {
+          outputStatus.textContent = "サンプル画像が見つかりません";
+          return false;
+        }
+
+        loadDemoButton.disabled = true;
+        outputStatus.textContent = "サンプル画像を読み込んでいます";
+
+        try {
+          const response = await fetch(demoDefinition.path);
+          if (!response.ok) {
+            throw new Error("demo image fetch failed");
+          }
+
+          const blob = await response.blob();
+          const demoFile = new File([blob], demoDefinition.fileName, {
+            type: blob.type || "image/jpeg",
+          });
+          if (characterIdInput.value === "prototype-character-001" || !characterIdInput.value.trim()) {
+            characterIdInput.value = demoDefinition.suggestedId;
+          }
+          sourceInput.value = "";
+          return await applySource(demoFile, {
+            autoGenerate: options.autoGenerate ?? false,
+            sourceLabel: "サンプル画像を読み込みました",
+          });
+        } catch {
+          outputStatus.textContent = "サンプル画像を読み込めませんでした";
+          return false;
+        } finally {
+          loadDemoButton.disabled = false;
+        }
+      }
+
+      async function bootstrapDemoFromQuery() {
+        if (!requestedDemo) {
+          return;
+        }
+        await loadDemoSource(requestedDemo, { autoGenerate: shouldAutogenerate });
+      }
+
+      function updateFileSystemAccessSupport() {
+        const fileSystemAccessAvailable = typeof window.showDirectoryPicker === "function";
+        saveDirectoryButton.hidden = !fileSystemAccessAvailable;
+        storageSupportNote.innerHTML = fileSystemAccessAvailable
+          ? 'このブラウザではフォルダ保存が使えます。保存先に <strong>public/art/generated</strong> を選ぶと <strong>&lt;characterId&gt;</strong> フォルダへ PNG と manifest を書き出せます。'
+          : "このブラウザではフォルダ保存は使えません。manifest のダウンロードだけ利用できます。";
+        return fileSystemAccessAvailable;
+      }
 
       function normalizeCharacterId(value) {
         const normalized = value
