@@ -50,6 +50,8 @@ npm run build
 - [ ] PBI 指定コマンドを実行した。
 - [ ] 実行できなかったコマンドがある場合、理由を PR 本文に明記した。
 - [ ] pass / fail を PR 本文に正直に記録した。
+- [ ] UI 変更の場合、ブラウザで見た目と操作を確認した。
+- [ ] UI 変更でブラウザ確認できない場合、未実施理由と代替確認を PR 本文に書いた。
 
 ### 5. PR本文と label
 
@@ -59,6 +61,8 @@ npm run build
 - [ ] label が `agent-routine` または `manual-review-required` のどちらかで、実際の risk と一致している。
 - [ ] `AGENTS.md`、`CLAUDE.md`、commit する docs に個人パス、secret、API key、token、ローカル環境名、個別アカウント設定が入っていない。
 - [ ] `AGENTS.md` / `CLAUDE.md` は参照導線と最重要ルール中心で、詳細は `docs/` に寄せている。
+- [ ] `.logs/` やローカル補助ファイルを、PBI scope なしに追加していない。
+- [ ] アート生成プロンプトを Git 管理する場合、`docs/art-prompts/` に置いている。
 
 ## PR audit checklist
 
@@ -109,6 +113,17 @@ git diff --check origin/main...HEAD
 - [ ] hidden scope expansion がない。
 - [ ] review comment の未解消事項がない、または PO が明示的に許可している。
 - [ ] merge 順依存がある場合、その前提が解消されている。
+
+### 4.5 GodSandbox severity
+
+| severity | 判定 |
+| --- | --- |
+| P0 blocker | secret漏えい、個人情報混入、package/CIの無許可変更、起動不能、データ破壊、重大なscope逸脱 |
+| P1 blocker | 受け入れ条件の主要未達、初見導線を壊すUI、スマホで主要操作不能、Passport contract破壊、レビュー必須scopeの未確認 |
+| P2 non-blocker | merge前に直すとよい不整合、文言誤解、軽いレイアウト崩れ、follow-upなしだと後で迷う設計 |
+| P3 follow-up | 今回scope外の改善案、将来のUX調整、軽微な説明補足 |
+
+blocker がある場合は merge しない。P2 / P3 は、今回直すか follow-up PBI に分けるかを監査コメントに書く。
 
 ### 5. approve / merge 判定
 
