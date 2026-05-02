@@ -735,7 +735,7 @@
         return `あなたはGodSandboxのキャラクター画像制作を手伝うCodex petです。
 
 目的:
-添付した1枚の基本キャラクターイラストから、GodSandboxの箱庭で使える表情差分と2Dスプライトを生成してください。
+添付した1枚の基本キャラクターイラストを identity reference として使い、GodSandboxの箱庭で使える portrait 表情差分と、別途 pixel art / chibi の spritesheet を生成してください。
 
 GodSandbox世界観:
 - プレイヤーは「新米神様」です。
@@ -746,7 +746,8 @@ GodSandbox世界観:
 
 入力画像:
 - sourceImageName: ${sourceImageName}
-- この画像の同一人物感を最優先してください。
+- この画像は identity reference としてのみ使ってください。
+- crop / paste / resize で立ち絵を縮小してスプライト化しないでください。
 - 髪型、目、服装、色味、年齢感、雰囲気を維持してください。
 
 キャラクター情報:
@@ -755,25 +756,46 @@ GodSandbox世界観:
 - 口調 / 雰囲気: ${safeTone}
 - 生成メモ: ${safeNotes}
 
-生成してほしい表情差分:
+出力A: portrait 表情差分
+- 立ち絵またはportraitとして使える画像です。
+- pixel art 指示は混ぜないでください。
+- 背景は透過、または単色で抜きやすい形を優先してください。
 - normal: 通常。基本イラストに最も近い表情。
 - tense: 緊張。少し身構えているが別人化しない。
 - sadness: 悲しみ。静かな落ち込みや不安。
 - joy: 喜び。明るく安心した表情。
 - divine: 神様の介入を受けたような、淡く神聖な表情。
 
-生成してほしい箱庭用2Dスプライト:
-- idle: 待機。
-- walk_down: 画面手前へ歩く。
-- walk_up: 画面奥へ歩く。
-- walk_left: 左へ歩く。
-- walk_right: 右へ歩く。
+出力B: pixel art / chibi spritesheet
+- 立ち絵の crop / paste / resize ではなく、新しく描き起こした pixel art / chibi / full body キャラにしてください。
+- transparent background にしてください。
+- clear silhouette を優先してください。
+- 32x32 または 48x48 で縮小表示しても読める形にしてください。
+- no text labels inside cells。
+- no background scene。
+- equal cell size。
+- rows are animations。
+- columns are frames。
+- 各行の左から右へ、自然なアニメーションのフレームを並べてください。
 
-スプライト方針:
-- 可愛い2Dゲームキャラ、または小さな箱庭で見やすいドット絵風にしてください。
-- 3D背景上でも視認できるよう、輪郭とコントラストを少し強めてください。
-- 背景は透過、または単色で抜きやすい形を優先してください。
-- 文字、ロゴ、UI部品を画像内に入れないでください。
+spritesheet の最小animation:
+- idle
+- walk_down
+- walk_up
+- walk_right
+- walk_left
+
+spritesheet の追加候補:
+- waving
+- jumping
+- failed
+- waiting
+
+spritesheet / contact sheet 方針:
+- spritesheet.png は、ゲームで切り出して使うための整列済みspritesheetです。
+- contact-sheet.png は、人間が確認しやすい一覧用です。
+- contact-sheet.png に文字ラベルを入れる場合でも、各sprite cellの中には文字を入れないでください。
+- sprite cell内に背景シーンやUI部品を入れないでください。
 
 避けたい表現:
 - ${safeAvoidance}
@@ -790,12 +812,14 @@ GodSandbox世界観:
 - public/art/generated/${characterId}/sprites/walk_left.png
 - public/art/generated/${characterId}/sprites/walk_right.png
 - public/art/generated/${characterId}/spritesheet.png
+- public/art/generated/${characterId}/contact-sheet.png
 - public/art/generated/${characterId}/visual-manifest.json
 
 ファイル名規則:
 - 表情差分は expressions/<expression>.png に保存してください。
 - スプライト単体は sprites/<sprite>.png に保存してください。
-- まとめ画像を作る場合は spritesheet.png に保存してください。
+- ゲーム用spritesheetは spritesheet.png に保存してください。
+- 確認用contact sheetは contact-sheet.png に保存してください。
 - 生成物はPNGを基本にしてください。
 
 visual-manifest.json の構造:
@@ -819,6 +843,7 @@ visual-manifest.json の構造:
     "walk_right": "/art/generated/${characterId}/sprites/walk_right.png"
   },
   "spritesheet": "/art/generated/${characterId}/spritesheet.png",
+  "contactSheet": "/art/generated/${characterId}/contact-sheet.png",
   "createdAt": "<生成日時をISO 8601で入れる>",
   "notes": "${safeNotes}"
 }
