@@ -10,6 +10,7 @@ GodSandbox の AI 並行開発で、毎回の長文指示を短くしながら�
 
 ## 固定運用ルール
 
+- ゲーム方針正本は `docs/game-plan.md` を参照する。
 - PBI 単位で作業する。
 - PBI ごとに Issue、branch、PR、label、scope を紐づける。
 - PBI で要求された場合は、作業前に Issue を作る。
@@ -19,6 +20,9 @@ GodSandbox の AI 並行開発で、毎回の長文指示を短くしながら�
 - 未追跡のローカル補助ファイルを、PBI 成果物として混ぜない。
 - policy、agent instruction、workflow、permission、secret、billing、dependency、protected path に触れる変更は `manual-review-required` を使う。迷った場合も同じ。
 - `AGENTS.md`、`CLAUDE.md`、commit する docs には、個人パス、secret、API key、token、ローカル環境名、個別アカウント設定を書かない。
+- UI 変更は build 成功だけで完了にしない。可能な範囲でブラウザ確認を行い、結果または未実施理由を PR 本文に書く。
+- アート生成プロンプトを Git 管理する場合は `docs/art-prompts/` に置き、PO の個人画像、個人設定、secret、ローカルパスを含めない。
+- `.logs/` は勝手に追加しない。ログや補助メモは原則 Git 管理外に置き、PR に入れる場合は PBI scope として明示する。
 - 途中で止まるときは Current State Memo を残し、次の agent が履歴を掘らずに現在地を把握できるようにする。
 
 ## merge権限ルール
