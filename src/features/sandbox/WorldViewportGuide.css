@@ -11,6 +11,40 @@
   touch-action: manipulation;
 }
 
+.world-viewport--guided {
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(88, 129, 145, 0.28), transparent 42%),
+    linear-gradient(180deg, #101826 0%, #0a111b 100%);
+}
+
+.world-viewport__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.42;
+  filter: saturate(0.92) contrast(0.95);
+  pointer-events: none;
+  user-select: none;
+}
+
+.world-viewport--guided .viewport-root__canvas {
+  position: relative;
+  z-index: 1;
+}
+
+.world-viewport--guided .viewport-root__canvas canvas {
+  display: block;
+  background: transparent;
+}
+
+.world-viewport--guided .viewport-overlay {
+  z-index: 2;
+}
+
 .world-viewport-guide {
   position: absolute;
   right: 1rem;

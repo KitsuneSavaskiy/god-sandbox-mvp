@@ -11,3 +11,30 @@ export const RYO_ILLUSTRATIONS = {
   bless: "/art/illustrations/ryo/ryo_bless.jpeg",
   test: "/art/illustrations/ryo/ryo_test.jpeg",
 } as const;
+
+export const WORLD_BACKGROUNDS = {
+  spring: {
+    morning: "/art/world/backgrounds/spring-morning.png",
+    noon: "/art/world/backgrounds/spring-noon.png",
+    evening: "/art/world/backgrounds/spring-evening.png",
+    night: "/art/world/backgrounds/spring-night.png",
+  },
+  summer: {
+    morning: "/art/world/backgrounds/summer-morning.png",
+    noon: "/art/world/backgrounds/summer-noon.png",
+    evening: "/art/world/backgrounds/summer-evening.png",
+    night: "/art/world/backgrounds/summer-night.png",
+  },
+  autumn: {
+    morning: "/art/world/backgrounds/autumn-morning.png",
+    noon: "/art/world/backgrounds/autumn-noon.png",
+    evening: "/art/world/backgrounds/autumn-evening.png",
+    night: "/art/world/backgrounds/autumn-night.png",
+  },
+  winter: {
+    morning: "/art/world/backgrounds/winter-morning.png",
+    noon: "/art/world/backgrounds/winter-noon.png",
+    evening: "/art/world/backgrounds/winter-evening.png",
+    night: "/art/world/backgrounds/winter-night.png",
+  },
+} as const;
