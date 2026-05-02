@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Character Visual Prototype Generator</title>
+    <style>
+      :root {
+        color: #203044;
+        background: #f5efe2;
+        font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 12% 10%, rgba(231, 170, 76, 0.24), transparent 28rem),
+          radial-gradient(circle at 88% 14%, rgba(75, 134, 161, 0.18), transparent 24rem),
+          linear-gradient(135deg, #f8f0dd 0%, #e8efe7 52%, #dbe8ed 100%);
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .page-shell {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 44px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+        align-items: stretch;
+      }
+
+      .hero__copy,
+      .panel,
+      .status-card {
+        border: 1px solid rgba(60, 72, 83, 0.14);
+        border-radius: 28px;
+        background: rgba(255, 252, 245, 0.78);
+        box-shadow: 0 22px 48px rgba(66, 61, 46, 0.13);
+        backdrop-filter: blur(14px);
+      }
+
+      .hero__copy {
+        padding: clamp(22px, 5vw, 42px);
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        width: fit-content;
+        border-radius: 999px;
+        background: #234456;
+        color: #f7efd9;
+        font-size: 0.78rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        padding: 8px 12px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        max-width: 760px;
+        color: #172636;
+        font-size: clamp(2rem, 7vw, 4.75rem);
+        letter-spacing: -0.055em;
+        line-height: 0.96;
+        margin-top: 18px;
+      }
+
+      .lead {
+        max-width: 760px;
+        color: #4f6171;
+        font-size: clamp(1rem, 2.2vw, 1.2rem);
+        line-height: 1.8;
+        margin-top: 18px;
+      }
+
+      .status-card {
+        display: grid;
+        align-content: space-between;
+        gap: 18px;
+        padding: 24px;
+      }
+
+      .status-card strong {
+        color: #172636;
+        font-size: 1.05rem;
+      }
+
+      .status-card p {
+        color: #586a77;
+        line-height: 1.65;
+      }
+
+      .status-pill {
+        display: inline-flex;
+        width: fit-content;
+        border-radius: 999px;
+        background: #f2d486;
+        color: #513c0e;
+        font-weight: 800;
+        padding: 8px 12px;
+      }
+
+      .workspace {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: minmax(280px, 0.8fr) minmax(0, 1.2fr);
+        margin-top: 18px;
+      }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .panel h2 {
+        color: #1d2c3c;
+        font-size: 1.25rem;
+        margin-bottom: 14px;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      label {
+        display: grid;
+        gap: 8px;
+        color: #314150;
+        font-size: 0.92rem;
+        font-weight: 800;
+      }
+
+      input[type="text"],
+      input[type="file"] {
+        width: 100%;
+        border: 1px solid rgba(40, 58, 72, 0.2);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.78);
+        color: #172636;
+        padding: 12px 14px;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      .button {
+        border: 0;
+        border-radius: 999px;
+        background: #24485c;
+        color: #fff8e8;
+        cursor: pointer;
+        font-weight: 800;
+        min-height: 44px;
+        padding: 11px 16px;
+      }
+
+      .button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .button--secondary {
+        border: 1px solid rgba(36, 72, 92, 0.22);
+        background: rgba(255, 255, 255, 0.55);
+        color: #24485c;
+      }
+
+      .button--warm {
+        background: #c76f35;
+      }
+
+      .note {
+        border-left: 4px solid #d49a42;
+        border-radius: 16px;
+        background: rgba(255, 246, 221, 0.72);
+        color: #624d1f;
+        line-height: 1.65;
+        margin-top: 16px;
+        padding: 12px 14px;
+      }
+
+      .preview-area {
+        display: grid;
+        gap: 18px;
+      }
+
+      .preview-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .preview-header p {
+        color: #5a6d79;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      }
+
+      .asset-card {
+        overflow: hidden;
+        border: 1px solid rgba(40, 58, 72, 0.14);
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.72);
+      }
+
+      .asset-card__image {
+        display: grid;
+        place-items: center;
+        min-height: 150px;
+        background:
+          linear-gradient(45deg, rgba(36, 72, 92, 0.08) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(36, 72, 92, 0.08) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(36, 72, 92, 0.08) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(36, 72, 92, 0.08) 75%);
+        background-position:
+          0 0,
+          0 8px,
+          8px -8px,
+          -8px 0;
+        background-size: 16px 16px;
+      }
+
+      .asset-card img {
+        display: block;
+        width: min(100%, 164px);
+        height: auto;
+        image-rendering: auto;
+      }
+
+      .asset-card__body {
+        display: grid;
+        gap: 8px;
+        padding: 12px;
+      }
+
+      .asset-card__body strong {
+        color: #172636;
+      }
+
+      .asset-card__body span {
+        color: #5f6f7c;
+        font-size: 0.86rem;
+      }
+
+      .manifest-box {
+        overflow: auto;
+        max-height: 420px;
+        border-radius: 18px;
+        background: #172636;
+        color: #d9f4ec;
+        font-size: 0.86rem;
+        line-height: 1.6;
+        padding: 16px;
+        white-space: pre;
+      }
+
+      .empty-state {
+        display: grid;
+        place-items: center;
+        min-height: 260px;
+        border: 2px dashed rgba(36, 72, 92, 0.22);
+        border-radius: 24px;
+        color: #5f6f7c;
+        text-align: center;
+        padding: 22px;
+      }
+
+      @media (max-width: 860px) {
+        .hero,
+        .workspace {
+          grid-template-columns: 1fr;
+        }
+
+        .page-shell {
+          width: min(100% - 20px, 1180px);
+          padding-top: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero">
+        <div class="hero__copy">
+          <span class="eyebrow">Prototype</span>
+          <h1>1枚絵からキャラ差分の形を試す</h1>
+          <p class="lead">
+            キャラクターの基本イラストを読み込み、表情差分と箱庭用2Dスプライトのプレビュー枠、
+            そして外部化しやすいmanifest JSONを確認するための最小プロトタイプです。
+          </p>
+        </div>
+        <aside class="status-card" aria-label="生成モード">
+          <div>
+            <span class="status-pill">Codex pet 未使用</span>
+          </div>
+          <div>
+            <strong>この画面は生成を偽装しません</strong>
+            <p>
+              画像生成APIや外部AIには接続していません。アップロード画像をCanvasで切り出し、
+              色味と位置を少し変えた仮プレビューだけを作ります。
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="workspace">
+        <div class="panel">
+          <h2>入力</h2>
+          <div class="form-grid">
+            <label>
+              characterId
+              <input id="character-id" type="text" value="prototype-character-001" autocomplete="off" />
+            </label>
+            <label>
+              基本イラスト
+              <input id="source-image" type="file" accept="image/png,image/jpeg,image/webp" />
+            </label>
+          </div>
+          <div class="button-row">
+            <button id="generate-button" class="button" type="button" disabled>仮プレビューを作る</button>
+            <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
+              manifestをダウンロード
+            </button>
+            <button id="save-directory-button" class="button button--warm" type="button" disabled>
+              public/art/generatedへ書き出す
+            </button>
+          </div>
+          <p class="note">
+            ブラウザがフォルダ保存に対応している場合は、保存先に
+            <strong>public/art/generated</strong> を選ぶと
+            <strong>&lt;characterId&gt;</strong> フォルダへPNGとmanifestを書き出せます。
+            非対応ブラウザではmanifestのダウンロードだけ使えます。
+          </p>
+        </div>
+
+        <div class="panel preview-area">
+          <div class="preview-header">
+            <div>
+              <h2>プレビュー</h2>
+              <p>表情差分と箱庭用スプライトの枠を確認します。</p>
+            </div>
+            <span id="output-status" class="status-pill">画像を選んでください</span>
+          </div>
+
+          <div id="empty-state" class="empty-state">
+            <p>1枚絵を選ぶと、ここに normal / tense / sadness / joy / divine と sprite preview が出ます。</p>
+          </div>
+
+          <section id="expressions-section" hidden>
+            <h3>表情差分</h3>
+            <div id="expressions-grid" class="grid"></div>
+          </section>
+
+          <section id="sprites-section" hidden>
+            <h3>箱庭用2Dスプライト</h3>
+            <div id="sprites-grid" class="grid"></div>
+          </section>
+
+          <section id="manifest-section" hidden>
+            <h3>manifest JSON</h3>
+            <pre id="manifest-output" class="manifest-box"></pre>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const expressionDefinitions = [
+        { key: "normal", label: "通常", tint: "rgba(255,255,255,0)", note: "元画像に近い仮表示" },
+        { key: "tense", label: "緊張", tint: "rgba(77,104,150,0.26)", note: "少し青く引き締める" },
+        { key: "sadness", label: "悲しみ", tint: "rgba(72,94,130,0.34)", note: "暗めの青を重ねる" },
+        { key: "joy", label: "喜び", tint: "rgba(255,207,91,0.28)", note: "明るい金色を重ねる" },
+        { key: "divine", label: "神性", tint: "rgba(213,240,255,0.42)", note: "淡い光を重ねる" },
+      ];
+
+      const spriteDefinitions = [
+        { key: "idle", label: "待機", offsetX: 0, offsetY: 0, flip: false },
+        { key: "walk_down", label: "下へ歩く", offsetX: 0, offsetY: 10, flip: false },
+        { key: "walk_up", label: "上へ歩く", offsetX: 0, offsetY: -10, flip: false },
+        { key: "walk_left", label: "左へ歩く", offsetX: -10, offsetY: 0, flip: true },
+        { key: "walk_right", label: "右へ歩く", offsetX: 10, offsetY: 0, flip: false },
+      ];
+
+      const sourceInput = document.getElementById("source-image");
+      const characterIdInput = document.getElementById("character-id");
+      const generateButton = document.getElementById("generate-button");
+      const downloadManifestButton = document.getElementById("download-manifest-button");
+      const saveDirectoryButton = document.getElementById("save-directory-button");
+      const outputStatus = document.getElementById("output-status");
+      const emptyState = document.getElementById("empty-state");
+      const expressionsSection = document.getElementById("expressions-section");
+      const spritesSection = document.getElementById("sprites-section");
+      const manifestSection = document.getElementById("manifest-section");
+      const expressionsGrid = document.getElementById("expressions-grid");
+      const spritesGrid = document.getElementById("sprites-grid");
+      const manifestOutput = document.getElementById("manifest-output");
+
+      let sourceFile = null;
+      let sourceImage = null;
+      let generatedAssets = [];
+      let manifest = null;
+
+      saveDirectoryButton.hidden = !("showDirectoryPicker" in window);
+
+      sourceInput.addEventListener("change", async () => {
+        const [file] = sourceInput.files;
+        sourceFile = file ?? null;
+        generatedAssets = [];
+        manifest = null;
+        renderEmptyState();
+
+        if (!sourceFile) {
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を選んでください";
+          return;
+        }
+
+        try {
+          sourceImage = await loadImage(sourceFile);
+          generateButton.disabled = false;
+          outputStatus.textContent = "画像を読み込みました";
+        } catch {
+          sourceImage = null;
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を読み込めませんでした";
+        }
+      });
+
+      generateButton.addEventListener("click", async () => {
+        if (!sourceImage || !sourceFile) {
+          return;
+        }
+
+        const characterId = normalizeCharacterId(characterIdInput.value);
+        characterIdInput.value = characterId;
+        generatedAssets = [
+          ...expressionDefinitions.map((definition) =>
+            createExpressionAsset(sourceImage, characterId, definition),
+          ),
+          ...spriteDefinitions.map((definition) =>
+            createSpriteAsset(sourceImage, characterId, definition),
+          ),
+        ];
+        manifest = buildManifest(characterId, sourceFile, generatedAssets);
+        renderAssets();
+        outputStatus.textContent = "仮プレビューを作成しました";
+        downloadManifestButton.disabled = false;
+        saveDirectoryButton.disabled = saveDirectoryButton.hidden;
+      });
+
+      downloadManifestButton.addEventListener("click", () => {
+        if (!manifest) {
+          return;
+        }
+
+        downloadBlob(
+          new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" }),
+          `${manifest.characterId}.visual-manifest.json`,
+        );
+      });
+
+      saveDirectoryButton.addEventListener("click", async () => {
+        if (!manifest || generatedAssets.length === 0 || !("showDirectoryPicker" in window)) {
+          return;
+        }
+
+        try {
+          const root = await window.showDirectoryPicker({ mode: "readwrite" });
+          const characterDir = await root.getDirectoryHandle(manifest.characterId, { create: true });
+          const expressionsDir = await characterDir.getDirectoryHandle("expressions", { create: true });
+          const spritesDir = await characterDir.getDirectoryHandle("sprites", { create: true });
+
+          for (const asset of generatedAssets) {
+            const targetDir = asset.group === "expressions" ? expressionsDir : spritesDir;
+            await writeFile(targetDir, `${asset.key}.png`, asset.blob);
+          }
+
+          await writeFile(
+            characterDir,
+            "visual-manifest.json",
+            new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" }),
+          );
+          outputStatus.textContent = "フォルダへ書き出しました";
+        } catch (error) {
+          outputStatus.textContent = "書き出しを中止しました";
+        }
+      });
+
+      function normalizeCharacterId(value) {
+        const normalized = value
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9_-]+/g, "-")
+          .replace(/^-+|-+$/g, "");
+
+        return normalized || "prototype-character-001";
+      }
+
+      function loadImage(file) {
+        return new Promise((resolve, reject) => {
+          const url = URL.createObjectURL(file);
+          const image = new Image();
+          image.onload = () => {
+            URL.revokeObjectURL(url);
+            resolve(image);
+          };
+          image.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("image load failed"));
+          };
+          image.src = url;
+        });
+      }
+
+      function createExpressionAsset(image, characterId, definition) {
+        const blob = renderCanvasBlob((context, size) => {
+          drawContainImage(context, image, size, size, 0, 0, false);
+          context.fillStyle = definition.tint;
+          context.fillRect(0, 0, size, size);
+          drawSoftLabel(context, definition.key, size);
+        });
+
+        return {
+          group: "expressions",
+          key: definition.key,
+          label: definition.label,
+          note: definition.note,
+          path: `/art/generated/${characterId}/expressions/${definition.key}.png`,
+          blob,
+          url: URL.createObjectURL(blob),
+        };
+      }
+
+      function createSpriteAsset(image, characterId, definition) {
+        const blob = renderCanvasBlob((context, size) => {
+          drawContainImage(
+            context,
+            image,
+            size,
+            size,
+            definition.offsetX,
+            definition.offsetY,
+            definition.flip,
+          );
+          context.strokeStyle = "rgba(36,72,92,0.28)";
+          context.lineWidth = 6;
+          context.strokeRect(8, 8, size - 16, size - 16);
+          drawSoftLabel(context, definition.key, size);
+        });
+
+        return {
+          group: "sprites",
+          key: definition.key,
+          label: definition.label,
+          note: "同じ画像を位置や向きで仮表現",
+          path: `/art/generated/${characterId}/sprites/${definition.key}.png`,
+          blob,
+          url: URL.createObjectURL(blob),
+        };
+      }
+
+      function renderCanvasBlob(draw) {
+        const canvas = document.createElement("canvas");
+        const size = 384;
+        canvas.width = size;
+        canvas.height = size;
+        const context = canvas.getContext("2d");
+        context.clearRect(0, 0, size, size);
+        context.fillStyle = "rgba(255,255,255,0)";
+        context.fillRect(0, 0, size, size);
+        draw(context, size);
+
+        const dataUrl = canvas.toDataURL("image/png");
+        return dataUrlToBlob(dataUrl);
+      }
+
+      function drawContainImage(context, image, width, height, offsetX, offsetY, flip) {
+        const scale = Math.min(width / image.naturalWidth, height / image.naturalHeight) * 0.86;
+        const drawWidth = image.naturalWidth * scale;
+        const drawHeight = image.naturalHeight * scale;
+        const x = (width - drawWidth) / 2 + offsetX;
+        const y = (height - drawHeight) / 2 + offsetY;
+
+        context.save();
+        if (flip) {
+          context.translate(width, 0);
+          context.scale(-1, 1);
+          context.drawImage(image, width - x - drawWidth, y, drawWidth, drawHeight);
+        } else {
+          context.drawImage(image, x, y, drawWidth, drawHeight);
+        }
+        context.restore();
+      }
+
+      function drawSoftLabel(context, label, size) {
+        context.fillStyle = "rgba(23,38,54,0.72)";
+        context.fillRect(0, size - 44, size, 44);
+        context.fillStyle = "#fff8e8";
+        context.font = "bold 20px Segoe UI, sans-serif";
+        context.fillText(label, 18, size - 16);
+      }
+
+      function dataUrlToBlob(dataUrl) {
+        const [meta, content] = dataUrl.split(",");
+        const mime = meta.match(/:(.*?);/)?.[1] ?? "image/png";
+        const binary = atob(content);
+        const bytes = new Uint8Array(binary.length);
+
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+
+        return new Blob([bytes], { type: mime });
+      }
+
+      function buildManifest(characterId, file, assets) {
+        const expressions = {};
+        const sprites = {};
+
+        for (const asset of assets) {
+          if (asset.group === "expressions") {
+            expressions[asset.key] = asset.path;
+          } else {
+            sprites[asset.key] = asset.path;
+          }
+        }
+
+        return {
+          schemaVersion: "character-visual-prototype.v1",
+          characterId,
+          mode: "local-placeholder",
+          codexPetUsed: false,
+          note: "Codex pet / external image generation was not used. Images are provisional previews derived from the uploaded source image.",
+          source: {
+            fileName: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+          },
+          outputRoot: `/art/generated/${characterId}/`,
+          expressions,
+          sprites,
+          createdAt: new Date().toISOString(),
+        };
+      }
+
+      function renderAssets() {
+        emptyState.hidden = true;
+        expressionsSection.hidden = false;
+        spritesSection.hidden = false;
+        manifestSection.hidden = false;
+        expressionsGrid.replaceChildren();
+        spritesGrid.replaceChildren();
+
+        for (const asset of generatedAssets) {
+          const card = createAssetCard(asset);
+          if (asset.group === "expressions") {
+            expressionsGrid.append(card);
+          } else {
+            spritesGrid.append(card);
+          }
+        }
+
+        manifestOutput.textContent = JSON.stringify(manifest, null, 2);
+      }
+
+      function renderEmptyState() {
+        emptyState.hidden = false;
+        expressionsSection.hidden = true;
+        spritesSection.hidden = true;
+        manifestSection.hidden = true;
+        expressionsGrid.replaceChildren();
+        spritesGrid.replaceChildren();
+        manifestOutput.textContent = "";
+        downloadManifestButton.disabled = true;
+        saveDirectoryButton.disabled = true;
+      }
+
+      function createAssetCard(asset) {
+        const card = document.createElement("article");
+        card.className = "asset-card";
+
+        const imageBox = document.createElement("div");
+        imageBox.className = "asset-card__image";
+
+        const image = document.createElement("img");
+        image.src = asset.url;
+        image.alt = `${asset.key} preview`;
+        imageBox.append(image);
+
+        const body = document.createElement("div");
+        body.className = "asset-card__body";
+
+        const title = document.createElement("strong");
+        title.textContent = `${asset.key} / ${asset.label}`;
+
+        const note = document.createElement("span");
+        note.textContent = asset.note;
+
+        const path = document.createElement("span");
+        path.textContent = asset.path;
+
+        const download = document.createElement("button");
+        download.className = "button button--secondary";
+        download.type = "button";
+        download.textContent = "PNGをダウンロード";
+        download.addEventListener("click", () => downloadBlob(asset.blob, `${asset.key}.png`));
+
+        body.append(title, note, path, download);
+        card.append(imageBox, body);
+        return card;
+      }
+
+      function downloadBlob(blob, fileName) {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      async function writeFile(directoryHandle, fileName, blob) {
+        const fileHandle = await directoryHandle.getFileHandle(fileName, { create: true });
+        const writable = await fileHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+      }
+    </script>
+  </body>
+</html>
