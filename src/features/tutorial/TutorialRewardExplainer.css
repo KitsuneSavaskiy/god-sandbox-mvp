@@ -1,0 +1,50 @@
+.tutorial-reward-explainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.tutorial-reward-explainer__lead,
+.tutorial-reward-explainer__card p {
+  margin: 0;
+  color: #d8e4f1;
+  line-height: 1.65;
+}
+
+.tutorial-reward-explainer__grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.tutorial-reward-explainer__card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid rgba(146, 175, 199, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.8rem 0.85rem;
+}
+
+.tutorial-reward-explainer__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tutorial-reward-explainer__row strong {
+  color: #f4f7fb;
+}
+
+.tutorial-reward-explainer__note {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .tutorial-reward-explainer__grid {
+    grid-template-columns: 1fr;
+  }
+}
