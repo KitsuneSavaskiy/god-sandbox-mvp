@@ -18,6 +18,7 @@
       body {
         margin: 0;
         min-height: 100vh;
+        overflow-x: hidden;
         background:
           radial-gradient(circle at 12% 10%, rgba(231, 170, 76, 0.24), transparent 28rem),
           radial-gradient(circle at 88% 14%, rgba(75, 134, 161, 0.18), transparent 24rem),
@@ -94,6 +95,7 @@
         letter-spacing: -0.055em;
         line-height: 0.96;
         margin-top: 18px;
+        overflow-wrap: anywhere;
       }
 
       .lead {
@@ -102,6 +104,7 @@
         font-size: clamp(1rem, 2.2vw, 1.2rem);
         line-height: 1.8;
         margin-top: 18px;
+        overflow-wrap: anywhere;
       }
 
       .status-card {
@@ -119,6 +122,7 @@
       .status-card p {
         color: #586a77;
         line-height: 1.65;
+        overflow-wrap: anywhere;
       }
 
       .status-pill {
@@ -176,6 +180,7 @@
       textarea {
         min-height: 108px;
         resize: vertical;
+        line-height: 1.6;
       }
 
       .button-row {
@@ -355,6 +360,45 @@
         white-space: pre;
       }
 
+      .prompt-panel {
+        margin-top: 18px;
+      }
+
+      .prompt-panel__header {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .prompt-panel__header p {
+        color: #5a6d79;
+        line-height: 1.65;
+      }
+
+      .prompt-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .prompt-grid label:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .prompt-output {
+        min-height: 320px;
+        margin-top: 14px;
+        font-family: "Consolas", "SFMono-Regular", monospace;
+        white-space: pre-wrap;
+      }
+
+      .copy-status {
+        color: #5a6d79;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+
       .empty-state {
         display: grid;
         place-items: center;
@@ -374,9 +418,20 @@
           grid-template-columns: 1fr;
         }
 
+        .prompt-grid {
+          grid-template-columns: 1fr;
+        }
+
         .page-shell {
           width: min(100% - 20px, 1180px);
           padding-top: 18px;
+        }
+
+        h1 {
+          font-size: clamp(1.75rem, 8vw, 2rem);
+          letter-spacing: -0.04em;
+          line-height: 1.08;
+          word-break: break-all;
         }
       }
 
@@ -407,7 +462,7 @@
     <main class="page-shell">
       <section class="hero">
         <div class="hero__copy">
-          <span class="eyebrow">Prototype</span>
+          <span class="eyebrow">Prompt workflow</span>
           <h1>立ち絵とスプライトを分けて作る</h1>
           <p class="lead">
             キャラクターの基本イラストから、会話やPassport portrait向けの表情差分プロンプトと、
@@ -416,13 +471,13 @@
         </div>
         <aside class="status-card" aria-label="生成モード">
           <div>
-            <span class="status-pill">Codex pet 未使用</span>
+            <span class="status-pill">Codex pet 直接接続なし</span>
           </div>
           <div>
             <strong>この画面は生成を偽装しません</strong>
             <p>
-              画像生成APIや外部AIには接続していません。ここではCodexへ渡すプロンプトを作り、
-              Canvas表示は元画像を使った仮プレビューとしてだけ扱います。
+              アプリ内からCodex petや外部AIを直接呼びません。ここで作ったプロンプトをコピーし、
+              自分のCodexへ基本イラストと一緒に貼り付けて生成を進めます。Canvas表示は元画像を使った仮プレビューであり、生成済み画像ではありません。
             </p>
           </div>
         </aside>
