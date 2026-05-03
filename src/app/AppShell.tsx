@@ -65,7 +65,7 @@ const APP_SHELL_TUTORIAL_STEPS: TutorialGuideStep[] = [
     body: "右側の使徒パネルで代表キャラを選び、Bless を押すと最初の成功体験へ進めます。",
     apostleLine: "最初は Watch や Test に迷わなくて大丈夫です。まずは Bless で助ける流れを見てみましょう。",
     targetLabel: "使徒パネルの Bless ボタン",
-    targetSelector: '[data-tutorial-anchor=\"first-action-cta\"]',
+    targetSelector: '[data-tutorial-anchor=\"action-bless-button\"]',
     scrollBlock: "center",
   },
   {
