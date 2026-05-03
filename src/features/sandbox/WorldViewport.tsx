@@ -411,6 +411,9 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span className={paused ? "status-dot status-dot--paused" : "status-dot"} />
           {paused ? "重要イベントで停止中" : "箱庭時間が進行中"}
         </div>
+        <div className="viewport-overlay__chip viewport-overlay__chip--focus">
+          追跡中: {focusLabel}
+        </div>
         <div className="viewport-overlay__chip viewport-overlay__chip--center">
           {dayPhaseLabel} / {seasonLabel}
         </div>
