@@ -66,6 +66,7 @@ export function ApostlePanel({
   onTriggerManualEvent,
 }: ApostlePanelProps) {
   const [notesExpanded, setNotesExpanded] = useState(false);
+  const [portraitLoadFailed, setPortraitLoadFailed] = useState(false);
   const [tutorialBlessJudgement, setTutorialBlessJudgement] = useState<JudgementResult | null>(null);
 
   useEffect(() => {
@@ -86,6 +87,10 @@ export function ApostlePanel({
     : null;
   const recentNotables = focusedCharacter ? [...focusedCharacter.notable].slice(-3).reverse() : [];
   const portraitSrc = getPanelPortraitSrc(paused, latestJudgement);
+
+  useEffect(() => {
+    setPortraitLoadFailed(false);
+  }, [portraitSrc]);
 
   return (
     <section className="panel">
@@ -180,19 +185,32 @@ export function ApostlePanel({
           <h3>アート受け皿</h3>
           <span className="placeholder-chip">接続済み</span>
         </div>
-        <div className="art-slot art-slot--portrait art-slot--with-image">
-          <img
-            className="art-slot__image"
-            src={portraitSrc}
-            alt="Ryo portrait base"
-          />
-          <div className="art-slot__meta">
-            <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
-            <strong>{portraitGuide.subjectLabel}</strong>
-            <span>{portraitGuide.toneLabel}</span>
-            <span>{portraitGuide.expressionLine}</span>
-            <p className="summary-note">{portraitGuide.note}</p>
-          </div>
+        <div className={["art-slot", "art-slot--portrait", portraitLoadFailed ? "" : "art-slot--with-image"].filter(Boolean).join(" ")}>
+          {portraitLoadFailed ? (
+            <>
+              <span className="art-slot__eyebrow">portrait slot / fallback</span>
+              <strong>{portraitGuide.subjectLabel}</strong>
+              <span>{portraitGuide.toneLabel}</span>
+              <span>画像を読み込めなかったため、説明表示に切り替えています。</span>
+              <p className="summary-note">{portraitGuide.note}</p>
+            </>
+          ) : (
+            <>
+              <img
+                className="art-slot__image"
+                src={portraitSrc}
+                alt="Ryo portrait base"
+                onError={() => setPortraitLoadFailed(true)}
+              />
+              <div className="art-slot__meta">
+                <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
+                <strong>{portraitGuide.subjectLabel}</strong>
+                <span>{portraitGuide.toneLabel}</span>
+                <span>{portraitGuide.expressionLine}</span>
+                <p className="summary-note">{portraitGuide.note}</p>
+              </div>
+            </>
+          )}
         </div>
       </div>
 

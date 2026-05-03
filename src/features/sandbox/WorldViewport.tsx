@@ -131,6 +131,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           : "夜";
   const seasonLabel =
     season === "spring" ? "春" : season === "summer" ? "夏" : season === "autumn" ? "秋" : "冬";
+  const showViewportGuide = !paused;
 
   useEffect(() => {
     setBackgroundLoadFailed(false);
@@ -420,51 +421,55 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
           <span>金</span>
           <span>水</span>
         </div>
-        <details className="world-viewport-guide" aria-label="箱庭ガイド">
-          <summary className="world-viewport-guide__bar">
-            <span className="world-viewport-guide__eyebrow">Sandbox Guide</span>
-            <span className="world-viewport-guide__chip">ここが箱庭</span>
-            <span className="world-viewport-guide__chip">ドラッグで見回す</span>
-            <span className="world-viewport-guide__chip">光る人物を追う</span>
-            <span className="world-viewport-guide__expand">詳しく見る</span>
-          </summary>
-          <div className="world-viewport-guide__panel">
-            <h2 className="world-viewport-guide__title">箱庭の見方</h2>
-            <p className="world-viewport-guide__text">{guideSummary}</p>
-            <div className="world-viewport-guide__mini-stats" aria-label="箱庭の現在地">
-              <span>全員 {totalCharacters}</span>
-              <span>生存 {livingCount}</span>
-              <span>変化 {noteworthyCount}</span>
+        {showViewportGuide ? (
+          <>
+            <details className="world-viewport-guide" aria-label="箱庭ガイド">
+              <summary className="world-viewport-guide__bar">
+                <span className="world-viewport-guide__eyebrow">Sandbox Guide</span>
+                <span className="world-viewport-guide__chip">ここが箱庭</span>
+                <span className="world-viewport-guide__chip">ドラッグで見回す</span>
+                <span className="world-viewport-guide__chip">光る人物を追う</span>
+                <span className="world-viewport-guide__expand">詳しく見る</span>
+              </summary>
+              <div className="world-viewport-guide__panel">
+                <h2 className="world-viewport-guide__title">箱庭の見方</h2>
+                <p className="world-viewport-guide__text">{guideSummary}</p>
+                <div className="world-viewport-guide__mini-stats" aria-label="箱庭の現在地">
+                  <span>全員 {totalCharacters}</span>
+                  <span>生存 {livingCount}</span>
+                  <span>変化 {noteworthyCount}</span>
+                </div>
+                <p className="world-viewport-guide__focus">いま見る: {focusLabel}</p>
+                <div className="world-viewport-guide__cta">{nextAction}</div>
+                <p className="world-viewport-guide__state">今の気配: {omen}</p>
+              </div>
+            </details>
+            <div className="viewport-overlay__controls">
+              <div className="viewport-overlay__chip viewport-overlay__chip--controls">
+                視点 {cameraMode === "follow" ? `自動追従 / ${focusTarget?.name ?? "対象なし"}` : "自由視点"}
+              </div>
+              <div className="viewport-controls">
+                <button
+                  className="button button--ghost viewport-controls__button"
+                  type="button"
+                  onClick={() => setCameraZoom((current) => clamp(current - 0.15, MIN_ZOOM, MAX_ZOOM))}
+                >
+                  -
+                </button>
+                <button
+                  className="button button--ghost viewport-controls__button"
+                  type="button"
+                  onClick={() => setCameraZoom((current) => clamp(current + 0.15, MIN_ZOOM, MAX_ZOOM))}
+                >
+                  +
+                </button>
+                <button className="button button--ghost viewport-controls__button" type="button" onClick={handleResetFocus}>
+                  フォーカスに戻る
+                </button>
+              </div>
             </div>
-            <p className="world-viewport-guide__focus">いま見る: {focusLabel}</p>
-            <div className="world-viewport-guide__cta">{nextAction}</div>
-            <p className="world-viewport-guide__state">今の気配: {omen}</p>
-          </div>
-        </details>
-        <div className="viewport-overlay__controls">
-          <div className="viewport-overlay__chip viewport-overlay__chip--controls">
-            視点 {cameraMode === "follow" ? `自動追従 / ${focusTarget?.name ?? "対象なし"}` : "自由視点"}
-          </div>
-          <div className="viewport-controls">
-            <button
-              className="button button--ghost viewport-controls__button"
-              type="button"
-              onClick={() => setCameraZoom((current) => clamp(current - 0.15, MIN_ZOOM, MAX_ZOOM))}
-            >
-              -
-            </button>
-            <button
-              className="button button--ghost viewport-controls__button"
-              type="button"
-              onClick={() => setCameraZoom((current) => clamp(current + 0.15, MIN_ZOOM, MAX_ZOOM))}
-            >
-              +
-            </button>
-            <button className="button button--ghost viewport-controls__button" type="button" onClick={handleResetFocus}>
-              フォーカスに戻る
-            </button>
-          </div>
-        </div>
+          </>
+        ) : null}
       </div>
     </div>
   );

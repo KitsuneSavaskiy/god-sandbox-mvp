@@ -221,6 +221,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const [rollingState, setRollingState] = useState<RollingState | null>(null);
   const [rollingValue, setRollingValue] = useState(1);
   const [illustrationLoadFailed, setIllustrationLoadFailed] = useState(false);
+  const [portraitLoadFailed, setPortraitLoadFailed] = useState(false);
   const confirmLockRef = useRef(false);
   const presetPreviewIntervention =
     event?.presetIntervention === "bless" || event?.presetIntervention === "test"
@@ -229,11 +230,21 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const tutorialBlessEvent = isTutorialBlessEvent(event);
   const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
   const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
+  const portraitSrc = event
+    ? getModalPortraitSrc({
+        event,
+        targetCharacter,
+        activeIntervention: activeRollingIntervention,
+        judgementPreview: rollingState?.judgement ?? null,
+        revealed: rollingState?.revealed ?? false,
+      })
+    : RYO_PORTRAITS.normal;
 
   useEffect(() => {
     setRollingState(null);
     setRollingValue(1);
     setIllustrationLoadFailed(false);
+    setPortraitLoadFailed(false);
     confirmLockRef.current = false;
   }, [event?.id]);
 
@@ -304,6 +315,10 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     setIllustrationLoadFailed(false);
   }, [illustrationSlot.src]);
 
+  useEffect(() => {
+    setPortraitLoadFailed(false);
+  }, [portraitSrc]);
+
   if (!event) {
     return null;
   }
@@ -312,13 +327,6 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const isRolling =
     !!presetPreviewIntervention || rollingState?.intervention === "bless" || rollingState?.intervention === "test";
   const judgementPreview = rollingState?.judgement ?? null;
-  const portraitSrc = getModalPortraitSrc({
-    event,
-    targetCharacter,
-    activeIntervention: activeRollingIntervention,
-    judgementPreview,
-    revealed: rollingState?.revealed ?? false,
-  });
   const blessPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "bless", momentum) : 0;
   const testPreviewModifier = targetCharacter ? getInterventionModifier(targetCharacter, "test", momentum) : 0;
   const pauseReason = getPauseReason(event.trigger, tutorialBlessEvent);
@@ -410,17 +418,29 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     <div className="modal-backdrop" role="presentation">
       <section className="modal-card event-modal" role="dialog" aria-modal="true" aria-labelledby="event-title">
         <div className="modal-card__media">
-          <div className="art-slot art-slot--portrait art-slot--with-image">
-            <img
-              className="art-slot__image"
-              src={portraitSrc}
-              alt="Ryo portrait expression"
-            />
-            <div className="art-slot__meta">
-              <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
-              <strong>基準キャラ: Ryo（portrait 接続済み）</strong>
-              <span>{eventArtGuide.portraitLine}</span>
-            </div>
+          <div className={["art-slot", "art-slot--portrait", portraitLoadFailed ? "" : "art-slot--with-image"].filter(Boolean).join(" ")}>
+            {portraitLoadFailed ? (
+              <>
+                <span className="art-slot__eyebrow">portrait slot / fallback</span>
+                <strong>基準キャラ: Ryo（portrait 接続済み）</strong>
+                <span>{eventArtGuide.portraitLine}</span>
+                <span>portrait 画像を読み込めなかったため、説明表示に切り替えています。</span>
+              </>
+            ) : (
+              <>
+                <img
+                  className="art-slot__image"
+                  src={portraitSrc}
+                  alt="Ryo portrait expression"
+                  onError={() => setPortraitLoadFailed(true)}
+                />
+                <div className="art-slot__meta">
+                  <span className="art-slot__eyebrow">portrait slot / ryo asset preview</span>
+                  <strong>基準キャラ: Ryo（portrait 接続済み）</strong>
+                  <span>{eventArtGuide.portraitLine}</span>
+                </div>
+              </>
+            )}
           </div>
           <div
             className={[

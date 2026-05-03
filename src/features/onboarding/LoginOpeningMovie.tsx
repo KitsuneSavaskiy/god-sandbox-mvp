@@ -65,7 +65,7 @@ export function LoginOpeningMovie({ userName, onComplete }: LoginOpeningMoviePro
               autoPlay
               muted
               playsInline
-              preload="auto"
+              preload="metadata"
               onEnded={onComplete}
               onError={() => setLoadFailed(true)}
             />
