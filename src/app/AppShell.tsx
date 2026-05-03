@@ -4,6 +4,7 @@ import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
 import { FirstActionGuide } from "../features/onboarding/FirstActionGuide";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
+import { TutorialGuideOverlay, type TutorialGuideStep } from "../features/tutorial/TutorialGuideOverlay";
 import { createMockProvider } from "../infrastructure/llm/mockProvider";
 import { createTemplateProvider } from "../infrastructure/llm/templateProvider";
 import {
@@ -32,6 +33,47 @@ interface AppShellProps {
 const UTTERANCE_PREVIEW_PROVIDERS = [
   { label: "mockProvider", provider: createMockProvider() },
   { label: "templateProvider", provider: createTemplateProvider() },
+];
+
+const APP_SHELL_TUTORIAL_STEPS: TutorialGuideStep[] = [
+  {
+    id: "observe-purpose",
+    title: "ここで何をするゲームかを見る",
+    body: "最初は、この案内カードで自分の現在地を確認します。新米神様として、箱庭の変化を見守る入口です。",
+    apostleLine: "まずは『自分は何を見る役か』を短く掴みましょう。ここが毎回の導線になります。",
+    targetLabel: "使徒の案内カード",
+    targetSelector: '[data-tutorial-anchor=\"first-action-guide\"]',
+    scrollBlock: "center",
+  },
+  {
+    id: "observe-world",
+    title: "箱庭そのものを見る",
+    body: "ここが住民たちが暮らす箱庭です。ドラッグしながら、誰がどこで動いているかを観察します。",
+    apostleLine: "大きな変化に気づく前に、まずは世界全体の様子を目で追ってみてください。",
+    targetLabel: "箱庭ビュー",
+    targetSelector: '[data-tutorial-anchor=\"world-viewport\"]',
+    highlightPadding: 18,
+    scrollBlock: "center",
+  },
+  {
+    id: "observe-next-action",
+    title: "次に押す場所を確認する",
+    body: "最初の操作は、この大きな CTA です。ここから少し時間を進めて、最初の変化を待てます。",
+    apostleLine: "初回は迷わなくて大丈夫です。次に触る場所だけを明るく示します。",
+    targetLabel: "FirstActionGuide の CTA",
+    targetSelector: '[data-tutorial-anchor=\"first-action-cta\"]',
+    scrollBlock: "center",
+  },
+  {
+    id: "observe-apostle-panel",
+    title: "変化を読む場所を確認する",
+    body: "使徒のメモや注目キャラの情報は、この右側パネルに集まります。後続 PBI ではここに Bless 本編の案内も差し込めます。",
+    apostleLine: "何が起きたか、誰を見ればよいかは、このパネルを起点に伝えます。",
+    targetLabel: "使徒パネル",
+    targetSelector: '[data-tutorial-anchor=\"apostle-panel\"]',
+    highlightPadding: 16,
+    scrollBlock: "center",
+  },
 ];
 
 export function AppShell({ userName, onLogout }: AppShellProps) {
@@ -117,7 +159,7 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
                 : "生存者なし"}
           </span>
         </div>
-        <div className="top-bar__controls">
+        <div className="top-bar__controls" data-tutorial-anchor="time-controls">
           <button
             className={`button button--ghost ${state.timeControl === "stopped" ? "button--active" : ""}`}
             disabled={state.phase === "event" || !hasLivingCharacters}
@@ -163,8 +205,10 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
         onStepTick={() => dispatch({ type: "stepTick" })}
       />
 
+      <TutorialGuideOverlay steps={APP_SHELL_TUTORIAL_STEPS} suspended={state.phase === "event"} />
+
       <main className="main-layout">
-        <section className="viewport-panel">
+        <section className="viewport-panel" data-tutorial-anchor="world-viewport">
           <WorldViewport
             characters={state.characters}
             focusCharacterId={state.focusCharacterId}
@@ -176,20 +220,22 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
         </section>
 
         <aside className="sidebar">
-          <ApostlePanel
-            apostleMessage={state.apostleMessage}
-            focusedCharacter={focusedCharacter}
-            characters={state.characters}
-            bloodlines={bloodlines}
-            latestEventSummary={state.latestEventSummary}
-            latestJudgement={state.latestJudgement}
-            momentum={state.momentum}
-            protectionRemaining={protectionRemaining}
-            hasLivingCharacters={hasLivingCharacters}
-            paused={state.phase === "event"}
-            onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
-            onTriggerManualEvent={() => dispatch({ type: "triggerManualEvent" })}
-          />
+          <div data-tutorial-anchor="apostle-panel">
+            <ApostlePanel
+              apostleMessage={state.apostleMessage}
+              focusedCharacter={focusedCharacter}
+              characters={state.characters}
+              bloodlines={bloodlines}
+              latestEventSummary={state.latestEventSummary}
+              latestJudgement={state.latestJudgement}
+              momentum={state.momentum}
+              protectionRemaining={protectionRemaining}
+              hasLivingCharacters={hasLivingCharacters}
+              paused={state.phase === "event"}
+              onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
+              onTriggerManualEvent={() => dispatch({ type: "triggerManualEvent" })}
+            />
+          </div>
 
           <UtterancePreviewPanel
             disabled={!hasLivingCharacters}

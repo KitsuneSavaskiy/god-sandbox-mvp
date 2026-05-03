@@ -56,7 +56,11 @@ export function FirstActionGuide({
   }, [isTutorialDismissed]);
 
   return (
-    <section className="first-action-guide" aria-labelledby="first-action-guide-title">
+    <section
+      className="first-action-guide"
+      aria-labelledby="first-action-guide-title"
+      data-tutorial-anchor="first-action-guide"
+    >
       <div className="first-action-guide__copy">
         <p className="first-action-guide__eyebrow">使徒の案内</p>
         <h2 id="first-action-guide-title">ここはAIキャラが暮らす箱庭です</h2>
@@ -80,14 +84,27 @@ export function FirstActionGuide({
         ) : null}
       </div>
 
-      <div className="first-action-guide__action-card first-action-guide__action-card--highlight" aria-label="次にすること">
+      <div
+        className="first-action-guide__action-card first-action-guide__action-card--highlight"
+        aria-label="次にすること"
+        data-tutorial-anchor="first-action-cta-card"
+      >
         <span className="first-action-guide__status">{guide.status}</span>
         {isEventOpen ? (
-          <div className="first-action-guide__cta first-action-guide__cta--notice">
+          <div
+            className="first-action-guide__cta first-action-guide__cta--notice"
+            data-tutorial-anchor="first-action-cta"
+          >
             {guide.ctaLabel}
           </div>
         ) : (
-          <button className="first-action-guide__cta" type="button" disabled={!canStep} onClick={onStepTick}>
+          <button
+            className="first-action-guide__cta"
+            type="button"
+            disabled={!canStep}
+            onClick={onStepTick}
+            data-tutorial-anchor="first-action-cta"
+          >
             {guide.ctaLabel}
           </button>
         )}
