@@ -78,6 +78,21 @@ function getPortraitGuide(name?: string) {
   };
 }
 
+function getCharacterCardAnchor(character: Character) {
+  return character.id === "aki" ? "character-card-aki" : undefined;
+}
+
+function getActionAnchor(intervention: InterventionKind) {
+  switch (intervention) {
+    case "watch":
+      return "action-watch-button";
+    case "bless":
+      return "action-bless-button";
+    case "test":
+      return "action-test-button";
+  }
+}
+
 export function ApostlePanel({
   apostleMessage,
   focusedCharacter,
@@ -148,7 +163,7 @@ export function ApostlePanel({
         <p className="focus-action-panel__lead">
           まず1人を選ぶと、箱庭がその住民を追い、神様が次にできることを選べます。
         </p>
-        <div className="focus-character-picker" aria-label="生存中の代表キャラ">
+        <div className="focus-character-picker" aria-label="生存中の代表キャラ" data-tutorial-anchor="character-list">
           {livingCharacters.map((character) => (
             <button
               key={character.id}
@@ -160,6 +175,7 @@ export function ApostlePanel({
                 .filter(Boolean)
                 .join(" ")}
               disabled={paused}
+              data-tutorial-anchor={getCharacterCardAnchor(character)}
               onClick={() => onSelectCharacter(character.id)}
             >
               <span>{character.name}</span>
@@ -170,7 +186,7 @@ export function ApostlePanel({
           ))}
           {livingCharacters.length === 0 ? <span className="summary-note">選べる住民はいません。</span> : null}
         </div>
-        <div className="focus-action-panel__current">
+        <div className="focus-action-panel__current" data-tutorial-anchor="selected-character-summary">
           <strong>{focusedCharacter ? `${focusedCharacter.name}に何をしますか？` : "代表キャラを選んでください"}</strong>
           <span>
             {focusedCharacter
@@ -179,23 +195,29 @@ export function ApostlePanel({
           </span>
         </div>
         <div className="focus-action-panel__actions">
-          {CHARACTER_ACTIONS.map((action) => (
-            <button
-              key={action.intervention}
-              type="button"
-              className={`focus-action-button focus-action-button--${action.tone}`}
-              disabled={paused || !focusedCharacter}
-              data-tutorial-anchor={action.intervention === "bless" ? "first-action-cta" : undefined}
-              onClick={() => {
-                if (focusedCharacter) {
-                  onRequestCharacterAction(action.intervention, focusedCharacter.name);
-                }
-              }}
-            >
-              <span>{action.label}</span>
-              <small>{action.description}</small>
-            </button>
-          ))}
+          {CHARACTER_ACTIONS.map((action) => {
+            const actionAnchor = getActionAnchor(action.intervention);
+
+            return (
+              <button
+                key={action.intervention}
+                type="button"
+                className={`focus-action-button focus-action-button--${action.tone}`}
+                disabled={paused || !focusedCharacter}
+                data-tutorial-anchor={action.intervention === "bless" ? "first-action-cta" : actionAnchor}
+                onClick={() => {
+                  if (focusedCharacter) {
+                    onRequestCharacterAction(action.intervention, focusedCharacter.name);
+                  }
+                }}
+              >
+                <span data-tutorial-anchor={action.intervention === "bless" ? actionAnchor : undefined}>
+                  {action.label}
+                </span>
+                <small>{action.description}</small>
+              </button>
+            );
+          })}
         </div>
         <p className="focus-action-panel__note">
           iPhoneではダブルクリックではなく、このボタンから進めます。PCでは従来の操作も補助として使えます。
