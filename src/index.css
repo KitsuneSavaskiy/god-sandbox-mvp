@@ -146,6 +146,129 @@ button {
   color: #d8e4f1;
 }
 
+.focus-action-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-color: rgba(246, 196, 83, 0.22);
+  background:
+    linear-gradient(135deg, rgba(246, 196, 83, 0.1), rgba(93, 137, 216, 0.08)),
+    rgba(20, 31, 46, 0.68);
+}
+
+.focus-action-panel__header,
+.focus-action-panel__current {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.focus-action-panel__header h3 {
+  margin: 0;
+}
+
+.focus-action-panel__badge {
+  border: 1px solid rgba(246, 196, 83, 0.35);
+  border-radius: 999px;
+  background: rgba(246, 196, 83, 0.12);
+  color: #ffe9a8;
+  padding: 0.28rem 0.65rem;
+  font-size: 0.86rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.focus-action-panel__lead,
+.focus-action-panel__note {
+  margin: 0;
+  color: #c7d8e7;
+  font-size: 0.92rem;
+}
+
+.focus-action-panel__note {
+  color: #9ab0c2;
+  font-size: 0.84rem;
+}
+
+.focus-character-picker,
+.focus-action-panel__actions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.focus-character-picker {
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+}
+
+.focus-character-picker__button,
+.focus-action-button {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #f4f7fb;
+  text-align: left;
+}
+
+.focus-character-picker__button {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.7rem 0.78rem;
+}
+
+.focus-character-picker__button--active {
+  border-color: rgba(246, 196, 83, 0.55);
+  background: rgba(246, 196, 83, 0.14);
+  box-shadow: 0 0 0 1px rgba(246, 196, 83, 0.14);
+}
+
+.focus-character-picker__button small,
+.focus-action-button small {
+  color: #aebfd0;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.focus-action-panel__current {
+  align-items: flex-start;
+  border-radius: 12px;
+  background: rgba(7, 16, 24, 0.34);
+  padding: 0.72rem 0.8rem;
+}
+
+.focus-action-panel__current span {
+  color: #b8c9da;
+  font-size: 0.88rem;
+}
+
+.focus-action-panel__actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.focus-action-button {
+  display: flex;
+  min-height: 5.25rem;
+  flex-direction: column;
+  gap: 0.28rem;
+  justify-content: center;
+  padding: 0.82rem;
+}
+
+.focus-action-button--watch {
+  background: rgba(93, 137, 216, 0.14);
+}
+
+.focus-action-button--bless {
+  background: rgba(107, 225, 141, 0.14);
+  border-color: rgba(107, 225, 141, 0.24);
+}
+
+.focus-action-button--test {
+  background: rgba(232, 110, 110, 0.12);
+  border-color: rgba(232, 110, 110, 0.22);
+}
+
 .button {
   border: 0;
   border-radius: 10px;
@@ -793,6 +916,25 @@ button {
 }
 
 @media (max-width: 640px) {
+  .focus-action-panel__header,
+  .focus-action-panel__current {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .focus-action-panel__badge {
+    align-self: flex-start;
+    white-space: normal;
+  }
+
+  .focus-action-panel__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .focus-action-button {
+    min-height: 0;
+  }
+
   .modal-backdrop {
     align-items: start;
     padding: 0.5rem;
