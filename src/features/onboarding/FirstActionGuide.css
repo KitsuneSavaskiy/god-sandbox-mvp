@@ -14,7 +14,7 @@
 .first-action-guide__copy {
   display: grid;
   align-content: center;
-  gap: 0.45rem;
+  gap: 0.7rem;
 }
 
 .first-action-guide__eyebrow,
@@ -42,6 +42,76 @@
   max-width: 62rem;
   color: #c9d6e4;
   line-height: 1.62;
+}
+
+.first-action-guide__selector {
+  display: grid;
+  gap: 0.7rem;
+  border: 1px solid rgba(255, 218, 145, 0.2);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.8rem;
+}
+
+.first-action-guide__selector-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.first-action-guide__step-chip {
+  border-radius: 999px;
+  background: rgba(255, 218, 145, 0.12);
+  color: #ffd991;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 0.28rem 0.56rem;
+}
+
+.first-action-guide__selector-copy,
+.first-action-guide__character-meta,
+.first-action-guide__selected-card span,
+.first-action-guide__success-note {
+  color: #d6e2ef;
+  font-size: 0.92rem;
+  line-height: 1.58;
+}
+
+.first-action-guide__character-list {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.first-action-guide__character-button {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(12, 18, 27, 0.48);
+  color: #f4f8fc;
+  cursor: pointer;
+  padding: 0.72rem 0.78rem;
+  text-align: left;
+}
+
+.first-action-guide__character-button:hover {
+  border-color: rgba(255, 218, 145, 0.36);
+  background: rgba(255, 218, 145, 0.08);
+}
+
+.first-action-guide__character-button--active {
+  border-color: rgba(255, 218, 145, 0.56);
+  background: rgba(255, 218, 145, 0.12);
+  box-shadow: 0 0 0 1px rgba(255, 218, 145, 0.2);
+}
+
+.first-action-guide__character-name {
+  color: #fff7e3;
+  font-size: 0.98rem;
+  font-weight: 800;
 }
 
 .first-action-guide__apostle {
@@ -116,6 +186,20 @@
   padding: 0.28rem 0.54rem;
 }
 
+.first-action-guide__selected-card {
+  display: grid;
+  gap: 0.35rem;
+  border: 1px solid rgba(255, 218, 145, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 218, 145, 0.08);
+  padding: 0.78rem 0.85rem;
+}
+
+.first-action-guide__selected-card strong {
+  color: #fff7df;
+  font-size: 1rem;
+}
+
 .first-action-guide__cta {
   width: 100%;
   border: 0;
@@ -152,6 +236,11 @@
   line-height: 1.55;
 }
 
+.first-action-guide__success-note {
+  margin: 0;
+  color: #f0e4c7;
+}
+
 @media (max-width: 760px) {
   .first-action-guide {
     grid-template-columns: 1fr;
@@ -167,6 +256,10 @@
   .first-action-guide__copy p {
     font-size: 0.94rem;
     line-height: 1.58;
+  }
+
+  .first-action-guide__character-list {
+    grid-template-columns: 1fr;
   }
 
   .first-action-guide__apostle {

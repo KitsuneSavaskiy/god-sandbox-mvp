@@ -223,11 +223,11 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const [illustrationLoadFailed, setIllustrationLoadFailed] = useState(false);
   const [portraitLoadFailed, setPortraitLoadFailed] = useState(false);
   const confirmLockRef = useRef(false);
+  const tutorialBlessEvent = isTutorialBlessEvent(event);
   const presetPreviewIntervention =
-    event?.presetIntervention === "bless" || event?.presetIntervention === "test"
+    !tutorialBlessEvent && (event?.presetIntervention === "bless" || event?.presetIntervention === "test")
       ? event.presetIntervention
       : null;
-  const tutorialBlessEvent = isTutorialBlessEvent(event);
   const activeRollingIntervention = rollingState?.intervention ?? presetPreviewIntervention;
   const illustrationSlot = getModalIllustrationSlot(activeRollingIntervention);
   const portraitSrc = event
@@ -253,7 +253,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
       return;
     }
 
-    if (event.presetIntervention !== "bless" && event.presetIntervention !== "test") {
+    if (tutorialBlessEvent || (event.presetIntervention !== "bless" && event.presetIntervention !== "test")) {
       return;
     }
 

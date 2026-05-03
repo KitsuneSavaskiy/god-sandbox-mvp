@@ -156,10 +156,21 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
       </header>
 
       <FirstActionGuide
+        activeEvent={state.activeEvent}
+        characters={state.characters}
+        focusedCharacter={focusedCharacter}
         hasLivingCharacters={hasLivingCharacters}
+        latestJudgement={state.latestJudgement}
         phase={state.phase}
         tick={state.tick}
         timeControl={state.timeControl}
+        onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
+        onStartBlessTutorial={() =>
+          dispatch({
+            type: "submitCommand",
+            input: focusedCharacter ? `tutorial-bless ${focusedCharacter.name}` : "tutorial-bless",
+          })
+        }
         onStepTick={() => dispatch({ type: "stepTick" })}
       />
 
