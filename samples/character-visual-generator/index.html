@@ -528,6 +528,12 @@
           padding-top: 18px;
         }
 
+        .hero__copy,
+        .panel,
+        .status-card {
+          min-width: 0;
+        }
+
         h1 {
           font-size: clamp(1.75rem, 8vw, 2rem);
           letter-spacing: -0.04em;
@@ -681,6 +687,7 @@
           </p>
           <p id="storage-support-note" class="note">
             保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong>
+            <span id="storage-support-note">フォルダ保存の対応状況を確認しています。</span>
             <span class="help-tip" tabindex="0" aria-label="保存先の説明">
               <span class="help-tip__mark">?</span>
               <span class="help-tip__content">
@@ -1013,7 +1020,6 @@
           : '保存先: <strong>manifest保存のみ</strong> <span class="help-tip" tabindex="0" aria-label="保存先の説明"><span class="help-tip__mark">?</span><span class="help-tip__content">このブラウザではフォルダ保存は使えません。manifest 保存だけ利用できます。</span></span>';
         return fileSystemAccessAvailable;
       }
-
       function normalizeCharacterId(value) {
         const normalized = value
           .trim()
