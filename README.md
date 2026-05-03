@@ -2,6 +2,54 @@
 
 Codex と一緒に開発している、神視点箱庭プロトタイプの公開 MVP リポジトリです。
 
+## はじめて遊ぶ方へ
+
+GodSandbox は、新米神様として小さな箱庭のキャラクターを見守り、必要な時に助ける育成サンドボックスです。
+
+まずは Windows PC で、次の順番に進めてください。
+
+### 1. ダウンロードする
+
+1. GitHub ページ右上の `Code` を押します。
+2. `Download ZIP` を押します。
+3. ZIP ファイルをデスクトップなど分かりやすい場所へ展開します。
+
+### 2. Node.js を用意する
+
+GodSandbox を起動するには Node.js が必要です。
+
+入っていない場合は、[Node.js 公式サイト](https://nodejs.org/) からインストールしてください。
+
+### 3. 起動する
+
+Windows では、展開したフォルダの中にある `start.bat` をダブルクリックします。
+
+起動したら、ブラウザで次を開きます。
+
+`http://localhost:5173`
+
+PowerShell を使う場合は、補足として次でも起動できます。
+
+```powershell
+.\start.ps1
+```
+
+### 4. 終了する
+
+起動中の黒い画面または PowerShell で `Ctrl+C` を押します。
+
+### スマホから見る場合
+
+PC と iPhone / Android を同じ Wi-Fi につなぎます。
+
+起動時に表示される `Network:` の URL を、スマホの Safari または Chrome で開きます。
+
+### 困ったとき
+
+詳しい起動トラブルは [docs/startup-troubleshooting.md](docs/startup-troubleshooting.md) を見てください。
+
+---
+
 自動作業 PR の smoke test 記録: 4。
 
 ---
