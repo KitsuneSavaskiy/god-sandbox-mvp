@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ApostlePanel } from "../features/apostle/ApostlePanel";
 import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
@@ -30,6 +30,8 @@ interface AppShellProps {
   userName: string;
   onLogout: () => void;
 }
+
+const FIRST_BLESS_TUTORIAL_COMPLETED_KEY = "godsandbox.firstBlessTutorialCompleted.v1";
 
 const UTTERANCE_PREVIEW_PROVIDERS = [
   { label: "mockProvider", provider: createMockProvider() },
@@ -84,8 +86,33 @@ function hasBlessSuccess(judgement: JudgementResult | null) {
   );
 }
 
+function readFirstBlessTutorialCompleted() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(FIRST_BLESS_TUTORIAL_COMPLETED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeFirstBlessTutorialCompleted() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(FIRST_BLESS_TUTORIAL_COMPLETED_KEY, "true");
+  } catch {
+    // localStorage が使えない環境では、セッション中の state だけで完了状態を保持します。
+  }
+}
+
 export function AppShell({ userName, onLogout }: AppShellProps) {
   const [state, dispatch] = useAppState();
+  const [firstBlessTutorialCompleted, setFirstBlessTutorialCompleted] = useState(readFirstBlessTutorialCompleted);
   const focusedCharacter = getFocusedCharacter(state);
   const activeEventTarget = state.activeEvent
     ? state.characters.find((character) => character.id === state.activeEvent?.targetCharacterId)
@@ -116,6 +143,15 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
     return () => window.clearInterval(timerId);
   }, [dispatch, hasLivingCharacters, state.phase, state.timeControl]);
 
+  useEffect(() => {
+    if (firstBlessTutorialCompleted || !hasBlessSuccess(state.latestJudgement)) {
+      return;
+    }
+
+    setFirstBlessTutorialCompleted(true);
+    writeFirstBlessTutorialCompleted();
+  }, [firstBlessTutorialCompleted, state.latestJudgement]);
+
   async function handleGenerateUtterancePreview(): Promise<UtterancePreviewResult[]> {
     if (!focusedCharacter) {
       return [];
@@ -130,10 +166,8 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
     });
   }
 
-  const completedFirstBless = hasBlessSuccess(state.latestJudgement);
-
   function handleRequestCharacterAction(intervention: InterventionKind, characterName: string) {
-    if (intervention === "bless" && state.phase !== "event" && !completedFirstBless) {
+    if (intervention === "bless" && state.phase !== "event" && !firstBlessTutorialCompleted) {
       dispatch({ type: "submitCommand", input: `tutorial-bless ${characterName}` });
       return;
     }
@@ -218,9 +252,9 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
 
       <FirstActionGuide
         activeEvent={state.activeEvent}
+        firstBlessTutorialCompleted={firstBlessTutorialCompleted}
         focusedCharacter={focusedCharacter}
         hasLivingCharacters={hasLivingCharacters}
-        latestJudgement={state.latestJudgement}
         phase={state.phase}
         timeControl={state.timeControl}
         onStepTick={() => dispatch({ type: "stepTick" })}

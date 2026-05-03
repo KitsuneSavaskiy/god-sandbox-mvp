@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Character, JudgementResult, WorldEvent } from "../../domain/types";
+import type { Character, WorldEvent } from "../../domain/types";
 import "./FirstActionGuide.css";
 
 const TUTORIAL_DISMISSED_KEY = "godsandbox.apostleTutorialGuide.dismissed.v1";
@@ -30,9 +30,9 @@ function writeTutorialDismissed() {
 
 interface FirstActionGuideProps {
   activeEvent: WorldEvent | null;
+  firstBlessTutorialCompleted: boolean;
   focusedCharacter?: Character;
   hasLivingCharacters: boolean;
-  latestJudgement: JudgementResult | null;
   phase: "observing" | "event";
   timeControl: "stopped" | "slow" | "normal";
   onStepTick: () => void;
@@ -40,19 +40,18 @@ interface FirstActionGuideProps {
 
 export function FirstActionGuide({
   activeEvent,
+  firstBlessTutorialCompleted,
   focusedCharacter,
   hasLivingCharacters,
-  latestJudgement,
   phase,
   timeControl,
   onStepTick,
 }: FirstActionGuideProps) {
   const isEventOpen = phase === "event";
-  const blessSucceeded = hasBlessSuccess(latestJudgement);
   const tutorialBlessEvent = activeEvent?.tutorialKind === "firstBless";
   const canStep = hasLivingCharacters && !isEventOpen;
   const guide = getGuideState({
-    blessSucceeded,
+    blessSucceeded: firstBlessTutorialCompleted,
     focusedCharacterName: focusedCharacter?.name,
     hasLivingCharacters,
     isEventOpen,
@@ -110,7 +109,7 @@ export function FirstActionGuide({
           <div className="first-action-guide__cta first-action-guide__cta--notice">{guide.ctaLabel}</div>
         )}
         <p className="first-action-guide__hint">{guide.hint}</p>
-        {blessSucceeded && focusedCharacter ? (
+        {firstBlessTutorialCompleted && focusedCharacter ? (
           <p className="first-action-guide__success-note">
             {focusedCharacter.name} に良い変化が起きました。余韻を見るには、少し時間を進めれば十分です。
           </p>
@@ -121,13 +120,6 @@ export function FirstActionGuide({
         ) : null}
       </div>
     </section>
-  );
-}
-
-function hasBlessSuccess(judgement: JudgementResult | null) {
-  return (
-    judgement?.action === "bless" &&
-    (judgement.rank === "success" || judgement.rank === "greatSuccess" || judgement.rank === "critical")
   );
 }
 
