@@ -125,6 +125,97 @@
         overflow-wrap: anywhere;
       }
 
+      .title-row,
+      .label-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .title-row {
+        justify-content: space-between;
+      }
+
+      .title-row h2,
+      .title-row h3 {
+        margin-bottom: 0;
+      }
+
+      .label-row {
+        width: fit-content;
+      }
+
+      .help-tip {
+        position: relative;
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+      }
+
+      .help-tip__mark {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border: 1px solid rgba(36, 72, 92, 0.24);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.82);
+        color: #24485c;
+        cursor: help;
+        font-size: 0.84rem;
+        font-weight: 900;
+      }
+
+      .help-tip__content {
+        position: absolute;
+        z-index: 20;
+        right: 0;
+        top: calc(100% + 8px);
+        width: min(280px, calc(100vw - 48px));
+        border: 1px solid rgba(36, 72, 92, 0.18);
+        border-radius: 16px;
+        background: #172636;
+        box-shadow: 0 18px 40px rgba(23, 38, 54, 0.18);
+        color: #fff8e8;
+        font-size: 0.84rem;
+        font-weight: 700;
+        line-height: 1.65;
+        opacity: 0;
+        padding: 12px 14px;
+        pointer-events: none;
+        transform: translateY(-4px);
+        transition:
+          opacity 140ms ease,
+          transform 140ms ease;
+      }
+
+      .help-tip:hover .help-tip__content,
+      .help-tip:focus .help-tip__content,
+      .help-tip:focus-within .help-tip__content {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .label-row .help-tip__content {
+        right: auto;
+        left: 50%;
+        transform: translate(-50%, -4px);
+      }
+
+      .label-row .help-tip:hover .help-tip__content,
+      .label-row .help-tip:focus .help-tip__content,
+      .label-row .help-tip:focus-within .help-tip__content {
+        transform: translate(-50%, 0);
+      }
+
+      .note .help-tip__content {
+        right: auto;
+        left: 0;
+        width: min(240px, calc(100vw - 48px));
+      }
+
       .status-pill {
         display: inline-flex;
         width: fit-content;
@@ -433,6 +524,7 @@
           line-height: 1.08;
           word-break: break-all;
         }
+
       }
 
       @media (max-width: 480px) {
@@ -441,6 +533,14 @@
         .status-card {
           border-radius: 22px;
           padding: 20px;
+        }
+
+        .button-row {
+          flex-direction: column;
+        }
+
+        .button {
+          width: 100%;
         }
 
         h1 {
@@ -462,94 +562,163 @@
     <main class="page-shell">
       <section class="hero">
         <div class="hero__copy">
-          <span class="eyebrow">Prompt workflow</span>
-          <h1>立ち絵とスプライトを分けて作る</h1>
-          <p class="lead">
-            キャラクターの基本イラストから、会話やPassport portrait向けの表情差分プロンプトと、
-            箱庭内を歩く8-bit / pixel art / chibiスプライトシート用プロンプトを別々に作る画面です。
-          </p>
+          <span class="eyebrow">Prompt</span>
+          <h1>画像プロンプト作成</h1>
+          <p class="lead">画像を選ぶ → プロンプトを作る → コピー。</p>
         </div>
         <aside class="status-card" aria-label="生成モード">
-          <div>
-            <span class="status-pill">Codex pet 直接接続なし</span>
+          <div class="title-row">
+            <span class="status-pill">生成なし</span>
+            <span class="help-tip" tabindex="0" aria-label="生成なしの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                アプリ内からCodex petや外部AIを直接呼びません。ここでは別Codexへ貼るプロンプトだけを作ります。
+              </span>
+            </span>
           </div>
           <div>
-            <strong>この画面は生成を偽装しません</strong>
-            <p>
-              アプリ内からCodex petや外部AIを直接呼びません。ここで作ったプロンプトをコピーし、
-              自分のCodexへ基本イラストと一緒に貼り付けて生成を進めます。Canvas表示は元画像を使った仮プレビューであり、生成済み画像ではありません。
-            </p>
+            <strong>プロンプト作成だけ</strong>
+            <p>本物の画像生成は、コピー先のCodexで行います。</p>
           </div>
         </aside>
       </section>
 
       <section class="workspace">
         <div class="panel">
-          <h2>入力</h2>
+          <div class="title-row">
+            <h2>入力</h2>
+            <span class="help-tip" tabindex="0" aria-label="入力の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                characterId、基本イラスト、短い説明を使って、画像生成用プロンプトと仮manifestを作ります。
+              </span>
+            </span>
+          </div>
           <div class="form-grid">
             <label>
-              characterId
+              <span class="label-row">
+                characterId
+                <span class="help-tip" tabindex="0" aria-label="characterIdの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    保存フォルダ名に使うIDです。半角英数字、ハイフン、アンダースコア中心にすると安全です。
+                  </span>
+                </span>
+              </span>
               <input id="character-id" type="text" value="prototype-character-001" autocomplete="off" />
             </label>
             <label>
-              キャラ説明
-              <textarea id="character-description" placeholder="髪型、服装、雰囲気、性格、重要な小物などを書きます。例: 森の村で暮らす、まじめで少し不器用な若者。緑の上着、茶色の髪、穏やかな表情。"></textarea>
+              <span class="label-row">
+                キャラ説明
+                <span class="help-tip" tabindex="0" aria-label="キャラ説明の説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    髪型、服装、雰囲気、性格、重要な小物を書きます。画像だけでは伝わりにくい内面や役割を補います。
+                  </span>
+                </span>
+              </span>
+              <textarea id="character-description" placeholder="例: 森の村で暮らす、まじめで少し不器用な若者。緑の上着、茶色の髪、穏やかな表情。"></textarea>
             </label>
             <label>
-              基本イラスト
+              <span class="label-row">
+                基本イラスト
+                <span class="help-tip" tabindex="0" aria-label="基本イラストの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    キャラの見た目の参考画像です。この画面では仮プレビューにだけ使い、直接画像生成はしません。
+                  </span>
+                </span>
+              </span>
               <input id="source-image" type="file" accept="image/png,image/jpeg,image/webp" />
             </label>
           </div>
           <div class="button-row">
-            <button id="generate-prompts-button" class="button" type="button">プロンプトを作る</button>
-            <button id="generate-button" class="button" type="button" disabled>元画像で仮プレビューを作る</button>
+            <button id="generate-prompts-button" class="button" type="button">プロンプト作成</button>
+            <button id="generate-button" class="button" type="button" disabled>仮プレビュー</button>
             <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
-              manifestをダウンロード
+              manifest保存
             </button>
             <button id="save-directory-button" class="button button--warm" type="button" disabled>
               仮プレビューを書き出す
             </button>
           </div>
           <p class="note warning-note">
-            スプライトシートは、立ち絵を小さくして反転したものではありません。
-            参考画像の同一人物感を保ちつつ、箱庭で歩く小さなドット絵SDキャラとして再解釈します。
+            スプライトは縮小ではなく再解釈。
+            <span class="help-tip" tabindex="0" aria-label="スプライト再解釈の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                立ち絵を小さくして反転しただけではスプライトシートではありません。同一人物感を保ちつつ、箱庭で歩くドット絵SDキャラとして作ります。
+              </span>
+            </span>
           </p>
           <p class="note">
-            ブラウザがフォルダ保存に対応している場合は、保存先に
-            <strong>public/art/generated</strong> を選ぶと
-            <strong>&lt;characterId&gt;</strong> フォルダへPNGとmanifestを書き出せます。
-            非対応ブラウザではmanifestのダウンロードだけ使えます。
+            保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong>
+            <span class="help-tip" tabindex="0" aria-label="保存先の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                フォルダ保存に対応しているブラウザではPNGとmanifestを書き出せます。非対応ならmanifest保存だけ使えます。
+              </span>
+            </span>
           </p>
         </div>
 
         <div class="panel preview-area">
           <div class="preview-header">
             <div>
-              <h2>仮プレビュー</h2>
-              <p>これは本物のスプライトシートではなく、元画像を使った確認用の枠です。</p>
+              <div class="title-row">
+                <h2>仮プレビュー</h2>
+                <span class="help-tip" tabindex="0" aria-label="仮プレビューの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    元画像をCanvasで並べるだけの確認枠です。本物の表情差分やスプライト生成結果ではありません。
+                  </span>
+                </span>
+              </div>
+              <p>本物の生成画像ではありません。</p>
             </div>
             <span id="output-status" class="status-pill">画像を選んでください</span>
           </div>
 
           <div id="empty-state" class="empty-state">
-            <p>
-              1枚絵を選ぶと、ここに normal / tense / sadness / joy / divine と
-              モーション枠の仮プレビューが出ます。本物の画像は下のプロンプトを別Codexへ貼って生成してください。
-            </p>
+            <p>画像を選ぶと、確認用の枠が出ます。</p>
           </div>
 
           <section id="expressions-section" hidden>
-            <h3>表情差分</h3>
+            <div class="title-row">
+              <h3>表情</h3>
+              <span class="help-tip" tabindex="0" aria-label="表情の説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  profile、会話、イベント、Passport portraitで使う立ち絵差分です。normal / tense / sadness / joy / divineを想定します。
+                </span>
+              </span>
+            </div>
             <div id="expressions-grid" class="grid"></div>
           </section>
 
           <section id="sprites-section" hidden>
-            <h3>箱庭用2Dスプライト枠</h3>
+            <div class="title-row">
+              <h3>スプライト</h3>
+              <span class="help-tip" tabindex="0" aria-label="スプライトの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  箱庭内を歩く小さい2Dキャラです。立ち絵を縮小するだけではなく、ドット絵SDキャラとして作ります。
+                </span>
+              </span>
+            </div>
             <div id="sprites-grid" class="grid"></div>
           </section>
 
           <section id="manifest-section" hidden>
-            <h3>manifest JSON</h3>
+            <div class="title-row">
+              <h3>manifest</h3>
+              <span class="help-tip" tabindex="0" aria-label="manifestの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  生成後の画像パス一覧です。GodSandbox本体へ自動反映するものではなく、後で参照するためのメモです。
+                </span>
+              </span>
+            </div>
             <pre id="manifest-output" class="manifest-box"></pre>
           </section>
         </div>
@@ -557,33 +726,39 @@
 
       <section class="workflow" aria-label="生成プロンプト">
         <article class="panel prompt-card">
-          <div>
-            <h2>立ち絵表情差分プロンプト</h2>
-            <p>
-              顔、上半身、全身イラストをプロフィール、会話、イベント、Passport portraitで使うための差分です。
-              normal / tense / sadness / joy / divine を同じキャラクターとして作ります。
-            </p>
+          <div class="title-row">
+            <h2>立ち絵</h2>
+            <span class="help-tip" tabindex="0" aria-label="立ち絵プロンプトの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                profile、会話、イベント、Passport portraitで使う表情差分です。normal / tense / sadness / joy / divineを想定します。
+              </span>
+            </span>
           </div>
+          <p>表情差分用。</p>
           <textarea id="portrait-prompt-output" class="prompt-output" readonly></textarea>
           <div class="button-row">
             <button id="copy-portrait-prompt-button" class="button button--secondary" type="button">
-              立ち絵プロンプトをコピー
+              コピー
             </button>
           </div>
         </article>
 
         <article class="panel prompt-card">
-          <div>
-            <h2>ドット絵スプライトシートプロンプト</h2>
-            <p>
-              箱庭内を歩き回る小さい2Dキャラ用です。立ち絵を縮小するのではなく、
-              8-bit / pixel art / chibiとして再解釈し、透明背景、同一セルサイズ、行ごとのモーションで作ります。
-            </p>
+          <div class="title-row">
+            <h2>スプライトシート</h2>
+            <span class="help-tip" tabindex="0" aria-label="スプライトシートプロンプトの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                箱庭内を歩く小さい2Dキャラ用です。立ち絵を縮小せず、8-bit / pixel art / chibiとして再解釈します。
+              </span>
+            </span>
           </div>
+          <p>箱庭用。</p>
           <textarea id="sprite-prompt-output" class="prompt-output" readonly></textarea>
           <div class="button-row">
             <button id="copy-sprite-prompt-button" class="button button--secondary" type="button">
-              スプライトプロンプトをコピー
+              コピー
             </button>
           </div>
         </article>
@@ -591,7 +766,15 @@
 
       <section class="manifest-grid">
         <article class="panel">
-          <h2>保存先とファイル名規則</h2>
+          <div class="title-row">
+            <h2>保存ルール</h2>
+            <span class="help-tip" tabindex="0" aria-label="保存ルールの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                生成後に置く想定パスです。この画面が画像を自動生成したり、本体へ自動反映したりするわけではありません。
+              </span>
+            </span>
+          </div>
           <ul class="path-list">
             <li><code>public/art/generated/&lt;characterId&gt;/portraits/normal.png</code></li>
             <li><code>public/art/generated/&lt;characterId&gt;/portraits/tense.png</code></li>
@@ -603,13 +786,21 @@
             <li><code>public/art/generated/&lt;characterId&gt;/visual-manifest.json</code></li>
           </ul>
 
-          <h3>最小モーション</h3>
+          <div class="title-row">
+            <h3>モーション</h3>
+            <span class="help-tip" tabindex="0" aria-label="モーションの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                行ごとに動き、列ごとにフレームを並べる想定です。walk_leftはwalk_rightのmirrorでも構いません。
+              </span>
+            </span>
+          </div>
           <ul class="motion-list">
             <li><code>idle</code>: 4 frames</li>
             <li><code>walk_down</code>: 4 frames</li>
             <li><code>walk_up</code>: 4 frames</li>
             <li><code>walk_right</code>: 6 frames</li>
-            <li><code>walk_left</code>: 6 frames。必要なら <code>walk_right</code> のmirrorでも可</li>
+            <li><code>walk_left</code>: 6 frames</li>
             <li><code>waving</code>: 4 frames</li>
             <li><code>jumping</code>: 4 frames</li>
             <li><code>failed</code>: 4 frames</li>
@@ -618,7 +809,15 @@
         </article>
 
         <article class="panel">
-          <h2>visual-manifest.json 例</h2>
+          <div class="title-row">
+            <h2>manifest例</h2>
+            <span class="help-tip" tabindex="0" aria-label="manifest例の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                画像パスとセルサイズ、アニメーション行を確認するためのJSON例です。
+              </span>
+            </span>
+          </div>
           <pre id="manifest-example-output" class="manifest-box"></pre>
         </article>
       </section>
