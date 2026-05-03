@@ -73,11 +73,11 @@ const APP_SHELL_TUTORIAL_STEPS: TutorialGuideStep[] = [
     id: "press-bless",
     title: "最後に Bless を押して助ける",
     body: "今回は Bless が正解当てではなく、Aki を良い方向へ支える一手です。光っている Bless ボタンだけを押してください。",
-    apostleLine: "ここが最初の成功体験です。Bless を押すと、この案内は閉じて次の出来事に進みます。",
+    apostleLine: "ここが最初の成功体験です。Bless を押したあとは、結果が出た時点でこの案内が自然に終わります。",
     targetLabel: "Bless ボタン",
     targetAnchor: "action-bless-button",
     advanceMode: "targetClick",
-    completeOnTargetClick: true,
+    waitForExternalCompletion: true,
     scrollBlock: "center",
   },
 ];
@@ -126,6 +126,7 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
   const protectionRemaining = getStartupProtectionRemaining(state);
   const dayPhase = getDayPhase(state.tick);
   const season = getSeason(state.tick);
+  const tutorialBlessResolved = firstBlessTutorialCompleted || state.latestJudgement?.action === "bless";
 
   useEffect(() => {
     if (state.phase === "event" && !state.activeEvent) {
@@ -263,7 +264,11 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
         onStepTick={() => dispatch({ type: "stepTick" })}
       />
 
-      <TutorialGuideOverlay steps={APP_SHELL_TUTORIAL_STEPS} suspended={state.phase === "event"} />
+      <TutorialGuideOverlay
+        steps={APP_SHELL_TUTORIAL_STEPS}
+        completedSignal={tutorialBlessResolved}
+        suspended={state.phase === "event"}
+      />
 
       <main className="main-layout">
         <section className="viewport-panel" data-tutorial-anchor="world-viewport">
