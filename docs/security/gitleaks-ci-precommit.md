@@ -6,7 +6,8 @@
 ## CI で確認すること
 
 `.github/workflows/gitleaks.yml` で、pull request と `main` への push 時に gitleaks を実行します。
-検出結果に secret らしき値を残しにくくするため、gitleaks artifact upload は無効にしています。
+CI では pinned version の gitleaks CLI を GitHub Releases から取得し、checksum を確認してから実行します。
+検出結果に secret らしき値を残しにくくするため、CI では `--redact` を付けます。
 
 CI が失敗した場合は、次の順で対応します。
 
