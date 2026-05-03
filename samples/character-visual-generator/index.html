@@ -125,6 +125,10 @@
         overflow-wrap: anywhere;
       }
 
+      .status-card > div {
+        min-width: 0;
+      }
+
       .title-row,
       .label-row {
         display: flex;
@@ -320,7 +324,10 @@
       }
 
       .note strong {
+        display: inline-block;
+        max-width: 100%;
         overflow-wrap: anywhere;
+        vertical-align: top;
         word-break: break-word;
       }
 
