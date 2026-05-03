@@ -6,6 +6,7 @@ import { FirstActionGuide } from "../features/onboarding/FirstActionGuide";
 import { AdvancedCodexWorkspacePanel } from "../features/agentWorkspace/AdvancedCodexWorkspacePanel";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
 import { TutorialGuideOverlay, type TutorialGuideStep } from "../features/tutorial/TutorialGuideOverlay";
+import { VillagerReincarnationImportPanel } from "../features/villagerImport/VillagerReincarnationImportPanel";
 import { createMockProvider } from "../infrastructure/llm/mockProvider";
 import { createTemplateProvider } from "../infrastructure/llm/templateProvider";
 import {
@@ -308,6 +309,8 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
           />
 
           <PassportExportPanel focusedCharacter={focusedCharacter} />
+
+          <VillagerReincarnationImportPanel focusedCharacterName={focusedCharacter?.name} />
 
           <AdvancedCodexWorkspacePanel focusedCharacter={focusedCharacter} />
 
