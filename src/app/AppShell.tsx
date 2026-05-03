@@ -3,6 +3,7 @@ import { ApostlePanel } from "../features/apostle/ApostlePanel";
 import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
 import { FirstActionGuide } from "../features/onboarding/FirstActionGuide";
+import { AdvancedCodexWorkspacePanel } from "../features/agentWorkspace/AdvancedCodexWorkspacePanel";
 import { WorldViewport } from "../features/sandbox/WorldViewport";
 import { TutorialGuideOverlay, type TutorialGuideStep } from "../features/tutorial/TutorialGuideOverlay";
 import { createMockProvider } from "../infrastructure/llm/mockProvider";
@@ -250,6 +251,8 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
           />
 
           <PassportExportPanel focusedCharacter={focusedCharacter} />
+
+          <AdvancedCodexWorkspacePanel focusedCharacter={focusedCharacter} />
 
           <CommandConsole
             disabled={state.phase === "event" || !hasLivingCharacters}
