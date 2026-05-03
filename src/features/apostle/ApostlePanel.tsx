@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { RYO_PORTRAITS } from "../../assets/artPaths";
 import { getJudgementRankLabel } from "../../domain/world";
-import type { BloodlineSummary, Character, EventSummary, JudgementResult } from "../../domain/types";
+import type { BloodlineSummary, Character, EventSummary, InterventionKind, JudgementResult } from "../../domain/types";
 import { TutorialRewardExplainer } from "../tutorial/TutorialRewardExplainer";
 
 interface ApostlePanelProps {
@@ -17,7 +17,34 @@ interface ApostlePanelProps {
   paused: boolean;
   onSelectCharacter: (characterId: string) => void;
   onTriggerManualEvent: () => void;
+  onRequestCharacterAction: (intervention: InterventionKind, characterName: string) => void;
 }
+
+const CHARACTER_ACTIONS: Array<{
+  intervention: InterventionKind;
+  label: string;
+  description: string;
+  tone: "watch" | "bless" | "test";
+}> = [
+  {
+    intervention: "watch",
+    label: "Watch 見守る",
+    description: "まず様子を見て、変化を記録します。",
+    tone: "watch",
+  },
+  {
+    intervention: "bless",
+    label: "Bless 助ける",
+    description: "良い変化を起こしたい時の主導線です。",
+    tone: "bless",
+  },
+  {
+    intervention: "test",
+    label: "Test 試す",
+    description: "試練を与えて、成長のきっかけを作ります。",
+    tone: "test",
+  },
+];
 
 function getPanelPortraitSrc(paused: boolean, latestJudgement: JudgementResult | null) {
   if (paused) {
@@ -64,6 +91,7 @@ export function ApostlePanel({
   paused,
   onSelectCharacter,
   onTriggerManualEvent,
+  onRequestCharacterAction,
 }: ApostlePanelProps) {
   const [notesExpanded, setNotesExpanded] = useState(false);
   const [portraitLoadFailed, setPortraitLoadFailed] = useState(false);
@@ -87,6 +115,7 @@ export function ApostlePanel({
     : null;
   const recentNotables = focusedCharacter ? [...focusedCharacter.notable].slice(-3).reverse() : [];
   const portraitSrc = getPanelPortraitSrc(paused, latestJudgement);
+  const livingCharacters = characters.filter((character) => character.alive);
 
   useEffect(() => {
     setPortraitLoadFailed(false);
@@ -99,16 +128,78 @@ export function ApostlePanel({
           <p className="eyebrow">apostle</p>
           <h2>使徒の語り</h2>
         </div>
-        <button
-          className="button button--ghost"
-          disabled={paused || !hasLivingCharacters}
-          onClick={onTriggerManualEvent}
-        >
-          開発: 手動イベント
+        <button className="button button--ghost" disabled={paused || !hasLivingCharacters} onClick={onTriggerManualEvent}>
+          選択キャラに関わる
         </button>
       </div>
 
       <p className="narration">{apostleMessage}</p>
+
+      <div className="subpanel focus-action-panel" aria-label="代表キャラ選択と行動">
+        <div className="focus-action-panel__header">
+          <div>
+            <p className="eyebrow">first focus</p>
+            <h3>代表キャラを選ぶ</h3>
+          </div>
+          <span className="focus-action-panel__badge">
+            {focusedCharacter ? `選択中: ${focusedCharacter.name}` : "未選択"}
+          </span>
+        </div>
+        <p className="focus-action-panel__lead">
+          まず1人を選ぶと、箱庭がその住民を追い、神様が次にできることを選べます。
+        </p>
+        <div className="focus-character-picker" aria-label="生存中の代表キャラ">
+          {livingCharacters.map((character) => (
+            <button
+              key={character.id}
+              type="button"
+              className={[
+                "focus-character-picker__button",
+                focusedCharacter?.id === character.id ? "focus-character-picker__button--active" : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+              disabled={paused}
+              onClick={() => onSelectCharacter(character.id)}
+            >
+              <span>{character.name}</span>
+              <small>
+                {character.bloodlineName} / 残寿命 {character.lifespanRemaining}
+              </small>
+            </button>
+          ))}
+          {livingCharacters.length === 0 ? <span className="summary-note">選べる住民はいません。</span> : null}
+        </div>
+        <div className="focus-action-panel__current">
+          <strong>{focusedCharacter ? `${focusedCharacter.name}に何をしますか？` : "代表キャラを選んでください"}</strong>
+          <span>
+            {focusedCharacter
+              ? "Watch / Bless / Test のどれかを選ぶと、その住民への関わり方が始まります。"
+              : "住民を1タップすると、次の行動ボタンが使いやすくなります。"}
+          </span>
+        </div>
+        <div className="focus-action-panel__actions">
+          {CHARACTER_ACTIONS.map((action) => (
+            <button
+              key={action.intervention}
+              type="button"
+              className={`focus-action-button focus-action-button--${action.tone}`}
+              disabled={paused || !focusedCharacter}
+              onClick={() => {
+                if (focusedCharacter) {
+                  onRequestCharacterAction(action.intervention, focusedCharacter.name);
+                }
+              }}
+            >
+              <span>{action.label}</span>
+              <small>{action.description}</small>
+            </button>
+          ))}
+        </div>
+        <p className="focus-action-panel__note">
+          iPhoneではダブルクリックではなく、このボタンから進めます。PCでは従来の操作も補助として使えます。
+        </p>
+      </div>
 
       <div className="subpanel">
         <div className="summary-card__header">

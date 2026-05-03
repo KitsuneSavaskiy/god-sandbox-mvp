@@ -22,6 +22,7 @@ import {
   getSeason,
   getStartupProtectionRemaining,
 } from "../domain/world";
+import type { InterventionKind } from "../domain/types";
 import { useAppState } from "../state/appState";
 
 interface AppShellProps {
@@ -78,6 +79,10 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
       latestJudgement: state.latestJudgement,
       tick: state.tick,
     });
+  }
+
+  function handleRequestCharacterAction(intervention: InterventionKind, characterName: string) {
+    dispatch({ type: "submitCommand", input: `${intervention} ${characterName}` });
   }
 
   return (
@@ -189,6 +194,7 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
             paused={state.phase === "event"}
             onSelectCharacter={(characterId) => dispatch({ type: "selectFocus", characterId })}
             onTriggerManualEvent={() => dispatch({ type: "triggerManualEvent" })}
+            onRequestCharacterAction={handleRequestCharacterAction}
           />
 
           <UtterancePreviewPanel
