@@ -390,6 +390,7 @@ export function WorldViewport({ characters, focusCharacterId, dayPhase, paused, 
   return (
     <div
       className="viewport-root world-viewport world-viewport--guided"
+      data-tutorial-anchor="sandbox-viewport"
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
