@@ -1235,8 +1235,9 @@ export function submitCommand(state: WorldState, rawInput: string): WorldState {
   const [verbRaw, ...rest] = command.split(/\s+/);
   const verb = verbRaw.toLowerCase();
   const targetName = rest.join(" ");
+  const tutorialBlessCommand = verb === "tutorial-bless";
 
-  if (!["watch", "bless", "test"].includes(verb)) {
+  if (!["watch", "bless", "test", "tutorial-bless"].includes(verb)) {
     const nextState = pushLog(
       state,
       "system",
@@ -1267,6 +1268,18 @@ export function submitCommand(state: WorldState, rawInput: string): WorldState {
       ...nextState,
       apostleMessage: `使徒は ${target.name} に呼びかけましたが、返事はありませんでした。`,
     };
+  }
+
+  if (tutorialBlessCommand) {
+    const tutorialState = triggerTutorialBlessEvent(
+      {
+        ...state,
+        focusCharacterId: target.id,
+      },
+      target.id,
+    );
+
+    return pushLog(tutorialState, "command", `Command accepted: ${command}`);
   }
 
   if (targetName && verb === "watch") {

@@ -185,6 +185,7 @@ export function ApostlePanel({
               type="button"
               className={`focus-action-button focus-action-button--${action.tone}`}
               disabled={paused || !focusedCharacter}
+              data-tutorial-anchor={action.intervention === "bless" ? "first-action-cta" : undefined}
               onClick={() => {
                 if (focusedCharacter) {
                   onRequestCharacterAction(action.intervention, focusedCharacter.name);
