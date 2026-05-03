@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ApostlePanel } from "../features/apostle/ApostlePanel";
 import { CommandConsole } from "../features/commands/CommandConsole";
 import { EventModal } from "../features/events/EventModal";
@@ -24,13 +24,15 @@ import {
   getSeason,
   getStartupProtectionRemaining,
 } from "../domain/world";
-import type { InterventionKind } from "../domain/types";
+import type { InterventionKind, JudgementResult } from "../domain/types";
 import { useAppState } from "../state/appState";
 
 interface AppShellProps {
   userName: string;
   onLogout: () => void;
 }
+
+const FIRST_BLESS_TUTORIAL_COMPLETED_KEY = "godsandbox.firstBlessTutorialCompleted.v1";
 
 const UTTERANCE_PREVIEW_PROVIDERS = [
   { label: "mockProvider", provider: createMockProvider() },
@@ -59,17 +61,17 @@ const APP_SHELL_TUTORIAL_STEPS: TutorialGuideStep[] = [
   },
   {
     id: "observe-next-action",
-    title: "次に押す場所を確認する",
-    body: "最初の操作は、この大きな CTA です。ここから少し時間を進めて、最初の変化を待てます。",
-    apostleLine: "初回は迷わなくて大丈夫です。次に触る場所だけを明るく示します。",
-    targetLabel: "FirstActionGuide の CTA",
+    title: "代表キャラを選び、Bless を押す",
+    body: "右側の使徒パネルで代表キャラを選び、Bless を押すと最初の成功体験へ進めます。",
+    apostleLine: "最初は Watch や Test に迷わなくて大丈夫です。まずは Bless で助ける流れを見てみましょう。",
+    targetLabel: "使徒パネルの Bless ボタン",
     targetSelector: '[data-tutorial-anchor=\"first-action-cta\"]',
     scrollBlock: "center",
   },
   {
     id: "observe-apostle-panel",
     title: "変化を読む場所を確認する",
-    body: "使徒のメモや注目キャラの情報は、この右側パネルに集まります。後続 PBI ではここに Bless 本編の案内も差し込めます。",
+    body: "使徒のメモや注目キャラの情報は、この右側パネルに集まります。Bless の結果も、ここで短く振り返れます。",
     apostleLine: "何が起きたか、誰を見ればよいかは、このパネルを起点に伝えます。",
     targetLabel: "使徒パネル",
     targetSelector: '[data-tutorial-anchor=\"apostle-panel\"]',
@@ -78,8 +80,40 @@ const APP_SHELL_TUTORIAL_STEPS: TutorialGuideStep[] = [
   },
 ];
 
+function hasBlessSuccess(judgement: JudgementResult | null) {
+  return (
+    judgement?.action === "bless" &&
+    (judgement.rank === "success" || judgement.rank === "greatSuccess" || judgement.rank === "critical")
+  );
+}
+
+function readFirstBlessTutorialCompleted() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    return window.localStorage.getItem(FIRST_BLESS_TUTORIAL_COMPLETED_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function writeFirstBlessTutorialCompleted() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(FIRST_BLESS_TUTORIAL_COMPLETED_KEY, "true");
+  } catch {
+    // localStorage が使えない環境では、セッション中の state だけで完了状態を保持します。
+  }
+}
+
 export function AppShell({ userName, onLogout }: AppShellProps) {
   const [state, dispatch] = useAppState();
+  const [firstBlessTutorialCompleted, setFirstBlessTutorialCompleted] = useState(readFirstBlessTutorialCompleted);
   const focusedCharacter = getFocusedCharacter(state);
   const activeEventTarget = state.activeEvent
     ? state.characters.find((character) => character.id === state.activeEvent?.targetCharacterId)
@@ -110,6 +144,15 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
     return () => window.clearInterval(timerId);
   }, [dispatch, hasLivingCharacters, state.phase, state.timeControl]);
 
+  useEffect(() => {
+    if (firstBlessTutorialCompleted || !hasBlessSuccess(state.latestJudgement)) {
+      return;
+    }
+
+    setFirstBlessTutorialCompleted(true);
+    writeFirstBlessTutorialCompleted();
+  }, [firstBlessTutorialCompleted, state.latestJudgement]);
+
   async function handleGenerateUtterancePreview(): Promise<UtterancePreviewResult[]> {
     if (!focusedCharacter) {
       return [];
@@ -125,6 +168,11 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
   }
 
   function handleRequestCharacterAction(intervention: InterventionKind, characterName: string) {
+    if (intervention === "bless" && state.phase !== "event" && !firstBlessTutorialCompleted) {
+      dispatch({ type: "submitCommand", input: `tutorial-bless ${characterName}` });
+      return;
+    }
+
     dispatch({ type: "submitCommand", input: `${intervention} ${characterName}` });
   }
 
@@ -204,9 +252,11 @@ export function AppShell({ userName, onLogout }: AppShellProps) {
       </header>
 
       <FirstActionGuide
+        activeEvent={state.activeEvent}
+        firstBlessTutorialCompleted={firstBlessTutorialCompleted}
+        focusedCharacter={focusedCharacter}
         hasLivingCharacters={hasLivingCharacters}
         phase={state.phase}
-        tick={state.tick}
         timeControl={state.timeControl}
         onStepTick={() => dispatch({ type: "stepTick" })}
       />

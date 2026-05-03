@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Character, WorldEvent } from "../../domain/types";
 import "./FirstActionGuide.css";
 
 const TUTORIAL_DISMISSED_KEY = "godsandbox.apostleTutorialGuide.dismissed.v1";
@@ -28,23 +29,35 @@ function writeTutorialDismissed() {
 }
 
 interface FirstActionGuideProps {
+  activeEvent: WorldEvent | null;
+  firstBlessTutorialCompleted: boolean;
+  focusedCharacter?: Character;
   hasLivingCharacters: boolean;
   phase: "observing" | "event";
-  tick: number;
   timeControl: "stopped" | "slow" | "normal";
   onStepTick: () => void;
 }
 
 export function FirstActionGuide({
+  activeEvent,
+  firstBlessTutorialCompleted,
+  focusedCharacter,
   hasLivingCharacters,
   phase,
-  tick,
   timeControl,
   onStepTick,
 }: FirstActionGuideProps) {
   const isEventOpen = phase === "event";
+  const tutorialBlessEvent = activeEvent?.tutorialKind === "firstBless";
   const canStep = hasLivingCharacters && !isEventOpen;
-  const guide = getGuideState({ hasLivingCharacters, isEventOpen, tick, timeControl });
+  const guide = getGuideState({
+    blessSucceeded: firstBlessTutorialCompleted,
+    focusedCharacterName: focusedCharacter?.name,
+    hasLivingCharacters,
+    isEventOpen,
+    timeControl,
+    tutorialBlessEvent,
+  });
   const [isTutorialDismissed, setIsTutorialDismissed] = useState(readTutorialDismissed);
 
   useEffect(() => {
@@ -64,9 +77,7 @@ export function FirstActionGuide({
       <div className="first-action-guide__copy">
         <p className="first-action-guide__eyebrow">使徒の案内</p>
         <h2 id="first-action-guide-title">ここはAIキャラが暮らす箱庭です</h2>
-        <p>
-          神様として世界を見守り、変化が起きたらキャラにどう関わるかを選びます。
-        </p>
+        <p>新米神様として世界を見守り、代表キャラを選んで必要な時だけ手を貸します。</p>
         {!isTutorialDismissed ? (
           <div className="first-action-guide__apostle" role="note" aria-label="使徒からの短い案内">
             <span className="first-action-guide__apostle-mark" aria-hidden="true">
@@ -90,40 +101,42 @@ export function FirstActionGuide({
         data-tutorial-anchor="first-action-cta-card"
       >
         <span className="first-action-guide__status">{guide.status}</span>
-        {isEventOpen ? (
-          <div
-            className="first-action-guide__cta first-action-guide__cta--notice"
-            data-tutorial-anchor="first-action-cta"
-          >
-            {guide.ctaLabel}
-          </div>
-        ) : (
-          <button
-            className="first-action-guide__cta"
-            type="button"
-            disabled={!canStep}
-            onClick={onStepTick}
-            data-tutorial-anchor="first-action-cta"
-          >
+        {guide.stepAction === "step" ? (
+          <button className="first-action-guide__cta" type="button" disabled={!canStep} onClick={onStepTick}>
             {guide.ctaLabel}
           </button>
+        ) : (
+          <div className="first-action-guide__cta first-action-guide__cta--notice">{guide.ctaLabel}</div>
         )}
         <p className="first-action-guide__hint">{guide.hint}</p>
+        {firstBlessTutorialCompleted && focusedCharacter ? (
+          <p className="first-action-guide__success-note">
+            {focusedCharacter.name} に良い変化が起きました。余韻を見るには、少し時間を進めれば十分です。
+          </p>
+        ) : tutorialBlessEvent ? (
+          <p className="first-action-guide__success-note">
+            いま開いている出来事カードで Bless を押すと、最初の成功体験として良い変化を確認できます。
+          </p>
+        ) : null}
       </div>
     </section>
   );
 }
 
 function getGuideState({
+  blessSucceeded,
+  focusedCharacterName,
   hasLivingCharacters,
   isEventOpen,
-  tick,
   timeControl,
+  tutorialBlessEvent,
 }: {
+  blessSucceeded: boolean;
+  focusedCharacterName?: string;
   hasLivingCharacters: boolean;
   isEventOpen: boolean;
-  tick: number;
   timeControl: "stopped" | "slow" | "normal";
+  tutorialBlessEvent: boolean;
 }) {
   if (!hasLivingCharacters) {
     return {
@@ -131,40 +144,53 @@ function getGuideState({
       ctaLabel: "キャラを準備中",
       hint: "キャラクターが現れたら、ここから観察を始められます。",
       apostleLine: "まずは箱庭にキャラが現れるのを待ちましょう。準備ができたら、次の一手を案内します。",
+      stepAction: "notice" as const,
+    };
+  }
+
+  if (tutorialBlessEvent) {
+    return {
+      status: "現在地: Bless を選ぶ場面",
+      ctaLabel: "表示中の出来事カードで Bless を押す",
+      hint: "今回は Bless で良い変化が起きるように整えています。出来事カードを読んで、そのまま Bless を押せば大丈夫です。",
+      apostleLine: focusedCharacterName
+        ? `${focusedCharacterName} を助ける場を整えました。ここでは Bless を選べば、良い方向へ動く感覚をつかめます。`
+        : "助ける場を整えました。ここでは Bless を選べば、良い方向へ動く感覚をつかめます。",
+      stepAction: "notice" as const,
     };
   }
 
   if (isEventOpen) {
     return {
       status: "現在地: 出来事が発生中",
-      ctaLabel: "起きた出来事を見る",
-      hint: "表示中の出来事カードで、キャラにどう関わるかを選びましょう。",
+      ctaLabel: "表示中の出来事カードを見る",
+      hint: "起きた出来事カードで、キャラにどう関わるかを選びましょう。",
       apostleLine: "出来事が起きました。カードを見て、このキャラにどう関わるか選びましょう。",
+      stepAction: "notice" as const,
     };
   }
 
-  if (tick === 0) {
+  if (blessSucceeded) {
     return {
-      status: "現在地: 観察開始前",
-      ctaLabel: "少し時間を進める",
-      hint: "まずは一度だけ進めて、キャラの変化を見てみましょう。",
-      apostleLine: "最初に押すのは、この大きなボタンだけで大丈夫です。箱庭が少し動きます。",
-    };
-  }
-
-  if (timeControl === "stopped") {
-    return {
-      status: "現在地: 観察を一時停止中",
-      ctaLabel: "少し時間を進める",
-      hint: "もう一度だけ進めると、次の変化を確認できます。",
-      apostleLine: "よく見えました。もう少しだけ進めて、次の変化を追ってみましょう。",
+      status: "現在地: Bless の成功を確認済み",
+      ctaLabel: timeControl === "stopped" ? "少し時間を進める" : "もう少し見守る",
+      hint: "助けたあとの変化を追う時間です。箱庭を少し進めて、次の出来事を見てみましょう。",
+      apostleLine: focusedCharacterName
+        ? `${focusedCharacterName} には良い変化が起きました。次は少し見守って、その余韻を確かめましょう。`
+        : "良い変化が起きました。次は少し見守って、その余韻を確かめましょう。",
+      stepAction: "step" as const,
     };
   }
 
   return {
-    status: "現在地: 観察中",
-    ctaLabel: "変化を追う",
-    hint: "自動で進んでいます。気になる変化が出たら、画面の案内に沿って選びます。",
-    apostleLine: "世界は動いています。大事な出来事が起きたら、私が知らせます。",
+    status: focusedCharacterName ? "現在地: 代表キャラを選択済み" : "現在地: 代表キャラを選ぶ",
+    ctaLabel: focusedCharacterName
+      ? `${focusedCharacterName} を選べています。右の Bless ボタンを押します。`
+      : "右の使徒パネルで代表キャラを選びます。",
+    hint: "通常UIでは、右の使徒パネルで代表キャラを選び、Watch / Bless / Test から次の行動を決めます。",
+    apostleLine: focusedCharacterName
+      ? `まずは ${focusedCharacterName} を助けてみましょう。右の Bless ボタンが、最初の成功体験への近道です。`
+      : "最初は1人だけ選べば大丈夫です。右の使徒パネルで代表キャラを選び、Bless へ進みましょう。",
+    stepAction: "notice" as const,
   };
 }

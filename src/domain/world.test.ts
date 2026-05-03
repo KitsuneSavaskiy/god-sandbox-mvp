@@ -5,6 +5,7 @@ import {
   NON_LIFESPAN_EVENT_TRIGGER_CANDIDATES,
   previewJudgement,
   resolveActiveEvent,
+  submitCommand,
   triggerTutorialBlessEvent,
 } from "./world";
 
@@ -168,6 +169,16 @@ describe("world intervention characterization", () => {
     expect(testResolved.phase).toBe("observing");
     expect(testResolved.activeEvent).toBeNull();
     expect(testResolved.latestJudgement?.action).toBe("test");
+  });
+
+  it("starts the guided Bless flow from the tutorial command", () => {
+    const state = submitCommand(createInitialWorldState(), "tutorial-bless mio");
+
+    expect(state.phase).toBe("event");
+    expect(state.focusCharacterId).toBe("mio");
+    expect(state.activeEvent?.tutorialKind).toBe("firstBless");
+    expect(state.activeEvent?.presetIntervention).toBe("bless");
+    expect(state.activeEvent?.targetCharacterId).toBe("mio");
   });
 
   it("documents non-lifespan trigger candidates for future events", () => {
