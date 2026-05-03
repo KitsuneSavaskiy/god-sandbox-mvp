@@ -693,11 +693,11 @@
             </span>
           </p>
           <p id="storage-support-note" class="note">
-            保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong>
-            <span id="storage-support-note">フォルダ保存の対応状況を確認しています。</span>
+            保存先: <strong id="storage-support-path">public/art/generated/&lt;characterId&gt;/</strong>
+            <span id="storage-support-status">フォルダ保存の対応状況を確認しています。</span>
             <span class="help-tip" tabindex="0" aria-label="保存先の説明">
               <span class="help-tip__mark">?</span>
-              <span class="help-tip__content">
+              <span id="storage-support-tip" class="help-tip__content">
                 フォルダ保存に対応しているブラウザではPNGとmanifestを書き出せます。非対応ならmanifest保存だけ使えます。
               </span>
             </span>
@@ -894,6 +894,9 @@
       const downloadManifestButton = document.getElementById("download-manifest-button");
       const saveDirectoryButton = document.getElementById("save-directory-button");
       const storageSupportNote = document.getElementById("storage-support-note");
+      const storageSupportPath = document.getElementById("storage-support-path");
+      const storageSupportStatus = document.getElementById("storage-support-status");
+      const storageSupportTip = document.getElementById("storage-support-tip");
       const outputStatus = document.getElementById("output-status");
       const portraitPromptOutput = document.getElementById("portrait-prompt-output");
       const spritePromptOutput = document.getElementById("sprite-prompt-output");
@@ -1022,9 +1025,16 @@
       function updateFileSystemAccessSupport() {
         const fileSystemAccessAvailable = typeof window.showDirectoryPicker === "function";
         saveDirectoryButton.hidden = !fileSystemAccessAvailable;
-        storageSupportNote.innerHTML = fileSystemAccessAvailable
-          ? '保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong> <span class="help-tip" tabindex="0" aria-label="保存先の説明"><span class="help-tip__mark">?</span><span class="help-tip__content">このブラウザではフォルダ保存が使えます。PNG と manifest を保存できます。</span></span>'
-          : '保存先: <strong>manifest保存のみ</strong> <span class="help-tip" tabindex="0" aria-label="保存先の説明"><span class="help-tip__mark">?</span><span class="help-tip__content">このブラウザではフォルダ保存は使えません。manifest 保存だけ利用できます。</span></span>';
+        storageSupportNote.dataset.support = fileSystemAccessAvailable ? "directory" : "manifest-only";
+        storageSupportPath.innerHTML = fileSystemAccessAvailable
+          ? "public/art/generated/&lt;characterId&gt;/"
+          : "manifest保存のみ";
+        storageSupportStatus.textContent = fileSystemAccessAvailable
+          ? "に PNG と manifest を保存できます。"
+          : "が利用できます。";
+        storageSupportTip.textContent = fileSystemAccessAvailable
+          ? "このブラウザではフォルダ保存が使えます。PNG と manifest を保存できます。"
+          : "このブラウザではフォルダ保存は使えません。manifest 保存だけ利用できます。";
         return fileSystemAccessAvailable;
       }
       function normalizeCharacterId(value) {
