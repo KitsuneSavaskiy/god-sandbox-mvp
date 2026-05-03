@@ -30,6 +30,11 @@ interface SpotlightRect {
   height: number;
 }
 
+type TutorialSpriteFrame = {
+  column: number;
+  row: number;
+};
+
 function readStoredFlag(key: string) {
   if (typeof window === "undefined") {
     return false;
@@ -115,7 +120,7 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
   const [bubbleStyle, setBubbleStyle] = useState<CSSProperties>({});
   const [isSpriteReady, setIsSpriteReady] = useState(false);
-  const [apostleFrame, setApostleFrame] = useState<number>(APOSTLE_GUIDE_SPRITE.motions.idle[0]);
+  const [apostleFrame, setApostleFrame] = useState<TutorialSpriteFrame>(APOSTLE_GUIDE_SPRITE.motions.idle[0]);
   const highlightedElementRef = useRef<HTMLElement | null>(null);
   const isOpen = !isCompleted && !isDeferred && !isHiddenForSession;
   const activeStep = steps[stepIndex];
@@ -326,8 +331,8 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
                     className="tutorial-guide-overlay__apostle-sprite"
                     style={{
                       backgroundImage: `url(${APOSTLE_GUIDE_SPRITE.sheet})`,
-                      backgroundPosition: `calc(var(--tutorial-apostle-frame-size) * ${-apostleFrame}) 0px`,
-                      backgroundSize: `calc(var(--tutorial-apostle-frame-size) * ${APOSTLE_GUIDE_SPRITE.frameCount}) var(--tutorial-apostle-frame-size)`,
+                      backgroundPosition: `calc(var(--tutorial-apostle-frame-width) * ${-apostleFrame.column}) calc(var(--tutorial-apostle-frame-height) * ${-apostleFrame.row})`,
+                      backgroundSize: `calc(var(--tutorial-apostle-frame-width) * ${APOSTLE_GUIDE_SPRITE.columns}) calc(var(--tutorial-apostle-frame-height) * ${APOSTLE_GUIDE_SPRITE.rows})`,
                     }}
                   />
                 </div>

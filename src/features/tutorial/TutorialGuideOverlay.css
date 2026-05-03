@@ -138,9 +138,10 @@
 }
 
 .tutorial-guide-overlay__apostle-sprite {
-  --tutorial-apostle-frame-size: 4rem;
-  width: var(--tutorial-apostle-frame-size);
-  height: var(--tutorial-apostle-frame-size);
+  --tutorial-apostle-frame-width: 4rem;
+  --tutorial-apostle-frame-height: 4rem;
+  width: var(--tutorial-apostle-frame-width);
+  height: var(--tutorial-apostle-frame-height);
   background-repeat: no-repeat;
   image-rendering: auto;
 }
@@ -234,7 +235,8 @@
   }
 
   .tutorial-guide-overlay__apostle-sprite {
-    --tutorial-apostle-frame-size: 3.35rem;
+    --tutorial-apostle-frame-width: 3.35rem;
+    --tutorial-apostle-frame-height: 3.35rem;
   }
 
   .tutorial-guide-overlay__title {
