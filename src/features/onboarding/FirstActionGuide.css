@@ -14,7 +14,7 @@
 .first-action-guide__copy {
   display: grid;
   align-content: center;
-  gap: 0.45rem;
+  gap: 0.7rem;
 }
 
 .first-action-guide__eyebrow,
@@ -44,6 +44,13 @@
   line-height: 1.62;
 }
 
+.first-action-guide__apostle p,
+.first-action-guide__hint {
+  color: #d6e2ef;
+  font-size: 0.92rem;
+  line-height: 1.58;
+}
+
 .first-action-guide__apostle {
   display: grid;
   gap: 0.45rem;
@@ -53,12 +60,6 @@
   border-radius: 16px;
   background: rgba(255, 218, 145, 0.1);
   padding: 0.65rem 0.72rem;
-}
-
-.first-action-guide__apostle p {
-  color: #f0e4c7;
-  font-size: 0.92rem;
-  line-height: 1.5;
 }
 
 .first-action-guide__apostle-mark {
@@ -146,10 +147,9 @@
   cursor: default;
 }
 
-.first-action-guide__hint {
-  color: #9eb0c2;
-  font-size: 0.9rem;
-  line-height: 1.55;
+.first-action-guide__success-note {
+  margin: 0;
+  color: #f0e4c7;
 }
 
 @media (max-width: 760px) {
