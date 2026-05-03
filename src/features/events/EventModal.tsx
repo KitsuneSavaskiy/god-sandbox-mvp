@@ -15,9 +15,15 @@ interface EventModalProps {
 const interventions: InterventionKind[] = ["watch", "bless", "test"];
 
 const labels: Record<InterventionKind, string> = {
-  watch: "Watch",
-  bless: "Bless",
-  test: "Test",
+  watch: "見守る",
+  bless: "助ける",
+  test: "試練",
+};
+
+const helpTexts: Record<InterventionKind, string> = {
+  watch: "今は手を出さず、この子の様子を見ます。",
+  bless: "小さな祝福で、この子に良い変化を起こします。",
+  test: "成長のきっかけになる小さな困難を与えます。",
 };
 
 const triggerLabels: Record<WorldEvent["trigger"], string> = {
@@ -37,10 +43,8 @@ interface RollingState {
 
 interface DecisionGuideOption {
   intervention: InterventionKind;
-  summary: string;
-  detail: string;
-  context: string;
-  nextStep: string;
+  helpText: string;
+  helperNote: string;
 }
 
 interface BlessResultCallout {
@@ -99,8 +103,8 @@ function getModalIllustrationSlot(
     return {
       kind,
       src: RYO_ILLUSTRATIONS.bless,
-      title: "Bless illustration slot",
-      note: "加護の介入挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+      title: "助ける挿絵枠",
+      note: "加護の挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
     };
   }
 
@@ -108,16 +112,16 @@ function getModalIllustrationSlot(
     return {
       kind,
       src: RYO_ILLUSTRATIONS.test,
-      title: "Test illustration slot",
-      note: "試練の介入挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+      title: "試練の挿絵枠",
+      note: "試練の挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
     };
   }
 
   return {
     kind,
     src: RYO_ILLUSTRATIONS.watch,
-    title: "Watch illustration slot",
-    note: "観察の基準挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
+    title: "見守りの挿絵枠",
+    note: "見守りの挿絵をここへ差し込みます。asset 未到着時は placeholder を維持します。",
   };
 }
 
@@ -170,7 +174,7 @@ function isTutorialBlessEvent(event: WorldEvent | null | undefined) {
 
 function getPauseReason(trigger: WorldEvent["trigger"], tutorialBlessEvent: boolean) {
   if (tutorialBlessEvent) {
-    return "この命が弱り始めたので、最初の Bless でどう助けるかを選ぶために時間が止まっています。";
+    return "この命が弱り始めたので、最初にどう助けるかを選ぶために時間が止まっています。";
   }
 
   switch (trigger) {
@@ -209,10 +213,10 @@ function getBlessResultCallout(judgement: JudgementResult | null): BlessResultCa
   return {
     title:
       lifespanImproved && blessingImproved
-        ? "この Bless で寿命も加護も良い方向へ伸びました"
+        ? "この助けで寿命も加護も良い方向へ伸びました"
         : lifespanImproved
-          ? "この Bless で寿命が良い方向へ伸びました"
-          : "この Bless で加護が良い方向へ伸びました",
+          ? "この助けで寿命が良い方向へ伸びました"
+          : "この助けで加護が良い方向へ伸びました",
     detail: `変化: ${detail}`,
   };
 }
@@ -222,6 +226,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const [rollingValue, setRollingValue] = useState(1);
   const [illustrationLoadFailed, setIllustrationLoadFailed] = useState(false);
   const [portraitLoadFailed, setPortraitLoadFailed] = useState(false);
+  const [openHelpIntervention, setOpenHelpIntervention] = useState<InterventionKind | null>(null);
   const confirmLockRef = useRef(false);
   const tutorialBlessEvent = isTutorialBlessEvent(event);
   const presetPreviewIntervention =
@@ -245,6 +250,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
     setRollingValue(1);
     setIllustrationLoadFailed(false);
     setPortraitLoadFailed(false);
+    setOpenHelpIntervention(null);
     confirmLockRef.current = false;
   }, [event?.id]);
 
@@ -332,43 +338,37 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
   const pauseReason = getPauseReason(event.trigger, tutorialBlessEvent);
   const recommendedIntervention: InterventionKind =
     tutorialBlessEvent || event.trigger === "warning" ? "bless" : "watch";
-  const recommendedBadgeLabel = tutorialBlessEvent ? "初回 Bless" : "おすすめ";
+  const recommendedBadgeLabel = tutorialBlessEvent ? "初回おすすめ" : "おすすめ";
   const recommendedReason =
     tutorialBlessEvent
-      ? "今回は Bless を押すと、この命を支える介入が始まります。成功すると残寿命や加護が良い方向へ伸びます。"
+      ? "まずは「助ける」で、この子に良い変化が起こる流れを見てみましょう。"
       : recommendedIntervention === "bless"
-      ? "命運警告が出ているので、最初は Bless で助けに行くと意図がいちばん分かりやすいです。"
-      : "まずは Watch で状況を見守ると、流れをつかみながら次の Test の準備も進められます。";
+      ? "危ない兆しが出ているので、まずは「助ける」がいちばん分かりやすいです。"
+      : "まだ急がなくてよさそうなので、まずは「見守る」で様子を見るのが分かりやすいです。";
   const blessResultCallout = getBlessResultCallout(judgementPreview);
   const decisionGuideOptions: DecisionGuideOption[] = [
     {
       intervention: "watch",
-      summary: "見守って記録を増やす",
-      detail: `notable を 1 件増やし、状況の記録を残します。いまは ${targetCharacter?.notable.length ?? 0} 件です。`,
-      context: "迷ったときや、まず流れを見たいときに向いています。",
-      nextStep: "次の変化を見るための材料を集める",
+      helpText: helpTexts.watch,
+      helperNote: "迷ったときや、まず流れを見たいときに向いています。",
     },
     {
       intervention: "bless",
-      summary: tutorialBlessEvent ? "今回はこの命を支える体験です" : "助けて良い結果を狙う",
-      detail: tutorialBlessEvent
-        ? `成功すると残寿命や加護が良い方向へ伸びます。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`
-        : `加護や残寿命を守る方向の介入です。今回の裁定補正は ${formatModifier(blessPreviewModifier)} です。`,
-      context: tutorialBlessEvent
-        ? "最初の Bless 体験として、助けたいときの流れをつかむのに向いています。"
-        : "危なそうな場面で、まず助けたいときに向いています。",
-      nextStep: tutorialBlessEvent
-        ? "この命を支え、寿命や加護の変化を見る"
-        : "この場で助ける方向へ背中を押す",
+      helpText: helpTexts.bless,
+      helperNote: tutorialBlessEvent
+        ? `今回はこれが主役です。成功すると残寿命や加護が良い方向へ伸びます。今の追い風は ${formatModifier(blessPreviewModifier)} です。`
+        : `危なそうな場面で、まず助けたいときに向いています。今の追い風は ${formatModifier(blessPreviewModifier)} です。`,
     },
     {
       intervention: "test",
-      summary: "試練を与えて成長を狙う",
-      detail: `試練や Momentum の伸びを狙います。今回の裁定補正は ${formatModifier(testPreviewModifier)} です。`,
-      context: "多少の危険より、成長や次の展開を重視したいときに向いています。",
-      nextStep: "厳しい経験から伸び方を選ぶ",
+      helpText: helpTexts.test,
+      helperNote: `多少の危険より、成長や次の展開を重視したいときに向いています。今の追い風は ${formatModifier(testPreviewModifier)} です。`,
     },
   ];
+
+  const toggleHelp = (intervention: InterventionKind) => {
+    setOpenHelpIntervention((current) => (current === intervention ? null : intervention));
+  };
 
   const handleResolve = (intervention: InterventionKind) => {
     if (intervention === "watch") {
@@ -488,7 +488,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
             <p className="event-pause-explainer__text">{pauseReason}</p>
             <p className="event-pause-explainer__text">
               {tutorialBlessEvent
-                ? "これは正解当てではなく、助けたい方向を選ぶ場面です。今回は Bless で命を支える感覚をつかめば大丈夫です。"
+                ? "これは正解当てではなく、助けたい方向を選ぶ場面です。今回は「助ける」で命を支える感覚をつかめば大丈夫です。"
                 : "ここは正解探しではなく、育てたい方向を選ぶ場面です。選ぶと箱庭の時間が再開します。"}
             </p>
             <div className="event-pause-explainer__steps" aria-label="イベントの流れ">
@@ -506,17 +506,17 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                 {targetCharacter.role} / {targetCharacter.element} / {targetCharacter.yinYang}
               </span>
               <span>
-                age {targetCharacter.age} / 残寿命 {targetCharacter.lifespanRemaining}
+                年齢 {targetCharacter.age} / 残寿命 {targetCharacter.lifespanRemaining}
               </span>
               <span>観察メモ {targetCharacter.notable.length} 件</span>
-              <span>notable 2 件以上で次の Test に +1 / 現在の Momentum {momentum} でさらに最大 +2</span>
+              <span>観察メモが増えるほど、あとで試練を選んだときに少し追い風がつきます。今の追い風 {momentum}</span>
             </div>
           ) : null}
           <div className="subpanel event-cause">
-            <p className="event-cause__eyebrow">これは介入イベントです</p>
+            <p className="event-cause__eyebrow">神様の判断が必要です</p>
             <strong>なぜ今、ここで止まったのか</strong>
             <p className="event-cause__lead">
-              世界の進行をいったん止めて、あなたが次の介入を選ぶ場面です。下の 3 つから、いま育てたい方向に近いものを選べます。
+              世界の進みをいったん止めて、あなたが次の行動を選ぶ場面です。下の 3 つから、いま育てたい方向に近いものを選べます。
             </p>
             <span>{event.triggerSummary}</span>
             <span>{event.causeSummary}</span>
@@ -528,11 +528,11 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
               <strong>
                 {activeRollingIntervention === "bless"
                   ? rollingState?.revealed
-                    ? "Bless の裁定結果"
-                    : "Bless を裁定中"
+                    ? "助けるの結果"
+                    : "助けるの結果を見ています"
                   : rollingState?.revealed
-                    ? "Test の裁定結果"
-                    : "Test を裁定中"}
+                    ? "試練の結果"
+                    : "試練の結果を見ています"}
               </strong>
               <div className={dieClassName}>{rollingValue}</div>
               {rollingState?.revealed && judgementPreview ? (
@@ -551,7 +551,7 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                       </span>
                     </div>
                     <div className="judgement-grid">
-                      <span>行為 {judgementPreview.action === "bless" ? "Bless" : "Test"}</span>
+                      <span>行為 {labels[judgementPreview.action]}</span>
                       <span>対象 {judgementPreview.targetCharacterName}</span>
                       <span>式 {judgementPreview.formula}</span>
                       <span>出目 {judgementPreview.roll}</span>
@@ -589,48 +589,26 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
                 <div className="event-decision-guide__header">
                   <p className="eyebrow event-decision-guide__eyebrow">decision guide</p>
                   <h3 id="event-decision-guide-title" className="event-decision-guide__title">
-                    Watch / Bless / Test の違い
+                    行動の選び方
                   </h3>
                   <p className="event-decision-guide__intro">
-                    迷ったら 1 つずつ役割を読むだけで大丈夫です。最初は「何を増やしたいか」で選ぶと判断しやすくなります。
+                    ボタンは短くしてあります。迷ったら「?」を押すと、それぞれの意味を読めます。
                   </p>
                 </div>
                 {tutorialBlessEvent ? (
                   <div className="event-decision-guide__tutorial-callout">
                     <p className="event-decision-guide__tutorial-eyebrow">apostle guide</p>
-                    <strong>今回は Bless を押すと、この命を支える介入が始まります。</strong>
-                    <p>成功すると残寿命や加護が良い方向へ伸びます。まずは助ける選択の感覚をつかめば十分です。</p>
+                    <strong>今回は「助ける」が主役です。</strong>
+                    <p>まずはこの子に良い変化が起こる流れを、一度見てみましょう。</p>
                   </div>
                 ) : null}
                 <div className="event-decision-guide__mindset">
                   <strong>どれを選んでも不正解ではありません。</strong>
-                  <p>Watch は様子を見る、Bless は助ける、Test は成長を試す選択です。</p>
-                </div>
-                <div className="event-decision-guide__cards">
-                  {decisionGuideOptions.map((option) => (
-                    <article
-                      key={option.intervention}
-                      className={[
-                        "event-decision-guide__card",
-                        option.intervention === recommendedIntervention ? "event-decision-guide__card--recommended" : "",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      {option.intervention === recommendedIntervention ? (
-                        <span className="event-decision-guide__pill">{recommendedBadgeLabel}</span>
-                      ) : null}
-                      <h4>{labels[option.intervention]}</h4>
-                      <p className="event-decision-guide__summary">{option.summary}</p>
-                      <p className="event-decision-guide__detail">{option.detail}</p>
-                      <p className="event-decision-guide__context">{option.context}</p>
-                      <p className="event-decision-guide__next-step">次に起こしたいこと: {option.nextStep}</p>
-                    </article>
-                  ))}
+                  <p>いま起こしたい変化に一番近いものを選べば大丈夫です。</p>
                 </div>
                 <div className="event-decision-guide__recommendation">
                   <strong>
-                    {tutorialBlessEvent ? "初回 Bless 推奨" : "おすすめ"}: {labels[recommendedIntervention]}
+                    {recommendedBadgeLabel}: {labels[recommendedIntervention]}
                   </strong>
                   <p>{recommendedReason}</p>
                 </div>
@@ -638,29 +616,54 @@ export function EventModal({ event, tick, momentum, targetCharacter, onResolve }
               <div className="event-actions event-actions--decision">
                 {interventions.map((intervention) => {
                   const option = decisionGuideOptions.find((entry) => entry.intervention === intervention);
+                  const helpId = `${event.id}-${intervention}-help`;
+                  const helpOpen = openHelpIntervention === intervention;
+                  const isRecommended = intervention === recommendedIntervention;
                   return (
-                    <button
+                    <article
                       key={intervention}
-                      type="button"
                       className={[
-                        "button",
-                        "event-actions__button",
-                        intervention === recommendedIntervention ? "event-actions__button--recommended" : "",
+                        "event-action-row",
+                        isRecommended ? "event-action-row--recommended" : "",
                       ]
                         .filter(Boolean)
                         .join(" ")}
-                      onClick={() => handleResolve(intervention)}
                     >
-                      {intervention === recommendedIntervention ? (
-                        <span className="event-actions__badge">{recommendedBadgeLabel}</span>
+                      <div className="event-action-row__controls">
+                        <button
+                          type="button"
+                          className={[
+                            "button",
+                            "event-actions__button",
+                            isRecommended ? "event-actions__button--recommended" : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          onClick={() => handleResolve(intervention)}
+                        >
+                          <span className="event-actions__label">{labels[intervention]}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="button button--ghost event-actions__help-toggle"
+                          aria-expanded={helpOpen}
+                          aria-controls={helpId}
+                          aria-label={`${labels[intervention]} の説明を開く`}
+                          onClick={() => toggleHelp(intervention)}
+                        >
+                          ?
+                        </button>
+                      </div>
+                      <div className="event-action-row__meta">
+                        {isRecommended ? <span className="event-actions__badge">{recommendedBadgeLabel}</span> : null}
+                      </div>
+                      {helpOpen ? (
+                        <div id={helpId} className="event-actions__help-panel">
+                          <p>{option?.helpText}</p>
+                          <p>{option?.helperNote}</p>
+                        </div>
                       ) : null}
-                      <span className="event-actions__label">{labels[intervention]}</span>
-                      {tutorialBlessEvent && intervention === "bless" ? (
-                        <span className="event-actions__tutorial-note">今回はこの命を支える体験です</span>
-                      ) : null}
-                      <span className="event-actions__hint">{option?.summary}</span>
-                      <span className="event-actions__next">{option?.nextStep}</span>
-                    </button>
+                    </article>
                   );
                 })}
               </div>
