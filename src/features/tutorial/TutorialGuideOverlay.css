@@ -24,7 +24,7 @@
   pointer-events: none;
   position: fixed;
   inset: 0;
-  z-index: 120;
+  z-index: 140;
 }
 
 .tutorial-guide-overlay__veil {
@@ -43,6 +43,14 @@
     0 20px 40px rgba(0, 0, 0, 0.28);
 }
 
+.tutorial-guide-overlay__sprite-guide {
+  pointer-events: none;
+  position: fixed;
+  display: grid;
+  place-items: center;
+  z-index: 2;
+}
+
 .tutorial-guide-overlay__bubble {
   pointer-events: auto;
   position: fixed;
@@ -59,6 +67,7 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
   color: #f3f7fb;
   padding: 1rem;
+  z-index: 3;
 }
 
 .tutorial-guide-overlay__bubble::-webkit-scrollbar {
@@ -112,14 +121,8 @@
 
 .tutorial-guide-overlay__apostle-card {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.75rem;
-  align-items: center;
+  gap: 0.55rem;
   min-width: 0;
-}
-
-.tutorial-guide-overlay__apostle-card--text-only {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 .tutorial-guide-overlay__apostle-sprite-shell {
@@ -167,6 +170,16 @@
   padding: 0.72rem 0.82rem;
 }
 
+.tutorial-guide-overlay__target-lock {
+  margin: -0.15rem 0 0;
+  border: 1px solid rgba(255, 218, 145, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 218, 145, 0.08);
+  color: #f0e4c7;
+  line-height: 1.58;
+  padding: 0.72rem 0.82rem;
+}
+
 .tutorial-guide-overlay__target strong {
   color: #ffd991;
 }
@@ -197,12 +210,8 @@
 
 @media (max-width: 860px) {
   .tutorial-guide-overlay__bubble {
-    left: 12px !important;
-    right: 12px !important;
-    bottom: 12px !important;
-    top: auto !important;
     width: auto;
-    max-height: min(48vh, 24rem);
+    max-height: min(42vh, 22rem);
   }
 }
 
@@ -221,6 +230,10 @@
     gap: 0.72rem;
     border-radius: 18px;
     padding: 0.88rem;
+  }
+
+  .tutorial-guide-overlay__sprite-guide {
+    z-index: 4;
   }
 
   .tutorial-guide-overlay__apostle-card {

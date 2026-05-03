@@ -1,11 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { APOSTLE_GUIDE_SPRITE } from "../../assets/artPaths";
 import "./TutorialGuideOverlay.css";
 
-const TUTORIAL_DEFERRED_KEY = "godsandbox.tutorialGuideOverlayFoundation.deferred.v1";
-const TUTORIAL_COMPLETED_KEY = "godsandbox.tutorialGuideOverlayFoundation.completed.v1";
+const TUTORIAL_DEFERRED_KEY = "godsandbox.tutorialGuideOverlayInteractionLock.deferred.v1";
+const TUTORIAL_COMPLETED_KEY = "godsandbox.tutorialGuideOverlayInteractionLock.completed.v1";
 const MOBILE_BUBBLE_BREAKPOINT = 860;
+const MOBILE_LAYOUT_BREAKPOINT = 640;
 const TUTORIAL_APOSTLE_FRAME_INTERVAL_MS = 560;
+const TUTORIAL_TARGET_ADVANCE_DELAY_MS = 140;
 
 export interface TutorialGuideStep {
   id: string;
@@ -13,9 +15,11 @@ export interface TutorialGuideStep {
   body: string;
   apostleLine: string;
   targetLabel: string;
-  targetSelector?: string;
+  targetAnchor?: string;
   highlightPadding?: number;
   scrollBlock?: ScrollLogicalPosition;
+  advanceMode?: "manual" | "targetClick";
+  completeOnTargetClick?: boolean;
 }
 
 interface TutorialGuideOverlayProps {
@@ -28,6 +32,12 @@ interface SpotlightRect {
   left: number;
   width: number;
   height: number;
+}
+
+interface GuideLayout {
+  bubbleStyle: CSSProperties;
+  spriteStyle: CSSProperties;
+  compact: boolean;
 }
 
 type TutorialSpriteFrame = {
@@ -69,11 +79,11 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function getTargetElement(step: TutorialGuideStep) {
-  if (!step.targetSelector || typeof document === "undefined") {
+  if (!step.targetAnchor || typeof document === "undefined") {
     return null;
   }
 
-  return document.querySelector<HTMLElement>(step.targetSelector);
+  return document.querySelector<HTMLElement>(`[data-tutorial-anchor="${step.targetAnchor}"]`);
 }
 
 function createSpotlightRect(rect: DOMRect, padding: number): SpotlightRect {
@@ -85,30 +95,91 @@ function createSpotlightRect(rect: DOMRect, padding: number): SpotlightRect {
   };
 }
 
-function createBubbleStyle(spotlightRect: SpotlightRect | null): CSSProperties {
-  if (!spotlightRect || window.innerWidth <= MOBILE_BUBBLE_BREAKPOINT) {
+function createGuideLayout(spotlightRect: SpotlightRect | null): GuideLayout {
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  const compact = viewportWidth <= MOBILE_BUBBLE_BREAKPOINT;
+  const spriteSize = viewportWidth <= MOBILE_LAYOUT_BREAKPOINT ? 80 : 104;
+
+  if (!spotlightRect) {
     return {
-      left: 12,
-      right: 12,
-      bottom: 12,
+      bubbleStyle: compact
+        ? {
+            left: 12,
+            right: 12,
+            bottom: 12,
+          }
+        : {
+            right: 16,
+            bottom: 16,
+            width: Math.min(360, viewportWidth - 32),
+          },
+      spriteStyle: compact
+        ? {
+            left: 16,
+            bottom: viewportWidth <= MOBILE_LAYOUT_BREAKPOINT ? 288 : 316,
+          }
+        : {
+            right: 312,
+            bottom: 20,
+          },
+      compact,
     };
   }
 
-  const bubbleWidth = Math.min(360, window.innerWidth - 32);
-  const bubbleHeight = 340;
-  const canPlaceRight = spotlightRect.left + spotlightRect.width + bubbleWidth + 28 <= window.innerWidth;
-  const left = canPlaceRight
+  if (compact) {
+    const targetLowerHalf = spotlightRect.top + spotlightRect.height / 2 > viewportHeight * 0.5;
+    const bubbleStyle: CSSProperties = targetLowerHalf
+      ? {
+          top: 12,
+          left: 12,
+          right: 12,
+        }
+      : {
+          left: 12,
+          right: 12,
+          bottom: 12,
+        };
+    const spriteTop = targetLowerHalf
+      ? clamp(spotlightRect.top + spotlightRect.height + 10, 12, viewportHeight - spriteSize - 116)
+      : clamp(spotlightRect.top - spriteSize - 12, 12, viewportHeight - spriteSize - 12);
+
+    return {
+      bubbleStyle,
+      spriteStyle: {
+        left: clamp(spotlightRect.left + spotlightRect.width - spriteSize * 0.66, 12, viewportWidth - spriteSize - 12),
+        top: spriteTop,
+      },
+      compact,
+    };
+  }
+
+  const bubbleWidth = Math.min(360, viewportWidth - 32);
+  const bubbleHeight = 348;
+  const canPlaceRight = spotlightRect.left + spotlightRect.width + bubbleWidth + 28 <= viewportWidth;
+  const canPlaceLeft = spotlightRect.left - bubbleWidth - 28 >= 0;
+  const useRight = canPlaceRight || !canPlaceLeft;
+  const left = useRight
     ? spotlightRect.left + spotlightRect.width + 18
-    : clamp(spotlightRect.left, 16, window.innerWidth - bubbleWidth - 16);
+    : clamp(spotlightRect.left - bubbleWidth - 18, 16, viewportWidth - bubbleWidth - 16);
   const preferredTop = spotlightRect.top + spotlightRect.height + 18;
-  const top = preferredTop + bubbleHeight <= window.innerHeight
+  const top = preferredTop + bubbleHeight <= viewportHeight
     ? preferredTop
-    : clamp(spotlightRect.top - bubbleHeight - 18, 16, window.innerHeight - bubbleHeight - 16);
+    : clamp(spotlightRect.top - bubbleHeight - 18, 16, viewportHeight - bubbleHeight - 16);
 
   return {
-    top,
-    left,
-    width: bubbleWidth,
+    bubbleStyle: {
+      top,
+      left,
+      width: bubbleWidth,
+    },
+    spriteStyle: {
+      left: useRight
+        ? clamp(left - spriteSize * 0.46, 12, viewportWidth - spriteSize - 12)
+        : clamp(left + bubbleWidth - spriteSize * 0.5, 12, viewportWidth - spriteSize - 12),
+      top: clamp(top - spriteSize * 0.54, 12, viewportHeight - spriteSize - 12),
+    },
+    compact,
   };
 }
 
@@ -119,18 +190,44 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
   const [isHiddenForSession, setIsHiddenForSession] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
   const [bubbleStyle, setBubbleStyle] = useState<CSSProperties>({});
+  const [spriteStyle, setSpriteStyle] = useState<CSSProperties>({});
   const [isSpriteReady, setIsSpriteReady] = useState(false);
   const [apostleFrame, setApostleFrame] = useState<TutorialSpriteFrame>(APOSTLE_GUIDE_SPRITE.motions.idle[0]);
   const highlightedElementRef = useRef<HTMLElement | null>(null);
+  const bubbleRef = useRef<HTMLElement | null>(null);
+  const launcherRef = useRef<HTMLDivElement | null>(null);
+  const targetAdvanceTimeoutRef = useRef<number | null>(null);
   const isOpen = !isCompleted && !isDeferred && !isHiddenForSession;
   const activeStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
   const apostleMotion = stepIndex >= Math.max(1, steps.length - 2) ? "guidePoint" : "idle";
+  const advanceMode = activeStep.advanceMode ?? "manual";
+  const isTargetInteractionStep = advanceMode === "targetClick";
+  const targetProgressLabel = useMemo(() => {
+    if (advanceMode !== "targetClick") {
+      return isLastStep ? "完了" : "次へ";
+    }
+
+    return activeStep.completeOnTargetClick ? "対象を押すと完了" : "対象を押すと進む";
+  }, [activeStep.completeOnTargetClick, advanceMode, isLastStep]);
+
+  const advanceFromTarget = () => {
+    if (activeStep.completeOnTargetClick || isLastStep) {
+      handleComplete();
+      return;
+    }
+
+    setStepIndex((current) => Math.min(steps.length - 1, current + 1));
+  };
 
   useEffect(() => {
     return () => {
       if (highlightedElementRef.current) {
         delete highlightedElementRef.current.dataset.tutorialHighlighted;
+      }
+
+      if (targetAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(targetAdvanceTimeoutRef.current);
       }
     };
   }, []);
@@ -185,11 +282,13 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
   useLayoutEffect(() => {
     if (!isOpen || suspended || !activeStep) {
       setSpotlightRect(null);
+      setSpriteStyle({});
       return;
     }
 
     let frameId = 0;
     let timeoutId = 0;
+    let resizeObserver: ResizeObserver | null = null;
 
     const updateHighlight = () => {
       const target = getTargetElement(activeStep);
@@ -202,15 +301,19 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
 
       if (!target) {
         setSpotlightRect(null);
-        setBubbleStyle(createBubbleStyle(null));
+        const layout = createGuideLayout(null);
+        setBubbleStyle(layout.bubbleStyle);
+        setSpriteStyle(layout.spriteStyle);
         return;
       }
 
       target.dataset.tutorialHighlighted = "true";
       const rect = target.getBoundingClientRect();
       const nextSpotlightRect = createSpotlightRect(rect, activeStep.highlightPadding ?? 14);
+      const layout = createGuideLayout(nextSpotlightRect);
       setSpotlightRect(nextSpotlightRect);
-      setBubbleStyle(createBubbleStyle(nextSpotlightRect));
+      setBubbleStyle(layout.bubbleStyle);
+      setSpriteStyle(layout.spriteStyle);
     };
 
     const target = getTargetElement(activeStep);
@@ -220,6 +323,13 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
         block: activeStep.scrollBlock ?? (window.innerWidth <= MOBILE_BUBBLE_BREAKPOINT ? "center" : "nearest"),
         inline: "nearest",
       });
+
+      if (typeof ResizeObserver !== "undefined") {
+        resizeObserver = new ResizeObserver(() => {
+          window.requestAnimationFrame(updateHighlight);
+        });
+        resizeObserver.observe(target);
+      }
     }
 
     frameId = window.requestAnimationFrame(updateHighlight);
@@ -235,10 +345,110 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
     return () => {
       window.cancelAnimationFrame(frameId);
       window.clearTimeout(timeoutId);
+      resizeObserver?.disconnect();
       window.removeEventListener("resize", handleLayout);
       window.removeEventListener("scroll", handleLayout, true);
     };
   }, [activeStep, isOpen, suspended]);
+
+  useEffect(() => {
+    if (!isOpen || suspended || !isTargetInteractionStep) {
+      return;
+    }
+
+    const target = getTargetElement(activeStep);
+    if (!target) {
+      return;
+    }
+
+    const handleTargetActivation = () => {
+      if (targetAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(targetAdvanceTimeoutRef.current);
+      }
+
+      targetAdvanceTimeoutRef.current = window.setTimeout(() => {
+        advanceFromTarget();
+      }, TUTORIAL_TARGET_ADVANCE_DELAY_MS);
+    };
+
+    target.addEventListener("click", handleTargetActivation);
+
+    return () => {
+      target.removeEventListener("click", handleTargetActivation);
+      if (targetAdvanceTimeoutRef.current !== null) {
+        window.clearTimeout(targetAdvanceTimeoutRef.current);
+        targetAdvanceTimeoutRef.current = null;
+      }
+    };
+  }, [activeStep, isOpen, isTargetInteractionStep, suspended]);
+
+  useEffect(() => {
+    if (!isOpen || suspended || typeof document === "undefined") {
+      return;
+    }
+
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    const isAllowedNode = (eventTarget: EventTarget | null) => {
+      const targetNode = eventTarget instanceof Node ? eventTarget : null;
+      if (!targetNode) {
+        return false;
+      }
+
+      if (bubbleRef.current?.contains(targetNode) || launcherRef.current?.contains(targetNode)) {
+        return true;
+      }
+
+      if (highlightedElementRef.current?.contains(targetNode)) {
+        return true;
+      }
+
+      return false;
+    };
+
+    const preventOutsideInteraction = (event: Event) => {
+      if (isAllowedNode(event.target)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      if ("stopImmediatePropagation" in event) {
+        event.stopImmediatePropagation();
+      }
+    };
+
+    const preventBackgroundScroll = (event: Event) => {
+      if (bubbleRef.current?.contains(event.target as Node)) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+      if ("stopImmediatePropagation" in event) {
+        event.stopImmediatePropagation();
+      }
+    };
+
+    document.addEventListener("pointerdown", preventOutsideInteraction, true);
+    document.addEventListener("click", preventOutsideInteraction, true);
+    document.addEventListener("touchstart", preventOutsideInteraction, { capture: true, passive: false });
+    document.addEventListener("wheel", preventBackgroundScroll, { capture: true, passive: false });
+    document.addEventListener("touchmove", preventBackgroundScroll, { capture: true, passive: false });
+
+    return () => {
+      document.documentElement.style.overflow = previousHtmlOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.removeEventListener("pointerdown", preventOutsideInteraction, true);
+      document.removeEventListener("click", preventOutsideInteraction, true);
+      document.removeEventListener("touchstart", preventOutsideInteraction, true);
+      document.removeEventListener("wheel", preventBackgroundScroll, true);
+      document.removeEventListener("touchmove", preventBackgroundScroll, true);
+    };
+  }, [isOpen, suspended]);
 
   if (!activeStep) {
     return null;
@@ -271,7 +481,7 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
   return (
     <>
       {!isCompleted && !isOpen && !suspended ? (
-        <div className="tutorial-guide-overlay__launcher-row">
+        <div className="tutorial-guide-overlay__launcher-row" ref={launcherRef}>
           <div className="tutorial-guide-overlay__launcher">
             <span className="tutorial-guide-overlay__launcher-text">
               {isDeferred ? "使徒ガイドはあとで見られるようにしています。" : "使徒ガイドを閉じています。"}
@@ -300,7 +510,23 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
             <div className="tutorial-guide-overlay__veil" aria-hidden="true" />
           )}
 
+          {isSpriteReady ? (
+            <div className="tutorial-guide-overlay__sprite-guide" aria-hidden="true" style={spriteStyle}>
+              <div className="tutorial-guide-overlay__apostle-sprite-shell">
+                <div
+                  className="tutorial-guide-overlay__apostle-sprite"
+                  style={{
+                    backgroundImage: `url(${APOSTLE_GUIDE_SPRITE.sheet})`,
+                    backgroundPosition: `calc(var(--tutorial-apostle-frame-width) * ${-apostleFrame.column}) calc(var(--tutorial-apostle-frame-height) * ${-apostleFrame.row})`,
+                    backgroundSize: `calc(var(--tutorial-apostle-frame-width) * ${APOSTLE_GUIDE_SPRITE.columns}) calc(var(--tutorial-apostle-frame-height) * ${APOSTLE_GUIDE_SPRITE.rows})`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
+
           <section
+            ref={bubbleRef}
             className="tutorial-guide-overlay__bubble"
             style={bubbleStyle}
             role="dialog"
@@ -325,23 +551,17 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
             <div
               className={`tutorial-guide-overlay__apostle-card ${!isSpriteReady ? "tutorial-guide-overlay__apostle-card--text-only" : ""}`}
             >
-              {isSpriteReady ? (
-                <div className="tutorial-guide-overlay__apostle-sprite-shell" aria-hidden="true">
-                  <div
-                    className="tutorial-guide-overlay__apostle-sprite"
-                    style={{
-                      backgroundImage: `url(${APOSTLE_GUIDE_SPRITE.sheet})`,
-                      backgroundPosition: `calc(var(--tutorial-apostle-frame-width) * ${-apostleFrame.column}) calc(var(--tutorial-apostle-frame-height) * ${-apostleFrame.row})`,
-                      backgroundSize: `calc(var(--tutorial-apostle-frame-width) * ${APOSTLE_GUIDE_SPRITE.columns}) calc(var(--tutorial-apostle-frame-height) * ${APOSTLE_GUIDE_SPRITE.rows})`,
-                    }}
-                  />
-                </div>
-              ) : null}
               <p className="tutorial-guide-overlay__apostle">{activeStep.apostleLine}</p>
             </div>
             <p className="tutorial-guide-overlay__target">
               <strong>見る場所:</strong> {activeStep.targetLabel}
             </p>
+
+            {isTargetInteractionStep ? (
+              <p className="tutorial-guide-overlay__target-lock">
+                光っている対象だけが押せます。{activeStep.completeOnTargetClick ? "この操作で案内は完了します。" : "押すと次へ進みます。"}
+              </p>
+            ) : null}
 
             {!spotlightRect ? (
               <p className="tutorial-guide-overlay__missing">
@@ -378,7 +598,12 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
                 <button
                   className="button tutorial-guide-overlay__button"
                   type="button"
+                  disabled={isTargetInteractionStep}
                   onClick={() => {
+                    if (isTargetInteractionStep) {
+                      return;
+                    }
+
                     if (isLastStep) {
                       handleComplete();
                       return;
@@ -387,7 +612,7 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
                     setStepIndex((current) => Math.min(steps.length - 1, current + 1));
                   }}
                 >
-                  {isLastStep ? "完了" : "次へ"}
+                  {targetProgressLabel}
                 </button>
               </div>
             </div>
