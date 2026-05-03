@@ -1,3 +1,5 @@
+import { getVillagerLogicalPath, toVillagerPngFileName } from "./filePlacement";
+
 export type VillagerAlphaPromptInput = {
   characterName: string;
 };
@@ -32,8 +34,8 @@ export function buildVillagerAlphaPrompt(
   input: VillagerAlphaPromptInput,
 ): VillagerAlphaPromptResult {
   const assetName = normalizeVillagerAssetName(input.characterName);
-  const fileName = `${assetName}.png`;
-  const savePath = `image/villager/${fileName}`;
+  const fileName = toVillagerPngFileName(input.characterName);
+  const savePath = getVillagerLogicalPath(input.characterName);
 
   const prompt = [
     "You are preparing a game-ready transparent character asset for GodSandbox.",
@@ -42,7 +44,8 @@ export function buildVillagerAlphaPrompt(
     "Remove the background completely.",
     "Output a PNG with a real alpha channel.",
     "The transparent area must be alpha 0.",
-    "Do not bake in a white background, green background, checkerboard background, shadow box, or scene background.",
+    "Do not bake white / green / checkerboard background into the image.",
+    "Do not bake in a shadow box or scene background.",
     "Do not leave a white matte, outline halo, or solid edge around the character.",
     "Do not output JPEG.",
     "Do not crop off the character.",

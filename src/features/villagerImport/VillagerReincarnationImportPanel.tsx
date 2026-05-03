@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { buildVillagerAlphaPrompt } from "./alphaPrompt";
 import "./VillagerReincarnationImportPanel.css";
 
 type CopyStatus = "idle" | "copied" | "selected" | "failed";
@@ -10,20 +11,7 @@ function stripFileExtension(fileName: string): string {
   return fileName.replace(/\.[^.]+$/, "");
 }
 
-function makeSafeFileBaseName(name: string): string {
-  const safeName = name
-    .normalize("NFKC")
-    .trim()
-    .replace(/[\\/:*?"<>|]+/g, "_")
-    .replace(/\.+/g, "_")
-    .replace(/\s+/g, "_")
-    .replace(/_+/g, "_")
-    .replace(/^[-_]+|[-_]+$/g, "");
-
-  return safeName || "new_villager";
-}
-
-function buildReincarnationPrompt(characterName: string, targetPath: string, sourceImageName?: string): string {
+function buildReincarnationPrompt(characterName: string, alphaPrompt: string, sourceImageName?: string): string {
   const displayName = characterName.trim() || "新しい住民";
   const sourceLine = sourceImageName
     ? `- 元画像ファイル名: ${sourceImageName}`
@@ -50,15 +38,13 @@ ${sourceLine}
 - 著作物を扱う場合は、制作者のAI利用や転載可否ポリシーを必ず確認してください。
 - 個人情報、ロゴ、文字、不要な背景を混ぜないでください。
 
-保存先:
-生成または整理した立ち絵は、次の場所に配置する想定です。
-
-${targetPath}
+Codexへ貼る透明PNG生成指示:
+${alphaPrompt}
 
 注意:
-- この保存先はGodSandbox内で表示する目安です。固定の個人PCパスではありません。
-- 保存helperはまだ未接続です。必要に応じてユーザーが手動で配置してください。
-- 自動画像生成、sprite sheet生成、Passport schema変更は今回行いません。`;
+- 保存先は上の生成指示に含まれる repo 内の論理パスです。固定の個人PCパスではありません。
+- File System Access API が使えない場合は、必要に応じてユーザーが手動で配置してください。
+- Codex pet/APIのアプリ内直接呼び出し、自動画像生成、sprite sheet生成、Passport schema変更は今回行いません。`;
 }
 
 interface VillagerReincarnationImportPanelProps {
@@ -87,11 +73,11 @@ export function VillagerReincarnationImportPanel({ focusedCharacterName }: Villa
     return () => URL.revokeObjectURL(nextPreviewUrl);
   }, [selectedFile]);
 
-  const safeFileBaseName = useMemo(() => makeSafeFileBaseName(characterName), [characterName]);
-  const targetPath = `image/villager/${safeFileBaseName}.png`;
+  const alphaPromptResult = useMemo(() => buildVillagerAlphaPrompt({ characterName }), [characterName]);
+  const targetPath = alphaPromptResult.savePath;
   const generatedPrompt = useMemo(
-    () => buildReincarnationPrompt(characterName, targetPath, selectedFile?.name),
-    [characterName, selectedFile?.name, targetPath],
+    () => buildReincarnationPrompt(characterName, alphaPromptResult.prompt, selectedFile?.name),
+    [alphaPromptResult.prompt, characterName, selectedFile?.name],
   );
 
   function openFilePicker() {
@@ -208,8 +194,8 @@ export function VillagerReincarnationImportPanel({ focusedCharacterName }: Villa
                   <span>保存先の目安</span>
                   <code>{targetPath}</code>
                   <p>
-                    保存helperはまだ未接続です。生成後の画像は、Line 4の保存helperに接続されるまでは
-                    この保存先に配置してください。
+                    PR #236 の file placement helper と同じ論理保存先です。このパネルからは自動保存せず、
+                    生成後のPNGをこの保存先に配置してください。
                   </p>
                 </div>
 
