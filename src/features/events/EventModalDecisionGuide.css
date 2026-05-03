@@ -223,26 +223,64 @@
 }
 
 .event-actions--decision {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.event-action-row {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.55rem;
+  border: 1px solid rgba(146, 175, 199, 0.12);
+  border-radius: 14px;
+  background: rgba(5, 12, 20, 0.45);
+  padding: 0.75rem;
+}
+
+.event-action-row--recommended {
+  border-color: rgba(246, 196, 83, 0.34);
+  box-shadow: 0 0 0 1px rgba(246, 196, 83, 0.14);
+}
+
+.event-action-row__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+.event-action-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .event-actions__button {
   display: flex;
   min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-  text-align: left;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 3.5rem;
 }
 
 .event-actions__button--recommended {
   box-shadow: 0 0 0 1px rgba(246, 196, 83, 0.26);
+  background:
+    linear-gradient(180deg, rgba(246, 196, 83, 0.18), rgba(246, 196, 83, 0.06)),
+    rgba(255, 255, 255, 0.04);
 }
 
 .event-actions__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(246, 196, 83, 0.16);
   color: #fff1bf;
+  padding: 0.2rem 0.55rem;
   font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -251,6 +289,31 @@
 .event-actions__label {
   font-size: 1rem;
   font-weight: 700;
+}
+
+.event-actions__help-toggle {
+  width: 3rem;
+  min-width: 3rem;
+  min-height: 3.5rem;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.event-actions__help-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 0.8rem 0.85rem;
+}
+
+.event-actions__help-panel p {
+  margin: 0;
+  color: #d8e4f1;
+  line-height: 1.6;
 }
 
 .event-actions__hint {
@@ -321,11 +384,6 @@
     padding: 0.9rem;
   }
 
-  .event-decision-guide__cards,
-  .event-actions--decision {
-    grid-template-columns: 1fr;
-  }
-
   .event-actions__button {
     width: 100%;
     padding: 0.85rem 1rem;
@@ -351,8 +409,18 @@
     gap: 0.65rem;
   }
 
+  .event-action-row__controls {
+    gap: 0.5rem;
+  }
+
   .event-actions--decision .event-actions__button,
   .event-actions--confirm .button {
+    min-height: 4.25rem;
+  }
+
+  .event-actions__help-toggle {
+    width: 2.9rem;
+    min-width: 2.9rem;
     min-height: 4.25rem;
   }
 }
