@@ -12,6 +12,80 @@ export const RYO_ILLUSTRATIONS = {
   test: "/art/illustrations/ryo/ryo_test.jpeg",
 } as const;
 
+export const APOSTLE_GUIDE_SPRITE = {
+  sheet: "/art/apostle/tutorial-guide-apostle-sheet.png",
+  cellWidth: 181,
+  cellHeight: 181,
+  columns: 6,
+  rows: 8,
+  motions: {
+    idle: [
+      { column: 0, row: 0 },
+      { column: 1, row: 0 },
+      { column: 2, row: 0 },
+      { column: 3, row: 0 },
+      { column: 4, row: 0 },
+      { column: 5, row: 0 },
+    ],
+    guidePoint: [
+      { column: 0, row: 5 },
+      { column: 1, row: 5 },
+      { column: 2, row: 5 },
+      { column: 3, row: 5 },
+      { column: 4, row: 5 },
+      { column: 5, row: 5 },
+    ],
+    run: [
+      { column: 0, row: 1 },
+      { column: 1, row: 1 },
+      { column: 2, row: 1 },
+      { column: 3, row: 1 },
+      { column: 4, row: 1 },
+      { column: 5, row: 1 },
+    ],
+    fly: [
+      { column: 0, row: 2 },
+      { column: 1, row: 2 },
+      { column: 2, row: 2 },
+      { column: 3, row: 2 },
+      { column: 4, row: 2 },
+      { column: 5, row: 2 },
+    ],
+    walk: [
+      { column: 0, row: 3 },
+      { column: 1, row: 3 },
+      { column: 2, row: 3 },
+      { column: 3, row: 3 },
+      { column: 4, row: 3 },
+      { column: 5, row: 3 },
+    ],
+    fall: [
+      { column: 0, row: 4 },
+      { column: 1, row: 4 },
+      { column: 2, row: 4 },
+      { column: 3, row: 4 },
+      { column: 4, row: 4 },
+      { column: 5, row: 4 },
+    ],
+    joy: [
+      { column: 0, row: 6 },
+      { column: 4, row: 6 },
+      { column: 5, row: 6 },
+    ],
+    angry: [{ column: 1, row: 6 }],
+    sad: [{ column: 2, row: 6 }],
+    surprise: [{ column: 3, row: 6 }],
+    ritual: [
+      { column: 0, row: 7 },
+      { column: 1, row: 7 },
+      { column: 2, row: 7 },
+      { column: 3, row: 7 },
+      { column: 4, row: 7 },
+      { column: 5, row: 7 },
+    ],
+  },
+} as const;
+
 export const WORLD_BACKGROUNDS = {
   spring: {
     morning: "/art/world/backgrounds/spring-morning.png",

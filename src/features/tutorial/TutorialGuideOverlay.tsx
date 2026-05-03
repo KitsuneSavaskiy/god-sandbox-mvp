@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import { APOSTLE_GUIDE_SPRITE } from "../../assets/artPaths";
 import "./TutorialGuideOverlay.css";
 
 const TUTORIAL_DEFERRED_KEY = "godsandbox.tutorialGuideOverlayFoundation.deferred.v1";
 const TUTORIAL_COMPLETED_KEY = "godsandbox.tutorialGuideOverlayFoundation.completed.v1";
 const MOBILE_BUBBLE_BREAKPOINT = 860;
+const TUTORIAL_APOSTLE_FRAME_INTERVAL_MS = 560;
 
 export interface TutorialGuideStep {
   id: string;
@@ -27,6 +29,11 @@ interface SpotlightRect {
   width: number;
   height: number;
 }
+
+type TutorialSpriteFrame = {
+  column: number;
+  row: number;
+};
 
 function readStoredFlag(key: string) {
   if (typeof window === "undefined") {
@@ -88,7 +95,7 @@ function createBubbleStyle(spotlightRect: SpotlightRect | null): CSSProperties {
   }
 
   const bubbleWidth = Math.min(360, window.innerWidth - 32);
-  const bubbleHeight = 260;
+  const bubbleHeight = 340;
   const canPlaceRight = spotlightRect.left + spotlightRect.width + bubbleWidth + 28 <= window.innerWidth;
   const left = canPlaceRight
     ? spotlightRect.left + spotlightRect.width + 18
@@ -112,10 +119,13 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
   const [isHiddenForSession, setIsHiddenForSession] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
   const [bubbleStyle, setBubbleStyle] = useState<CSSProperties>({});
+  const [isSpriteReady, setIsSpriteReady] = useState(false);
+  const [apostleFrame, setApostleFrame] = useState<TutorialSpriteFrame>(APOSTLE_GUIDE_SPRITE.motions.idle[0]);
   const highlightedElementRef = useRef<HTMLElement | null>(null);
   const isOpen = !isCompleted && !isDeferred && !isHiddenForSession;
   const activeStep = steps[stepIndex];
   const isLastStep = stepIndex === steps.length - 1;
+  const apostleMotion = stepIndex >= Math.max(1, steps.length - 2) ? "guidePoint" : "idle";
 
   useEffect(() => {
     return () => {
@@ -124,6 +134,53 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    let isCancelled = false;
+    const spriteImage = new window.Image();
+
+    spriteImage.onload = () => {
+      if (!isCancelled) {
+        setIsSpriteReady(true);
+      }
+    };
+
+    spriteImage.onerror = () => {
+      if (!isCancelled) {
+        setIsSpriteReady(false);
+      }
+    };
+
+    spriteImage.src = APOSTLE_GUIDE_SPRITE.sheet;
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || suspended || !isSpriteReady) {
+      return;
+    }
+
+    const frames = APOSTLE_GUIDE_SPRITE.motions[apostleMotion];
+    let frameIndex = 0;
+
+    setApostleFrame(frames[frameIndex]);
+
+    const intervalId = window.setInterval(() => {
+      frameIndex = (frameIndex + 1) % frames.length;
+      setApostleFrame(frames[frameIndex]);
+    }, TUTORIAL_APOSTLE_FRAME_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [apostleMotion, isOpen, isSpriteReady, suspended]);
 
   useLayoutEffect(() => {
     if (!isOpen || suspended || !activeStep) {
@@ -265,7 +322,23 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
               {activeStep.body}
             </p>
 
-            <p className="tutorial-guide-overlay__apostle">{activeStep.apostleLine}</p>
+            <div
+              className={`tutorial-guide-overlay__apostle-card ${!isSpriteReady ? "tutorial-guide-overlay__apostle-card--text-only" : ""}`}
+            >
+              {isSpriteReady ? (
+                <div className="tutorial-guide-overlay__apostle-sprite-shell" aria-hidden="true">
+                  <div
+                    className="tutorial-guide-overlay__apostle-sprite"
+                    style={{
+                      backgroundImage: `url(${APOSTLE_GUIDE_SPRITE.sheet})`,
+                      backgroundPosition: `calc(var(--tutorial-apostle-frame-width) * ${-apostleFrame.column}) calc(var(--tutorial-apostle-frame-height) * ${-apostleFrame.row})`,
+                      backgroundSize: `calc(var(--tutorial-apostle-frame-width) * ${APOSTLE_GUIDE_SPRITE.columns}) calc(var(--tutorial-apostle-frame-height) * ${APOSTLE_GUIDE_SPRITE.rows})`,
+                    }}
+                  />
+                </div>
+              ) : null}
+              <p className="tutorial-guide-overlay__apostle">{activeStep.apostleLine}</p>
+            </div>
             <p className="tutorial-guide-overlay__target">
               <strong>見る場所:</strong> {activeStep.targetLabel}
             </p>
