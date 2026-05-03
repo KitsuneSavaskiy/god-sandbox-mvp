@@ -114,6 +114,97 @@
         overflow-wrap: anywhere;
       }
 
+      .title-row,
+      .label-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .title-row {
+        justify-content: space-between;
+      }
+
+      .title-row h2,
+      .title-row h3 {
+        margin-bottom: 0;
+      }
+
+      .label-row {
+        width: fit-content;
+      }
+
+      .help-tip {
+        position: relative;
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        outline: none;
+      }
+
+      .help-tip__mark {
+        display: inline-grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border: 1px solid rgba(36, 72, 92, 0.24);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.82);
+        color: #24485c;
+        cursor: help;
+        font-size: 0.84rem;
+        font-weight: 900;
+      }
+
+      .help-tip__content {
+        position: absolute;
+        z-index: 20;
+        right: 0;
+        top: calc(100% + 8px);
+        width: min(280px, calc(100vw - 48px));
+        border: 1px solid rgba(36, 72, 92, 0.18);
+        border-radius: 16px;
+        background: #172636;
+        box-shadow: 0 18px 40px rgba(23, 38, 54, 0.18);
+        color: #fff8e8;
+        font-size: 0.84rem;
+        font-weight: 700;
+        line-height: 1.65;
+        opacity: 0;
+        padding: 12px 14px;
+        pointer-events: none;
+        transform: translateY(-4px);
+        transition:
+          opacity 140ms ease,
+          transform 140ms ease;
+      }
+
+      .help-tip:hover .help-tip__content,
+      .help-tip:focus .help-tip__content,
+      .help-tip:focus-within .help-tip__content {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .label-row .help-tip__content {
+        right: auto;
+        left: 50%;
+        transform: translate(-50%, -4px);
+      }
+
+      .label-row .help-tip:hover .help-tip__content,
+      .label-row .help-tip:focus .help-tip__content,
+      .label-row .help-tip:focus-within .help-tip__content {
+        transform: translate(-50%, 0);
+      }
+
+      .note .help-tip__content {
+        right: auto;
+        left: 0;
+        width: min(240px, calc(100vw - 48px));
+      }
+
       .status-pill {
         display: inline-flex;
         width: fit-content;
@@ -367,6 +458,7 @@
           line-height: 1.08;
           word-break: break-all;
         }
+
       }
     </style>
   </head>
@@ -374,83 +466,141 @@
     <main class="page-shell">
       <section class="hero">
         <div class="hero__copy">
-          <span class="eyebrow">Prompt workflow</span>
-          <h1>1枚絵から<br />Codex用<br />プロンプトを作る</h1>
-          <p class="lead">
-            基本イラストから、Codexへ貼る世界観つきプロンプトを作ります。
-            Canvas仮プレビューは実生成ではないことも確認できます。
-          </p>
+          <span class="eyebrow">Prompt</span>
+          <h1>画像プロンプト作成</h1>
+          <p class="lead">画像を選ぶ → プロンプトを作る → コピー。</p>
         </div>
         <aside class="status-card" aria-label="生成モード">
-          <div>
-            <span class="status-pill">Codex pet 直接接続なし</span>
+          <div class="title-row">
+            <span class="status-pill">生成なし</span>
+            <span class="help-tip" tabindex="0" aria-label="生成なしの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                アプリ内からCodex petや外部AIを直接呼びません。ここでは別Codexへ貼るプロンプトだけを作ります。
+              </span>
+            </span>
           </div>
           <div>
-            <strong>この画面は生成を偽装しません</strong>
-            <p>
-              アプリ内からCodex petや外部AIを直接呼びません。ここで作ったプロンプトをコピーし、
-              自分のCodexへ基本イラストと一緒に貼り付けて生成を進めます。
-              下のCanvasプレビューは生成済み画像ではありません。
-            </p>
+            <strong>プロンプト作成だけ</strong>
+            <p>本物の画像生成は、コピー先のCodexで行います。</p>
           </div>
         </aside>
       </section>
 
       <section class="workspace">
         <div class="panel">
-          <h2>入力</h2>
+          <div class="title-row">
+            <h2>入力</h2>
+            <span class="help-tip" tabindex="0" aria-label="入力の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                characterId、基本イラスト、短い説明を使って、画像生成用プロンプトと仮manifestを作ります。
+              </span>
+            </span>
+          </div>
           <div class="form-grid">
             <label>
-              characterId
+              <span class="label-row">
+                characterId
+                <span class="help-tip" tabindex="0" aria-label="characterIdの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    保存フォルダ名に使うIDです。半角英数字、ハイフン、アンダースコア中心にすると安全です。
+                  </span>
+                </span>
+              </span>
               <input id="character-id" type="text" value="prototype-character-001" autocomplete="off" />
             </label>
             <label>
-              基本イラスト
+              <span class="label-row">
+                基本イラスト
+                <span class="help-tip" tabindex="0" aria-label="基本イラストの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    キャラの見た目の参考画像です。この画面では仮プレビューにだけ使い、直接画像生成はしません。
+                  </span>
+                </span>
+              </span>
               <input id="source-image" type="file" accept="image/png,image/jpeg,image/webp" />
             </label>
           </div>
           <div class="button-row">
-            <button id="generate-button" class="button" type="button" disabled>仮プレビューを作る</button>
+            <button id="generate-button" class="button" type="button" disabled>仮プレビュー</button>
             <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
-              manifestをダウンロード
+              manifest保存
             </button>
             <button id="save-directory-button" class="button button--warm" type="button" disabled>
-              public/art/generatedへ書き出す
+              仮画像を書き出す
             </button>
           </div>
           <p class="note">
-            ブラウザがフォルダ保存に対応している場合は、保存先に
-            <strong>public/art/generated</strong> を選ぶと
-            <strong>&lt;characterId&gt;</strong> フォルダへPNGとmanifestを書き出せます。
-            非対応ブラウザではmanifestのダウンロードだけ使えます。
+            保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong>
+            <span class="help-tip" tabindex="0" aria-label="保存先の説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                フォルダ保存に対応しているブラウザではPNGとmanifestを書き出せます。非対応ならmanifest保存だけ使えます。
+              </span>
+            </span>
           </p>
         </div>
 
         <div class="panel preview-area">
           <div class="preview-header">
             <div>
-              <h2>プレビュー</h2>
-              <p>表情差分と箱庭用スプライトの枠を確認します。</p>
+              <div class="title-row">
+                <h2>仮プレビュー</h2>
+                <span class="help-tip" tabindex="0" aria-label="仮プレビューの説明">
+                  <span class="help-tip__mark">?</span>
+                  <span class="help-tip__content">
+                    元画像をCanvasで並べるだけの確認枠です。本物の表情差分やスプライト生成結果ではありません。
+                  </span>
+                </span>
+              </div>
+              <p>本物の生成画像ではありません。</p>
             </div>
             <span id="output-status" class="status-pill">画像を選んでください</span>
           </div>
 
           <div id="empty-state" class="empty-state">
-            <p>1枚絵を選ぶと、ここに normal / tense / sadness / joy / divine と sprite preview が出ます。</p>
+            <p>画像を選ぶと、確認用の枠が出ます。</p>
           </div>
 
           <section id="expressions-section" hidden>
-            <h3>表情差分</h3>
+            <div class="title-row">
+              <h3>表情</h3>
+              <span class="help-tip" tabindex="0" aria-label="表情の説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  profile、会話、イベント、Passport portraitで使う立ち絵差分です。normal / tense / sadness / joy / divineを想定します。
+                </span>
+              </span>
+            </div>
             <div id="expressions-grid" class="grid"></div>
           </section>
 
           <section id="sprites-section" hidden>
-            <h3>箱庭用2Dスプライト</h3>
+            <div class="title-row">
+              <h3>スプライト</h3>
+              <span class="help-tip" tabindex="0" aria-label="スプライトの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  箱庭内を歩く小さい2Dキャラです。立ち絵を縮小するだけではなく、ドット絵SDキャラとして作ります。
+                </span>
+              </span>
+            </div>
             <div id="sprites-grid" class="grid"></div>
           </section>
 
           <section id="manifest-section" hidden>
-            <h3>manifest JSON</h3>
+            <div class="title-row">
+              <h3>manifest</h3>
+              <span class="help-tip" tabindex="0" aria-label="manifestの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  生成後の画像パス一覧です。GodSandbox本体へ自動反映するものではなく、後で参照するためのメモです。
+                </span>
+              </span>
+            </div>
             <pre id="manifest-output" class="manifest-box"></pre>
           </section>
         </div>
@@ -458,24 +608,44 @@
 
       <section class="panel prompt-panel" aria-labelledby="codex-prompt-title">
         <div class="prompt-panel__header">
-          <h2 id="codex-prompt-title">Codexへ貼る画像生成プロンプト</h2>
-          <p>
-            この画面はCodex petを直接呼びません。生成プロンプトをコピーし、
-            別ブラウザや別アプリで開いたCodexへ、選んだ基本イラストと一緒に貼り付けてください。
-            生成結果は <strong>public/art/generated/&lt;characterId&gt;/</strong> に保存する想定です。
-          </p>
+          <div class="title-row">
+            <h2 id="codex-prompt-title">生成プロンプト</h2>
+            <span class="help-tip" tabindex="0" aria-label="生成プロンプトの説明">
+              <span class="help-tip__mark">?</span>
+              <span class="help-tip__content">
+                別ブラウザや別アプリで開いたCodexへ、基本イラストと一緒に貼る文章です。画像生成そのものはこの画面では行いません。
+              </span>
+            </span>
+          </div>
+          <p>説明を書く → 作る → コピー。</p>
         </div>
 
         <div class="prompt-grid">
           <label>
-            キャラクターの短い説明
+            <span class="label-row">
+              キャラ説明
+              <span class="help-tip" tabindex="0" aria-label="キャラ説明の説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  性格、雰囲気、世界観を書きます。画像だけでは伝わりにくい内面や役割を補います。
+                </span>
+              </span>
+            </span>
             <textarea
               id="character-description"
               placeholder="例: 森の村で暮らす、まじめで少し不器用な若者。神様の気配に少し戸惑っている。"
             ></textarea>
           </label>
           <label>
-            口調 / 雰囲気
+            <span class="label-row">
+              雰囲気
+              <span class="help-tip" tabindex="0" aria-label="雰囲気の説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  生成時に守りたい空気感です。かわいい、素朴、神聖、緊張気味など短く書きます。
+                </span>
+              </span>
+            </span>
             <input
               id="character-tone"
               type="text"
@@ -484,7 +654,15 @@
             />
           </label>
           <label>
-            避けたい表現
+            <span class="label-row">
+              避けたいこと
+              <span class="help-tip" tabindex="0" aria-label="避けたいことの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  別人化、文字入り、背景つき、写実化しすぎなど、生成結果で避けたい要素を書きます。
+                </span>
+              </span>
+            </span>
             <input
               id="avoidance-notes"
               type="text"
@@ -493,7 +671,15 @@
             />
           </label>
           <label>
-            生成メモ
+            <span class="label-row">
+              メモ
+              <span class="help-tip" tabindex="0" aria-label="メモの説明">
+                <span class="help-tip__mark">?</span>
+                <span class="help-tip__content">
+                  保存先、用途、箱庭での見え方など、Codexへ追加で伝えたいことを書きます。
+                </span>
+              </span>
+            </span>
             <input
               id="generation-notes"
               type="text"
@@ -504,9 +690,9 @@
         </div>
 
         <div class="button-row">
-          <button id="build-prompt-button" class="button" type="button">プロンプトを生成</button>
+          <button id="build-prompt-button" class="button" type="button">作る</button>
           <button id="copy-prompt-button" class="button button--secondary" type="button" disabled>
-            プロンプトをコピー
+            コピー
           </button>
         </div>
 
@@ -517,7 +703,7 @@
           placeholder="ここにCodexへ貼るプロンプトが表示されます。"
         ></textarea>
         <p id="copy-prompt-status" class="copy-status">
-          未生成です。characterIdとキャラ説明を確認してから、プロンプトを生成してください。
+          未生成です。入力して「作る」を押してください。
         </p>
       </section>
     </main>
@@ -666,8 +852,7 @@
         });
         codexPromptOutput.value = generatedPrompt;
         copyPromptButton.disabled = false;
-        copyPromptStatus.textContent =
-          "プロンプトを生成しました。基本イラストを添えて、別ブラウザのCodexへ貼り付けてください。";
+        copyPromptStatus.textContent = "作成しました。画像と一緒にCodexへ貼ってください。";
       });
 
       copyPromptButton.addEventListener("click", async () => {
@@ -677,12 +862,11 @@
 
         try {
           await navigator.clipboard.writeText(generatedPrompt);
-          copyPromptStatus.textContent = "プロンプトをクリップボードへコピーしました。";
+          copyPromptStatus.textContent = "コピーしました。";
         } catch {
           codexPromptOutput.focus();
           codexPromptOutput.select();
-          copyPromptStatus.textContent =
-            "自動コピーできませんでした。表示されたプロンプトを選択してコピーしてください。";
+          copyPromptStatus.textContent = "自動コピーできませんでした。選択してコピーしてください。";
         }
       });
 
