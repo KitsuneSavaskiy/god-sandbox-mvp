@@ -125,6 +125,10 @@
         overflow-wrap: anywhere;
       }
 
+      .status-card > div {
+        min-width: 0;
+      }
+
       .title-row,
       .label-row {
         display: flex;
@@ -278,6 +282,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 10px;
+        align-items: stretch;
         margin-top: 16px;
       }
 
@@ -312,9 +317,18 @@
         border-radius: 16px;
         background: rgba(255, 246, 221, 0.72);
         color: #624d1f;
+        overflow-wrap: anywhere;
         line-height: 1.65;
         margin-top: 16px;
         padding: 12px 14px;
+      }
+
+      .note strong {
+        display: inline-block;
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        vertical-align: top;
+        word-break: break-word;
       }
 
       .warning-note {
@@ -426,6 +440,7 @@
       .asset-card__body {
         display: grid;
         gap: 8px;
+        min-width: 0;
         padding: 12px;
       }
 
@@ -436,6 +451,7 @@
       .asset-card__body span {
         color: #5f6f7c;
         font-size: 0.86rem;
+        overflow-wrap: anywhere;
       }
 
       .manifest-box {
@@ -448,7 +464,8 @@
         font-size: 0.86rem;
         line-height: 1.6;
         padding: 16px;
-        white-space: pre;
+        white-space: pre-wrap;
+        word-break: break-word;
       }
 
       .prompt-panel {
@@ -518,6 +535,12 @@
           padding-top: 18px;
         }
 
+        .hero__copy,
+        .panel,
+        .status-card {
+          min-width: 0;
+        }
+
         h1 {
           font-size: clamp(1.75rem, 8vw, 2rem);
           letter-spacing: -0.04em;
@@ -527,7 +550,12 @@
 
       }
 
-      @media (max-width: 480px) {
+      @media (max-width: 640px) {
+        .page-shell {
+          width: min(100% - 16px, 1180px);
+          padding-bottom: 28px;
+        }
+
         .hero__copy,
         .panel,
         .status-card {
@@ -550,6 +578,19 @@
 
         .lead {
           font-size: 0.95rem;
+        }
+
+        .preview-header {
+          align-items: flex-start;
+        }
+
+        .status-pill {
+          max-width: 100%;
+        }
+
+        .manifest-box {
+          font-size: 0.8rem;
+          padding: 14px;
         }
 
         .prompt-output {
@@ -651,11 +692,12 @@
               </span>
             </span>
           </p>
-          <p class="note">
-            保存先: <strong>public/art/generated/&lt;characterId&gt;/</strong>
+          <p id="storage-support-note" class="note">
+            保存先: <strong id="storage-support-path">public/art/generated/&lt;characterId&gt;/</strong>
+            <span id="storage-support-status">フォルダ保存の対応状況を確認しています。</span>
             <span class="help-tip" tabindex="0" aria-label="保存先の説明">
               <span class="help-tip__mark">?</span>
-              <span class="help-tip__content">
+              <span id="storage-support-tip" class="help-tip__content">
                 フォルダ保存に対応しているブラウザではPNGとmanifestを書き出せます。非対応ならmanifest保存だけ使えます。
               </span>
             </span>
@@ -851,6 +893,10 @@
       const generateButton = document.getElementById("generate-button");
       const downloadManifestButton = document.getElementById("download-manifest-button");
       const saveDirectoryButton = document.getElementById("save-directory-button");
+      const storageSupportNote = document.getElementById("storage-support-note");
+      const storageSupportPath = document.getElementById("storage-support-path");
+      const storageSupportStatus = document.getElementById("storage-support-status");
+      const storageSupportTip = document.getElementById("storage-support-tip");
       const outputStatus = document.getElementById("output-status");
       const portraitPromptOutput = document.getElementById("portrait-prompt-output");
       const spritePromptOutput = document.getElementById("sprite-prompt-output");
@@ -870,7 +916,7 @@
       let generatedAssets = [];
       let manifest = null;
 
-      saveDirectoryButton.hidden = !("showDirectoryPicker" in window);
+      updateFileSystemAccessSupport();
       updatePromptOutputs();
 
       sourceInput.addEventListener("change", async () => {
@@ -950,7 +996,7 @@
       });
 
       saveDirectoryButton.addEventListener("click", async () => {
-        if (!manifest || generatedAssets.length === 0 || !("showDirectoryPicker" in window)) {
+        if (!manifest || generatedAssets.length === 0 || !updateFileSystemAccessSupport()) {
           return;
         }
 
@@ -976,6 +1022,21 @@
         }
       });
 
+      function updateFileSystemAccessSupport() {
+        const fileSystemAccessAvailable = typeof window.showDirectoryPicker === "function";
+        saveDirectoryButton.hidden = !fileSystemAccessAvailable;
+        storageSupportNote.dataset.support = fileSystemAccessAvailable ? "directory" : "manifest-only";
+        storageSupportPath.innerHTML = fileSystemAccessAvailable
+          ? "public/art/generated/&lt;characterId&gt;/"
+          : "manifest保存のみ";
+        storageSupportStatus.textContent = fileSystemAccessAvailable
+          ? "に PNG と manifest を保存できます。"
+          : "が利用できます。";
+        storageSupportTip.textContent = fileSystemAccessAvailable
+          ? "このブラウザではフォルダ保存が使えます。PNG と manifest を保存できます。"
+          : "このブラウザではフォルダ保存は使えません。manifest 保存だけ利用できます。";
+        return fileSystemAccessAvailable;
+      }
       function normalizeCharacterId(value) {
         const normalized = value
           .trim()
