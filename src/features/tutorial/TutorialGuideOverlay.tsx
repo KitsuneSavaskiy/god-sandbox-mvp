@@ -20,10 +20,12 @@ export interface TutorialGuideStep {
   scrollBlock?: ScrollLogicalPosition;
   advanceMode?: "manual" | "targetClick";
   completeOnTargetClick?: boolean;
+  waitForExternalCompletion?: boolean;
 }
 
 interface TutorialGuideOverlayProps {
   steps: TutorialGuideStep[];
+  completedSignal?: boolean;
   suspended?: boolean;
 }
 
@@ -99,7 +101,7 @@ function createGuideLayout(spotlightRect: SpotlightRect | null): GuideLayout {
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
   const compact = viewportWidth <= MOBILE_BUBBLE_BREAKPOINT;
-  const spriteSize = viewportWidth <= MOBILE_LAYOUT_BREAKPOINT ? 80 : 104;
+  const spriteSize = viewportWidth <= MOBILE_LAYOUT_BREAKPOINT ? 108 : 136;
 
   if (!spotlightRect) {
     return {
@@ -183,10 +185,10 @@ function createGuideLayout(spotlightRect: SpotlightRect | null): GuideLayout {
   };
 }
 
-export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuideOverlayProps) {
+export function TutorialGuideOverlay({ steps, completedSignal = false, suspended = false }: TutorialGuideOverlayProps) {
   const [stepIndex, setStepIndex] = useState(0);
   const [isDeferred, setIsDeferred] = useState(readStoredFlag(TUTORIAL_DEFERRED_KEY));
-  const [isCompleted, setIsCompleted] = useState(readStoredFlag(TUTORIAL_COMPLETED_KEY));
+  const [isCompleted, setIsCompleted] = useState(readStoredFlag(TUTORIAL_COMPLETED_KEY) || completedSignal);
   const [isHiddenForSession, setIsHiddenForSession] = useState(false);
   const [spotlightRect, setSpotlightRect] = useState<SpotlightRect | null>(null);
   const [bubbleStyle, setBubbleStyle] = useState<CSSProperties>({});
@@ -208,10 +210,18 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
       return isLastStep ? "完了" : "次へ";
     }
 
+    if (activeStep.waitForExternalCompletion) {
+      return "結果が出ると完了";
+    }
+
     return activeStep.completeOnTargetClick ? "対象を押すと完了" : "対象を押すと進む";
-  }, [activeStep.completeOnTargetClick, advanceMode, isLastStep]);
+  }, [activeStep.completeOnTargetClick, activeStep.waitForExternalCompletion, advanceMode, isLastStep]);
 
   const advanceFromTarget = () => {
+    if (activeStep.waitForExternalCompletion) {
+      return;
+    }
+
     if (activeStep.completeOnTargetClick || isLastStep) {
       handleComplete();
       return;
@@ -278,6 +288,20 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
       window.clearInterval(intervalId);
     };
   }, [apostleMotion, isOpen, isSpriteReady, suspended]);
+
+  useEffect(() => {
+    if (!completedSignal) {
+      return;
+    }
+
+    if (isCompleted) {
+      writeStoredFlag(TUTORIAL_COMPLETED_KEY, true);
+      writeStoredFlag(TUTORIAL_DEFERRED_KEY, false);
+      return;
+    }
+
+    handleComplete();
+  }, [completedSignal, isCompleted]);
 
   useLayoutEffect(() => {
     if (!isOpen || suspended || !activeStep) {
@@ -559,7 +583,12 @@ export function TutorialGuideOverlay({ steps, suspended = false }: TutorialGuide
 
             {isTargetInteractionStep ? (
               <p className="tutorial-guide-overlay__target-lock">
-                光っている対象だけが押せます。{activeStep.completeOnTargetClick ? "この操作で案内は完了します。" : "押すと次へ進みます。"}
+                光っている対象だけが押せます。
+                {activeStep.waitForExternalCompletion
+                  ? " Bless の結果が出た時点で案内は完了します。"
+                  : activeStep.completeOnTargetClick
+                    ? " この操作で案内は完了します。"
+                    : " 押すと次へ進みます。"}
               </p>
             ) : null}
 
