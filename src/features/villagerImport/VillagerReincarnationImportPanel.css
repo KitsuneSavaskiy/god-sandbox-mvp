@@ -1,0 +1,154 @@
+.villager-import-panel {
+  border-color: rgba(112, 191, 165, 0.26);
+  background:
+    linear-gradient(135deg, rgba(112, 191, 165, 0.08), rgba(93, 137, 216, 0.07)),
+    rgba(8, 17, 28, 0.82);
+}
+
+.villager-import-panel__lead,
+.villager-import-panel__hint,
+.villager-import-panel__target p {
+  margin: 0;
+  color: #c7d8e7;
+  font-size: 0.92rem;
+}
+
+.villager-import-panel__body,
+.villager-import-panel__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.villager-import-panel__notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border: 1px solid rgba(246, 196, 83, 0.26);
+  border-radius: 14px;
+  background: rgba(246, 196, 83, 0.1);
+  color: #ffe9a8;
+  padding: 0.85rem;
+}
+
+.villager-import-panel__notice span {
+  color: #f4dfaa;
+  font-size: 0.9rem;
+}
+
+.villager-import-panel__actions,
+.villager-import-panel__prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.villager-import-panel__file-input {
+  display: none;
+}
+
+.villager-import-panel__selected {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: minmax(92px, 0.34fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.villager-import-panel__preview {
+  display: grid;
+  min-height: 132px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(146, 175, 199, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.04) 25%, transparent 25%),
+    rgba(7, 16, 24, 0.48);
+  background-position:
+    0 0,
+    0 8px;
+  background-size: 16px 16px;
+}
+
+.villager-import-panel__preview img {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+.villager-import-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.villager-import-field span,
+.villager-import-panel__target span {
+  color: #aebfd0;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.villager-import-field input,
+.villager-import-panel__prompt {
+  width: 100%;
+  border: 1px solid rgba(146, 175, 199, 0.18);
+  border-radius: 12px;
+  background: rgba(7, 16, 24, 0.72);
+  color: #f4f7fb;
+  padding: 0.68rem 0.75rem;
+}
+
+.villager-import-panel__target {
+  display: flex;
+  flex-direction: column;
+  gap: 0.38rem;
+  border: 1px solid rgba(112, 191, 165, 0.22);
+  border-radius: 14px;
+  background: rgba(112, 191, 165, 0.08);
+  padding: 0.75rem;
+}
+
+.villager-import-panel__target code {
+  overflow-wrap: anywhere;
+  border-radius: 10px;
+  background: rgba(4, 11, 18, 0.72);
+  color: #bff7e2;
+  padding: 0.48rem 0.55rem;
+}
+
+.villager-import-panel__copy-status {
+  min-height: 1.3em;
+  color: #9ab0c2;
+  font-size: 0.84rem;
+}
+
+.villager-import-panel__prompt {
+  min-height: 220px;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 560px) {
+  .villager-import-panel__actions,
+  .villager-import-panel__prompt-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .villager-import-panel__actions .button,
+  .villager-import-panel__prompt-actions .button {
+    width: 100%;
+  }
+
+  .villager-import-panel__selected {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .villager-import-panel__preview {
+    min-height: 180px;
+  }
+}
