@@ -3,7 +3,8 @@ name: TruffleHog Secret Sweep
 on:
   workflow_dispatch:
   schedule:
-    - cron: "37 18 * * 0"
+    # Sunday 15:00 UTC = Monday 00:00 JST.
+    - cron: "0 15 * * 0"
 
 permissions:
   contents: read
@@ -34,7 +35,7 @@ jobs:
             --env GIT_CONFIG_COUNT=1 \
             --env GIT_CONFIG_KEY_0=safe.directory \
             --env GIT_CONFIG_VALUE_0=/repo \
-            trufflesecurity/trufflehog:latest \
+            ghcr.io/trufflesecurity/trufflehog:3.94.3@sha256:8837fd74692f6da826b51bc008b6bcf0dd2d70d31d06792673872a235d9b7e39 \
             git file:///repo \
             --only-verified \
             --fail \

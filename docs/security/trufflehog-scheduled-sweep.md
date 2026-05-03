@@ -17,7 +17,7 @@ workflow: `.github/workflows/trufflehog-scheduled-sweep.yml`
 実行タイミング:
 
 - `workflow_dispatch`: 必要な時に手動実行します。
-- `schedule`: 週1回の定期実行です。
+- `schedule`: 週1回、月曜00:00 JSTに相当する `0 15 * * 0` で定期実行します。
 
 このworkflowは `pull_request` では動かしません。
 
@@ -36,6 +36,14 @@ trufflehog git file://. --only-verified
 実際のworkflowでは、Docker上のリポジトリパスに合わせて `file:///repo` を使います。
 
 `--only-verified` を使い、TruffleHog が検証できた secret 候補を主対象にします。
+
+Docker image は `latest` を使わず、version tag と digest を固定します。
+
+現在は次を使います。
+
+```text
+ghcr.io/trufflesecurity/trufflehog:3.94.3@sha256:8837fd74692f6da826b51bc008b6bcf0dd2d70d31d06792673872a235d9b7e39
+```
 
 ## ログに secret 実値を出さない
 
