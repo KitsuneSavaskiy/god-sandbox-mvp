@@ -18,6 +18,7 @@
       body {
         margin: 0;
         min-height: 100vh;
+        overflow-x: hidden;
         background:
           radial-gradient(circle at 12% 10%, rgba(231, 170, 76, 0.24), transparent 28rem),
           radial-gradient(circle at 88% 14%, rgba(75, 134, 161, 0.18), transparent 24rem),
@@ -25,7 +26,8 @@
       }
 
       button,
-      input {
+      input,
+      textarea {
         font: inherit;
       }
 
@@ -82,6 +84,7 @@
         letter-spacing: -0.055em;
         line-height: 0.96;
         margin-top: 18px;
+        overflow-wrap: anywhere;
       }
 
       .lead {
@@ -90,6 +93,7 @@
         font-size: clamp(1rem, 2.2vw, 1.2rem);
         line-height: 1.8;
         margin-top: 18px;
+        overflow-wrap: anywhere;
       }
 
       .status-card {
@@ -107,6 +111,7 @@
       .status-card p {
         color: #586a77;
         line-height: 1.65;
+        overflow-wrap: anywhere;
       }
 
       .status-pill {
@@ -150,13 +155,20 @@
       }
 
       input[type="text"],
-      input[type="file"] {
+      input[type="file"],
+      textarea {
         width: 100%;
         border: 1px solid rgba(40, 58, 72, 0.2);
         border-radius: 16px;
         background: rgba(255, 255, 255, 0.78);
         color: #172636;
         padding: 12px 14px;
+      }
+
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+        line-height: 1.6;
       }
 
       .button-row {
@@ -173,7 +185,6 @@
         background: #24485c;
         color: #fff8e8;
         cursor: pointer;
-        justify-content: center;
         font-weight: 800;
         min-height: 44px;
         padding: 11px 16px;
@@ -289,6 +300,45 @@
         word-break: break-word;
       }
 
+      .prompt-panel {
+        margin-top: 18px;
+      }
+
+      .prompt-panel__header {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .prompt-panel__header p {
+        color: #5a6d79;
+        line-height: 1.65;
+      }
+
+      .prompt-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .prompt-grid label:first-child {
+        grid-column: 1 / -1;
+      }
+
+      .prompt-output {
+        min-height: 320px;
+        margin-top: 14px;
+        font-family: "Consolas", "SFMono-Regular", monospace;
+        white-space: pre-wrap;
+      }
+
+      .copy-status {
+        color: #5a6d79;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+
       .empty-state {
         display: grid;
         place-items: center;
@@ -306,9 +356,20 @@
           grid-template-columns: 1fr;
         }
 
+        .prompt-grid {
+          grid-template-columns: 1fr;
+        }
+
         .page-shell {
           width: min(100% - 20px, 1180px);
           padding-top: 18px;
+        }
+
+        h1 {
+          font-size: clamp(1.75rem, 8vw, 2rem);
+          letter-spacing: -0.04em;
+          line-height: 1.08;
+          word-break: break-all;
         }
       }
 
@@ -351,22 +412,23 @@
     <main class="page-shell">
       <section class="hero">
         <div class="hero__copy">
-          <span class="eyebrow">Prototype</span>
-          <h1>1枚絵からキャラ差分の形を試す</h1>
+          <span class="eyebrow">Prompt workflow</span>
+          <h1>1枚絵から<br />Codex用<br />プロンプトを作る</h1>
           <p class="lead">
-            キャラクターの基本イラストを読み込み、表情差分と箱庭用2Dスプライトのプレビュー枠、
-            そして外部化しやすいmanifest JSONを確認するための最小プロトタイプです。
+            基本イラストから、Codexへ貼る世界観つきプロンプトを作ります。
+            Canvas仮プレビューは実生成ではないことも確認できます。
           </p>
         </div>
         <aside class="status-card" aria-label="生成モード">
           <div>
-            <span class="status-pill">Codex pet 未使用</span>
+            <span class="status-pill">Codex pet 直接接続なし</span>
           </div>
           <div>
             <strong>この画面は生成を偽装しません</strong>
             <p>
-              画像生成APIや外部AIには接続していません。アップロード画像をCanvasで切り出し、
-              色味と位置を少し変えた仮プレビューだけを作ります。
+              アプリ内からCodex petや外部AIを直接呼びません。ここで作ったプロンプトをコピーし、
+              自分のCodexへ基本イラストと一緒に貼り付けて生成を進めます。
+              下のCanvasプレビューは生成済み画像ではありません。
             </p>
           </div>
         </aside>
@@ -387,9 +449,6 @@
           </div>
           <div class="button-row">
             <button id="generate-button" class="button" type="button" disabled>仮プレビューを作る</button>
-            <button id="load-demo-button" class="button button--secondary" type="button">
-              サンプル画像で試す
-            </button>
             <button id="download-manifest-button" class="button button--secondary" type="button" disabled>
               manifestをダウンロード
             </button>
@@ -431,6 +490,71 @@
           </section>
         </div>
       </section>
+
+      <section class="panel prompt-panel" aria-labelledby="codex-prompt-title">
+        <div class="prompt-panel__header">
+          <h2 id="codex-prompt-title">Codexへ貼る画像生成プロンプト</h2>
+          <p>
+            この画面はCodex petを直接呼びません。生成プロンプトをコピーし、
+            別ブラウザや別アプリで開いたCodexへ、選んだ基本イラストと一緒に貼り付けてください。
+            生成結果は <strong>public/art/generated/&lt;characterId&gt;/</strong> に保存する想定です。
+          </p>
+        </div>
+
+        <div class="prompt-grid">
+          <label>
+            キャラクターの短い説明
+            <textarea
+              id="character-description"
+              placeholder="例: 森の村で暮らす、まじめで少し不器用な若者。神様の気配に少し戸惑っている。"
+            ></textarea>
+          </label>
+          <label>
+            口調 / 雰囲気
+            <input
+              id="character-tone"
+              type="text"
+              value="素朴で誠実、少し緊張しやすい"
+              autocomplete="off"
+            />
+          </label>
+          <label>
+            避けたい表現
+            <input
+              id="avoidance-notes"
+              type="text"
+              value="別人化、写実化しすぎ、文字、ロゴ、派手すぎる背景"
+              autocomplete="off"
+            />
+          </label>
+          <label>
+            生成メモ
+            <input
+              id="generation-notes"
+              type="text"
+              value="GodSandboxの小さな箱庭で見やすい2Dゲームキャラにする"
+              autocomplete="off"
+            />
+          </label>
+        </div>
+
+        <div class="button-row">
+          <button id="build-prompt-button" class="button" type="button">プロンプトを生成</button>
+          <button id="copy-prompt-button" class="button button--secondary" type="button" disabled>
+            プロンプトをコピー
+          </button>
+        </div>
+
+        <textarea
+          id="codex-prompt-output"
+          class="prompt-output"
+          readonly
+          placeholder="ここにCodexへ貼るプロンプトが表示されます。"
+        ></textarea>
+        <p id="copy-prompt-status" class="copy-status">
+          未生成です。characterIdとキャラ説明を確認してから、プロンプトを生成してください。
+        </p>
+      </section>
     </main>
 
     <script>
@@ -441,14 +565,6 @@
         { key: "joy", label: "喜び", tint: "rgba(255,207,91,0.28)", note: "明るい金色を重ねる" },
         { key: "divine", label: "神性", tint: "rgba(213,240,255,0.42)", note: "淡い光を重ねる" },
       ];
-
-      const demoDefinitions = {
-        ryo: {
-          suggestedId: "demo-ryo",
-          fileName: "ryo_normal.jpeg",
-          path: "/art/portraits/ryo/ryo_normal.jpeg",
-        },
-      };
 
       const spriteDefinitions = [
         { key: "idle", label: "待機", offsetX: 0, offsetY: 0, flip: false },
@@ -461,7 +577,6 @@
       const sourceInput = document.getElementById("source-image");
       const characterIdInput = document.getElementById("character-id");
       const generateButton = document.getElementById("generate-button");
-      const loadDemoButton = document.getElementById("load-demo-button");
       const downloadManifestButton = document.getElementById("download-manifest-button");
       const saveDirectoryButton = document.getElementById("save-directory-button");
       const storageSupportNote = document.getElementById("storage-support-note");
@@ -473,28 +588,67 @@
       const expressionsGrid = document.getElementById("expressions-grid");
       const spritesGrid = document.getElementById("sprites-grid");
       const manifestOutput = document.getElementById("manifest-output");
+      const characterDescriptionInput = document.getElementById("character-description");
+      const characterToneInput = document.getElementById("character-tone");
+      const avoidanceNotesInput = document.getElementById("avoidance-notes");
+      const generationNotesInput = document.getElementById("generation-notes");
+      const buildPromptButton = document.getElementById("build-prompt-button");
+      const copyPromptButton = document.getElementById("copy-prompt-button");
+      const codexPromptOutput = document.getElementById("codex-prompt-output");
+      const copyPromptStatus = document.getElementById("copy-prompt-status");
 
       let sourceFile = null;
       let sourceImage = null;
       let generatedAssets = [];
       let manifest = null;
-      const searchParams = new URLSearchParams(window.location.search);
-      const requestedDemo = searchParams.get("demo");
-      const shouldAutogenerate = searchParams.get("autogenerate") === "1";
+      let generatedPrompt = "";
 
       updateFileSystemAccessSupport();
 
       sourceInput.addEventListener("change", async () => {
         const [file] = sourceInput.files;
-        await applySource(file ?? null);
+        sourceFile = file ?? null;
+        generatedAssets = [];
+        manifest = null;
+        renderEmptyState();
+
+        if (!sourceFile) {
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を選んでください";
+          return;
+        }
+
+        try {
+          sourceImage = await loadImage(sourceFile);
+          generateButton.disabled = false;
+          outputStatus.textContent = "画像を読み込みました";
+        } catch {
+          sourceImage = null;
+          generateButton.disabled = true;
+          outputStatus.textContent = "画像を読み込めませんでした";
+        }
       });
 
       generateButton.addEventListener("click", async () => {
-        generatePreviewFromCurrentSource();
-      });
+        if (!sourceImage || !sourceFile) {
+          return;
+        }
 
-      loadDemoButton.addEventListener("click", async () => {
-        await loadDemoSource("ryo");
+        const characterId = normalizeCharacterId(characterIdInput.value);
+        characterIdInput.value = characterId;
+        generatedAssets = [
+          ...expressionDefinitions.map((definition) =>
+            createExpressionAsset(sourceImage, characterId, definition),
+          ),
+          ...spriteDefinitions.map((definition) =>
+            createSpriteAsset(sourceImage, characterId, definition),
+          ),
+        ];
+        manifest = buildManifest(characterId, sourceFile, generatedAssets);
+        renderAssets();
+        outputStatus.textContent = "仮プレビューを作成しました";
+        downloadManifestButton.disabled = false;
+        saveDirectoryButton.disabled = saveDirectoryButton.hidden;
       });
 
       downloadManifestButton.addEventListener("click", () => {
@@ -535,105 +689,6 @@
         }
       });
 
-      bootstrapDemoFromQuery();
-
-      async function applySource(file, options = {}) {
-        const { autoGenerate = false, sourceLabel = null } = options;
-        sourceFile = file;
-        generatedAssets = [];
-        manifest = null;
-        renderEmptyState();
-
-        if (!sourceFile) {
-          sourceImage = null;
-          generateButton.disabled = true;
-          outputStatus.textContent = "画像を選んでください";
-          return false;
-        }
-
-        try {
-          sourceImage = await loadImage(sourceFile);
-          generateButton.disabled = false;
-          outputStatus.textContent = sourceLabel ?? "画像を読み込みました";
-
-          if (autoGenerate) {
-            generatePreviewFromCurrentSource();
-          }
-          return true;
-        } catch {
-          sourceImage = null;
-          generateButton.disabled = true;
-          outputStatus.textContent = "画像を読み込めませんでした";
-          return false;
-        }
-      }
-
-      function generatePreviewFromCurrentSource() {
-        if (!sourceImage || !sourceFile) {
-          return false;
-        }
-
-        const characterId = normalizeCharacterId(characterIdInput.value);
-        characterIdInput.value = characterId;
-        generatedAssets = [
-          ...expressionDefinitions.map((definition) =>
-            createExpressionAsset(sourceImage, characterId, definition),
-          ),
-          ...spriteDefinitions.map((definition) =>
-            createSpriteAsset(sourceImage, characterId, definition),
-          ),
-        ];
-        manifest = buildManifest(characterId, sourceFile, generatedAssets);
-        renderAssets();
-        outputStatus.textContent = "仮プレビューを作成しました";
-        downloadManifestButton.disabled = false;
-        saveDirectoryButton.disabled = saveDirectoryButton.hidden;
-        return true;
-      }
-
-      async function loadDemoSource(demoKey, options = {}) {
-        const demoDefinition = demoDefinitions[demoKey];
-        if (!demoDefinition) {
-          outputStatus.textContent = "サンプル画像が見つかりません";
-          return false;
-        }
-
-        loadDemoButton.disabled = true;
-        outputStatus.textContent = "サンプル画像を読み込んでいます";
-
-        try {
-          const response = await fetch(demoDefinition.path);
-          if (!response.ok) {
-            throw new Error("demo image fetch failed");
-          }
-
-          const blob = await response.blob();
-          const demoFile = new File([blob], demoDefinition.fileName, {
-            type: blob.type || "image/jpeg",
-          });
-          if (characterIdInput.value === "prototype-character-001" || !characterIdInput.value.trim()) {
-            characterIdInput.value = demoDefinition.suggestedId;
-          }
-          sourceInput.value = "";
-          return await applySource(demoFile, {
-            autoGenerate: options.autoGenerate ?? false,
-            sourceLabel: "サンプル画像を読み込みました",
-          });
-        } catch {
-          outputStatus.textContent = "サンプル画像を読み込めませんでした";
-          return false;
-        } finally {
-          loadDemoButton.disabled = false;
-        }
-      }
-
-      async function bootstrapDemoFromQuery() {
-        if (!requestedDemo) {
-          return;
-        }
-        await loadDemoSource(requestedDemo, { autoGenerate: shouldAutogenerate });
-      }
-
       function updateFileSystemAccessSupport() {
         const fileSystemAccessAvailable = typeof window.showDirectoryPicker === "function";
         saveDirectoryButton.hidden = !fileSystemAccessAvailable;
@@ -642,6 +697,39 @@
           : "このブラウザではフォルダ保存は使えません。manifest のダウンロードだけ利用できます。";
         return fileSystemAccessAvailable;
       }
+
+      buildPromptButton.addEventListener("click", () => {
+        const characterId = normalizeCharacterId(characterIdInput.value);
+        characterIdInput.value = characterId;
+        generatedPrompt = buildCodexPetPrompt({
+          characterId,
+          sourceImageName: sourceFile?.name ?? "添付した基本イラスト",
+          description: characterDescriptionInput.value,
+          tone: characterToneInput.value,
+          avoidance: avoidanceNotesInput.value,
+          notes: generationNotesInput.value,
+        });
+        codexPromptOutput.value = generatedPrompt;
+        copyPromptButton.disabled = false;
+        copyPromptStatus.textContent =
+          "プロンプトを生成しました。基本イラストを添えて、別ブラウザのCodexへ貼り付けてください。";
+      });
+
+      copyPromptButton.addEventListener("click", async () => {
+        if (!generatedPrompt) {
+          return;
+        }
+
+        try {
+          await navigator.clipboard.writeText(generatedPrompt);
+          copyPromptStatus.textContent = "プロンプトをクリップボードへコピーしました。";
+        } catch {
+          codexPromptOutput.focus();
+          codexPromptOutput.select();
+          copyPromptStatus.textContent =
+            "自動コピーできませんでした。表示されたプロンプトを選択してコピーしてください。";
+        }
+      });
 
       function normalizeCharacterId(value) {
         const normalized = value
@@ -667,6 +755,148 @@
           };
           image.src = url;
         });
+      }
+
+      function cleanPromptValue(value, fallback) {
+        const cleaned = value.trim().replace(/\s+/g, " ");
+        return cleaned || fallback;
+      }
+
+      function buildCodexPetPrompt({ characterId, sourceImageName, description, tone, avoidance, notes }) {
+        const safeDescription = cleanPromptValue(
+          description,
+          "GodSandboxの小さな箱庭で暮らす住民。新米神様に見守られながら少しずつ成長している。",
+        );
+        const safeTone = cleanPromptValue(tone, "素朴で親しみやすい");
+        const safeAvoidance = cleanPromptValue(
+          avoidance,
+          "別人化、写実化しすぎ、文字、ロゴ、背景混入、過度な装飾",
+        );
+        const safeNotes = cleanPromptValue(
+          notes,
+          "小さな箱庭の3D背景上でも見やすい輪郭とコントラストを優先する。",
+        );
+
+        return `あなたはGodSandboxのキャラクター画像制作を手伝うCodex petです。
+
+目的:
+添付した1枚の基本キャラクターイラストを identity reference として使い、GodSandboxの箱庭で使える portrait 表情差分と、別途 pixel art / chibi の spritesheet を生成してください。
+
+GodSandbox世界観:
+- プレイヤーは「新米神様」です。
+- キャラクターは小さな箱庭世界で暮らす住民です。
+- 新米神様は住民を見守り、重要な出来事で「見守る / 助ける / 試練を与える」を選びます。
+- Character Passportは、育ったキャラクターを外のゲームへ持ち出すための紹介カードです。
+- PO本人や個人情報をキャラクター設定に入れないでください。
+
+入力画像:
+- sourceImageName: ${sourceImageName}
+- この画像は identity reference としてのみ使ってください。
+- crop / paste / resize で立ち絵を縮小してスプライト化しないでください。
+- 髪型、目、服装、色味、年齢感、雰囲気を維持してください。
+
+キャラクター情報:
+- characterId: ${characterId}
+- 説明: ${safeDescription}
+- 口調 / 雰囲気: ${safeTone}
+- 生成メモ: ${safeNotes}
+
+出力A: portrait 表情差分
+- 立ち絵またはportraitとして使える画像です。
+- pixel art 指示は混ぜないでください。
+- 背景は透過、または単色で抜きやすい形を優先してください。
+- normal: 通常。基本イラストに最も近い表情。
+- tense: 緊張。少し身構えているが別人化しない。
+- sadness: 悲しみ。静かな落ち込みや不安。
+- joy: 喜び。明るく安心した表情。
+- divine: 神様の介入を受けたような、淡く神聖な表情。
+
+出力B: pixel art / chibi spritesheet
+- 立ち絵の crop / paste / resize ではなく、新しく描き起こした pixel art / chibi / full body キャラにしてください。
+- transparent background にしてください。
+- clear silhouette を優先してください。
+- 32x32 または 48x48 で縮小表示しても読める形にしてください。
+- no text labels inside cells。
+- no background scene。
+- equal cell size。
+- rows are animations。
+- columns are frames。
+- 各行の左から右へ、自然なアニメーションのフレームを並べてください。
+
+spritesheet の最小animation:
+- idle
+- walk_down
+- walk_up
+- walk_right
+- walk_left
+
+spritesheet の追加候補:
+- waving
+- jumping
+- failed
+- waiting
+
+spritesheet / contact sheet 方針:
+- spritesheet.png は、ゲームで切り出して使うための整列済みspritesheetです。
+- contact-sheet.png は、人間が確認しやすい一覧用です。
+- contact-sheet.png に文字ラベルを入れる場合でも、各sprite cellの中には文字を入れないでください。
+- sprite cell内に背景シーンやUI部品を入れないでください。
+
+避けたい表現:
+- ${safeAvoidance}
+
+保存先:
+- public/art/generated/${characterId}/expressions/normal.png
+- public/art/generated/${characterId}/expressions/tense.png
+- public/art/generated/${characterId}/expressions/sadness.png
+- public/art/generated/${characterId}/expressions/joy.png
+- public/art/generated/${characterId}/expressions/divine.png
+- public/art/generated/${characterId}/sprites/idle.png
+- public/art/generated/${characterId}/sprites/walk_down.png
+- public/art/generated/${characterId}/sprites/walk_up.png
+- public/art/generated/${characterId}/sprites/walk_left.png
+- public/art/generated/${characterId}/sprites/walk_right.png
+- public/art/generated/${characterId}/spritesheet.png
+- public/art/generated/${characterId}/contact-sheet.png
+- public/art/generated/${characterId}/visual-manifest.json
+
+ファイル名規則:
+- 表情差分は expressions/<expression>.png に保存してください。
+- スプライト単体は sprites/<sprite>.png に保存してください。
+- ゲーム用spritesheetは spritesheet.png に保存してください。
+- 確認用contact sheetは contact-sheet.png に保存してください。
+- 生成物はPNGを基本にしてください。
+
+visual-manifest.json の構造:
+{
+  "schemaVersion": "character-visual/codex-pet.v1",
+  "characterId": "${characterId}",
+  "sourceImageName": "${sourceImageName}",
+  "generator": "codex-pet",
+  "expressions": {
+    "normal": "/art/generated/${characterId}/expressions/normal.png",
+    "tense": "/art/generated/${characterId}/expressions/tense.png",
+    "sadness": "/art/generated/${characterId}/expressions/sadness.png",
+    "joy": "/art/generated/${characterId}/expressions/joy.png",
+    "divine": "/art/generated/${characterId}/expressions/divine.png"
+  },
+  "sprites": {
+    "idle": "/art/generated/${characterId}/sprites/idle.png",
+    "walk_down": "/art/generated/${characterId}/sprites/walk_down.png",
+    "walk_up": "/art/generated/${characterId}/sprites/walk_up.png",
+    "walk_left": "/art/generated/${characterId}/sprites/walk_left.png",
+    "walk_right": "/art/generated/${characterId}/sprites/walk_right.png"
+  },
+  "spritesheet": "/art/generated/${characterId}/spritesheet.png",
+  "contactSheet": "/art/generated/${characterId}/contact-sheet.png",
+  "createdAt": "<生成日時をISO 8601で入れる>",
+  "notes": "${safeNotes}"
+}
+
+重要:
+- このプロンプトはGodSandboxアプリ内で直接画像生成するものではありません。
+- 生成結果を確認したあと、上記の保存先へ配置してください。
+- 同一人物感が崩れた場合は、表情やポーズの変化を弱めて再生成してください。`;
       }
 
       function createExpressionAsset(image, characterId, definition) {
