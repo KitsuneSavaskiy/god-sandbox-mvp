@@ -12,6 +12,15 @@ export const RYO_ILLUSTRATIONS = {
   test: "/art/illustrations/ryo/ryo_test.jpeg",
 } as const;
 
+export const APOSTLE_GUIDE_SPRITE = {
+  sheet: "/art/apostle/tutorial-guide-apostle-sprite.svg",
+  frameCount: 4,
+  motions: {
+    idle: [0, 1],
+    guidePoint: [2, 3],
+  },
+} as const;
+
 export const WORLD_BACKGROUNDS = {
   spring: {
     morning: "/art/world/backgrounds/spring-morning.png",
