@@ -49,6 +49,7 @@
   display: grid;
   place-items: center;
   z-index: 2;
+  background: transparent;
 }
 
 .tutorial-guide-overlay__bubble {
@@ -128,25 +129,29 @@
 .tutorial-guide-overlay__apostle-sprite-shell {
   display: grid;
   place-items: center;
-  width: 4.6rem;
-  height: 4.6rem;
-  min-width: 4.6rem;
-  border: 1px solid rgba(255, 218, 145, 0.2);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 218, 145, 0.18), transparent 52%),
-    linear-gradient(180deg, rgba(27, 39, 54, 0.98), rgba(14, 22, 33, 0.98));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  width: 4.2rem;
+  height: 4.2rem;
+  min-width: 4.2rem;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
   overflow: hidden;
 }
 
 .tutorial-guide-overlay__apostle-sprite {
-  --tutorial-apostle-frame-width: 4rem;
-  --tutorial-apostle-frame-height: 4rem;
+  --tutorial-apostle-frame-width: 5.7rem;
+  --tutorial-apostle-frame-height: 5.7rem;
   width: var(--tutorial-apostle-frame-width);
   height: var(--tutorial-apostle-frame-height);
+  background-color: rgba(34, 58, 82, 0.72);
+  background-blend-mode: darken;
   background-repeat: no-repeat;
-  image-rendering: auto;
+  display: block;
+  overflow: visible;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 10px 18px rgba(4, 10, 18, 0.34));
+  transform: translate3d(0, -0.08rem, 0) scale(1.3);
+  transform-origin: center;
 }
 
 .tutorial-guide-overlay__title {
@@ -241,15 +246,16 @@
   }
 
   .tutorial-guide-overlay__apostle-sprite-shell {
-    width: 3.9rem;
-    height: 3.9rem;
-    min-width: 3.9rem;
-    border-radius: 16px;
+    width: 3.75rem;
+    height: 3.75rem;
+    min-width: 3.75rem;
+    border-radius: 14px;
   }
 
   .tutorial-guide-overlay__apostle-sprite {
-    --tutorial-apostle-frame-width: 3.35rem;
-    --tutorial-apostle-frame-height: 3.35rem;
+    --tutorial-apostle-frame-width: 5rem;
+    --tutorial-apostle-frame-height: 5rem;
+    transform: translate3d(0, -0.05rem, 0) scale(1.3);
   }
 
   .tutorial-guide-overlay__title {

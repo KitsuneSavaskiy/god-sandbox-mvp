@@ -1,0 +1,62 @@
+name: TruffleHog Secret Sweep
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sunday 15:00 UTC = Monday 00:00 JST.
+    - cron: "0 15 * * 0"
+
+permissions:
+  contents: read
+
+jobs:
+  verified-secret-sweep:
+    name: verified secret history sweep
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog verified history sweep
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          result_file="$(mktemp)"
+          trap 'rm -f "$result_file"' EXIT
+
+          set +e
+          docker run --rm \
+            --volume "$PWD:/repo:ro" \
+            --env GIT_CONFIG_COUNT=1 \
+            --env GIT_CONFIG_KEY_0=safe.directory \
+            --env GIT_CONFIG_VALUE_0=/repo \
+            ghcr.io/trufflesecurity/trufflehog:3.94.3@sha256:8837fd74692f6da826b51bc008b6bcf0dd2d70d31d06792673872a235d9b7e39 \
+            git file:///repo \
+            --only-verified \
+            --fail \
+            --json > "$result_file"
+          exit_code=$?
+          set -e
+
+          if [ "$exit_code" -eq 0 ]; then
+            echo "TruffleHog completed: no verified secrets found."
+            exit 0
+          fi
+
+          finding_count="$(wc -l < "$result_file" | tr -d '[:space:]')"
+          if [ -z "$finding_count" ]; then
+            finding_count="unknown"
+          fi
+
+          if [ "$exit_code" -eq 183 ]; then
+            echo "::error::TruffleHog found ${finding_count} verified secret candidate(s). Secret values are intentionally not printed. Follow docs/security/trufflehog-scheduled-sweep.md."
+            exit 1
+          fi
+
+          echo "::error::TruffleHog sweep failed with exit code ${exit_code}. Secret output was not printed."
+          exit "$exit_code"
