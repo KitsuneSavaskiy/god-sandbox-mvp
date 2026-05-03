@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "workspace-save-example-v1",
+  "source": "GodSandbox",
+  "note": "This is an example. Do not put secrets or personal paths here.",
+  "activeCharacterId": "example-character",
+  "lastKnownTick": 0,
+  "events": []
+}
